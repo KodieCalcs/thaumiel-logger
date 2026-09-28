@@ -65,8 +65,16 @@ const round = (v, d = 0) => Number(v.toFixed(d));
 // --- summarizing -------------------------------------------------------------------------------
 
 /** Damage per attacker and per skill from the readable log, plus the settlement cross-check. */
-function summarize(dir, rows, check) {
+function summarize(dir, allRows, check) {
   const header = fs.readFileSync(resultFileOf(dir), "utf8").split("\n", 1)[0];
+  // The team is whoever attacks the most-hit target. The log names an enemy once it has hit an
+  // Agent, so without this its hits on the team would count as team damage.
+  const targetHits = new Map();
+  for (const r of allRows) targetHits.set(r.target, (targetHits.get(r.target) ?? 0) + 1);
+  const mainTarget = [...targetHits].sort((a, b) => b[1] - a[1])[0]?.[0];
+  const team = new Set(allRows.filter((r) => r.target === mainTarget && r.attacker !== mainTarget).map((r) => r.attacker));
+  const rows = allRows.filter((r) => team.has(r.attacker) && !team.has(r.target));
+  const taken = allRows.filter((r) => team.has(r.target) && !team.has(r.attacker));
   const total = rows.reduce((s, r) => s + (+r.damage || 0), 0);
   const byAttacker = new Map();
   for (const r of rows) {
@@ -95,6 +103,7 @@ function summarize(dir, rows, check) {
     durationSeconds: times.length ? round(Math.max(...times) - Math.min(...times), 1) : 0,
     hits: rows.length,
     totalDamage: Math.round(total),
+    damageTaken: { hits: taken.length, damage: Math.round(taken.reduce((s, r) => s + (+r.damage || 0), 0)) },
     attackers: [...byAttacker.values()]
       .sort((a, b) => b.damage - a.damage)
       .map((a) => ({
