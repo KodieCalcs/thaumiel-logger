@@ -1,0 +1,1946 @@
+{
+  "_note": "Generated naming metadata; regenerate with generate-codenames.mjs. Unknown/untranslated codenames remain raw. No combat stats.",
+  "data_version": "ZenlessBetaData@964c0036",
+  "names": {
+    "Alice": {
+      "name": "Alice",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Anbi": {
+      "name": "Anby",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Anton": {
+      "name": "Anton",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Aokaku": {
+      "name": "Soukaku",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Aria": {
+      "name": "Aria",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Astra": {
+      "name": "Astra",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "AvatarTutorial": {
+      "name": "AvatarTutorial",
+      "source": "AvatarAbility folder"
+    },
+    "Azural": {
+      "name": "Dialyn",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Bangboo_Bangboo": {
+      "name": "Eous",
+      "source": "BuddyBattleTemplateTb.FONBHALHDIJ -> BuddyBaseTemplateTb + English TextMap"
+    },
+    "Bangboo_BangbooDream": {
+      "name": "Bangboo_BangbooDream",
+      "source": "BuddyBattleTemplateTb.FONBHALHDIJ -> BuddyBaseTemplateTb + English TextMap"
+    },
+    "Bangboo_BangbooPlayer": {
+      "name": "Eous",
+      "source": "BuddyBattleTemplateTb.FONBHALHDIJ -> BuddyBaseTemplateTb + English TextMap"
+    },
+    "Bangboo_Brawlerboo": {
+      "name": "Brawlerboo",
+      "source": "BuddyBattleTemplateTb.FONBHALHDIJ -> BuddyBaseTemplateTb + English TextMap"
+    },
+    "Bangboo_Luckyboo": {
+      "name": "Luckyboo",
+      "source": "BuddyBattleTemplateTb.FONBHALHDIJ -> BuddyBaseTemplateTb + English TextMap"
+    },
+    "Bangboo_Plugboo": {
+      "name": "Plugboo",
+      "source": "BuddyBattleTemplateTb.FONBHALHDIJ -> BuddyBaseTemplateTb + English TextMap"
+    },
+    "Bangboo_Resonaboo": {
+      "name": "Resonaboo",
+      "source": "BuddyBattleTemplateTb.FONBHALHDIJ -> BuddyBaseTemplateTb + English TextMap"
+    },
+    "Bangboo_Sharkboo": {
+      "name": "Sharkboo",
+      "source": "BuddyBattleTemplateTb.FONBHALHDIJ -> BuddyBaseTemplateTb + English TextMap"
+    },
+    "Bangboo_ViewPoint_Unlock_Eous": {
+      "name": "Eous",
+      "source": "BuddyBattleTemplateTb.FONBHALHDIJ -> BuddyBaseTemplateTb + English TextMap"
+    },
+    "BanYue": {
+      "name": "Banyue",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Belle": {
+      "name": "Belle",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Ben": {
+      "name": "Ben",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Billy": {
+      "name": "Billy",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Brujas": {
+      "name": "Orphie & Magus",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Burnice": {
+      "name": "Burnice",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Caesar": {
+      "name": "Caesar",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Cissia": {
+      "name": "Cissia",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Clara": {
+      "name": "Piper",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Claret": {
+      "name": "Claret",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Corin": {
+      "name": "Corin",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Ellen": {
+      "name": "Ellen",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Evelyn": {
+      "name": "Evelyn",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Harumasa": {
+      "name": "Harumasa",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Hugovlad": {
+      "name": "Hugo",
+      "source": "AvatarBaseTemplateTb + English TextMap"
+    },
+    "HugoVlad": {
+      "name": "Hugo",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Janedoe": {
+      "name": "Jane",
+      "source": "AvatarBaseTemplateTb + English TextMap"
+    },
+    "JaneDoe": {
+      "name": "Jane",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Jufufu": {
+      "name": "Ju Fufu",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Koleda": {
+      "name": "Koleda",
+      "source": "AvatarBaseTemplateTb + English TextMap"
+    },
+    "Lighter": {
+      "name": "Lighter",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Lisa": {
+      "name": "Grace",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Longinus": {
+      "name": "Soldier 11",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Lucia": {
+      "name": "Lucia",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Lucy": {
+      "name": "Lucy",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Lycaon": {
+      "name": "Lycaon",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Monster_Ahriman": {
+      "name": "Ahriman",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Ahriman_Bookemon": {
+      "name": "Monster_Ahriman_Bookemon",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_AhrimanPro_Bookemon": {
+      "name": "Monster_AhrimanPro_Bookemon",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_AhrimanRed": {
+      "name": "Ahriman - Energized",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Airborne": {
+      "name": "Monster_Airborne",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_AlpecaInfested": {
+      "name": "Alpeca (Infested)",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Anglercrab": {
+      "name": "Fisher Crab",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Arbiter": {
+      "name": "Lahmu",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Arcavor": {
+      "name": "Miasma Walker - Arcavor",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_ArlauneGrey": {
+      "name": "Arlaune",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_ArlauneGrey_Bookemon": {
+      "name": "Monster_ArlauneGrey_Bookemon",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_ArlauneGreyPro_Bookemon": {
+      "name": "Monster_ArlauneGreyPro_Bookemon",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_ArlauneRed": {
+      "name": "Arlaune - Energized",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Avarus": {
+      "name": "Miasma Ravager - Avarus",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Awakener": {
+      "name": "Ye Shiyuan the Thrall",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Awakener_NPC": {
+      "name": "Monster_Awakener_NPC",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_AwakenerSlime": {
+      "name": "Senior Slime",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Bangboo_Bagboo": {
+      "name": "Bagboo",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Bangboo_Eous001": {
+      "name": "Eous",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Bangboo_Sumoboo": {
+      "name": "Sumoboo",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_BangbooBattleMecha": {
+      "name": "City Guardboo",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_BangbooBattleMecha_Blued": {
+      "name": "Monster_BangbooBattleMecha_Blued",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_BangbooBattleMecha_Blued_Boss": {
+      "name": "Monster_BangbooBattleMecha_Blued_Boss",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_BangbooPatrolMecha": {
+      "name": "Airspace Patrolboo",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_BangbooPatrolMecha_Blued": {
+      "name": "Monster_BangbooPatrolMecha_Blued",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_BangBooTDHuixiying_01": {
+      "name": "Monster_BangBooTDHuixiying_01",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Banyrek": {
+      "name": "Banyrek",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_BeholderEngine": {
+      "name": "Beholder Engine",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_BeholderEngine_TurnBased": {
+      "name": "Monster_BeholderEngine_TurnBased",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Bellum": {
+      "name": "Bellum",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_BellumSlime": {
+      "name": "Ionized - Doppelganger - Bellum",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_BlackMazingerGoldenBomb": {
+      "name": "Lockspring",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Bodyguard": {
+      "name": "Security Operative",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Bodyguard_TurnBased": {
+      "name": "Monster_Bodyguard_TurnBased",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_BoringMachine": {
+      "name": "Greta",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_BoringMachinePurple": {
+      "name": "Greta - Overclocked",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_BoringMachineRed": {
+      "name": "Greta - Energized",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Bruiser": {
+      "name": "Monster_Bruiser",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Chelonethid": {
+      "name": "Miasma Walker · Scorpse",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Chelonethid_MiasmaSpider": {
+      "name": "Monster_Chelonethid_MiasmaSpider",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Chelonethid_RAB": {
+      "name": "Monster_Chelonethid_RAB",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Chelonethid_Summon": {
+      "name": "Monster_Chelonethid_Summon",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_ClaymoreGrey": {
+      "name": "Tyrfing",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_ClaymoreGrey_Bookemon": {
+      "name": "Monster_ClaymoreGrey_Bookemon",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_ClaymoreGrey_TurnBased": {
+      "name": "Monster_ClaymoreGrey_TurnBased",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_ClaymoreGreyPro_Bookemon": {
+      "name": "Monster_ClaymoreGreyPro_Bookemon",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_ClaymoreRed": {
+      "name": "Tyrfing - Energized",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_ClaymoreRed_TurnBased": {
+      "name": "Monster_ClaymoreRed_TurnBased",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_ComplexCorrupted": {
+      "name": "Unknown Corruption Complex",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Coop_Crystal": {
+      "name": "Monster_Coop_Crystal",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Coop_DubiousHero": {
+      "name": "Monster_Coop_DubiousHero",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Coop_FireBall": {
+      "name": "Monster_Coop_FireBall",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Coop_FireBall_Boss": {
+      "name": "Monster_Coop_FireBall_Boss",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Coop_FireBall_Tutorial": {
+      "name": "Monster_Coop_FireBall_Tutorial",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Cottus": {
+      "name": "Newborn Dead End Butcher",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Cottus_PerformTest": {
+      "name": "Monster_Cottus_PerformTest",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_CottusGrey": {
+      "name": "Dead End Butcher",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_CovenantGuardian": {
+      "name": "Sacrifice - Covenant Guardian",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_CovenantGuardian_RAB": {
+      "name": "Monster_CovenantGuardian_RAB",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_CyclopsGrey": {
+      "name": "Alpeca",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_CyclopsGrey_Bookemon": {
+      "name": "Monster_CyclopsGrey_Bookemon",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_CyclopsGrey_TurnBased": {
+      "name": "Monster_CyclopsGrey_TurnBased",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_CyclopsGreyPro_Bookemon": {
+      "name": "Monster_CyclopsGreyPro_Bookemon",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_CyclopsRed": {
+      "name": "Alpeca - Energized",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_CyclopsRed_TurnBased": {
+      "name": "Monster_CyclopsRed_TurnBased",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Cyrtoidea": {
+      "name": "Ionized - Cyrtoidea",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_DeathXIIIBoss": {
+      "name": "Notorious - Thanatos",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_DeathXIIIEnergy": {
+      "name": "Ionized - Thanatos",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_DeathXIIIGrey": {
+      "name": "Thanatos",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_DeathXIIIRed": {
+      "name": "Thanatos - Energized",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_DubiousHero": {
+      "name": "Hollow Thug - Rampant Brute",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_DubiousHero_Bookemon": {
+      "name": "Monster_DubiousHero_Bookemon",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_DubiousHero_TurnBased": {
+      "name": "Monster_DubiousHero_TurnBased",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_DurahanBlackBoss": {
+      "name": "Newborn Dullahan",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_DurahanBoss": {
+      "name": "Notorious - Dullahan",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_DurahanEnergy": {
+      "name": "Ionized - Dullahan",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_DurahanGrey": {
+      "name": "Dullahan",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_DurahanGrey_Bookemon": {
+      "name": "Monster_DurahanGrey_Bookemon",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_DurahanGrey_TurnBased": {
+      "name": "Monster_DurahanGrey_TurnBased",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_DurahanGreyPro_Bookemon": {
+      "name": "Monster_DurahanGreyPro_Bookemon",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_DurahanRed": {
+      "name": "Dullahan - Energized",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_DurahanRed_TurnBased": {
+      "name": "Monster_DurahanRed_TurnBased",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_EvolvedBee": {
+      "name": "Metamorphosed - Hornet",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_EvolvedBlader": {
+      "name": "Special Offensive - Strike Jaeger",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_EvolvedCannoneer": {
+      "name": "Special Offensive - Grenadier Jaeger",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_EvolvedFootRover": {
+      "name": "Special Offensive - Lightfoot Rover",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_EvolvedGuardianBoss": {
+      "name": "Monster_EvolvedGuardianBoss",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_EvolvedHeavyJaeger": {
+      "name": "Special Offensive - Guard Jaeger",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_EvolvedHeavyStriker": {
+      "name": "Special Offensive - Heavy Striker",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_EvolvedRifleman": {
+      "name": "Special Offensive - Light Jaeger",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_EvolvedTepes": {
+      "name": "Monster_EvolvedTepes",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_EyeEngine": {
+      "name": "Metamorphosed - Beholder Engine",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_FlameCantor": {
+      "name": "Flame Cantor",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_FlameCantor_Bookemon": {
+      "name": "Monster_FlameCantor_Bookemon",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_FlameCantor_TurnBased": {
+      "name": "Monster_FlameCantor_TurnBased",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_FlameDreamer_TurnBased": {
+      "name": "Monster_FlameDreamer_TurnBased",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Fossor": {
+      "name": "Fossor",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_FossorRed": {
+      "name": "Fossor - Energized",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_FrenziedManiac": {
+      "name": "Corrupted Bandit - Frenzied Maniac",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_FrenziedManiac_TurnBased": {
+      "name": "Monster_FrenziedManiac_TurnBased",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_FrenziedManiacPro_TurnBased": {
+      "name": "Monster_FrenziedManiacPro_TurnBased",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Geppetto": {
+      "name": "Parasitic Ethereal Swarm — Code Name: Geppetto",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_GiantEnergy": {
+      "name": "Ionized - Farbauti",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_GiantGrey": {
+      "name": "Farbauti",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_GiantRed": {
+      "name": "Farbauti - Energized",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_GirReborn": {
+      "name": "Girtablullu - Stagnant Aberrant",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_GirReborn_AirCombat": {
+      "name": "Monster_GirReborn_AirCombat",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_GirReborn_HC_P1": {
+      "name": "Monster_GirReborn_HC_P1",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_GirReborn_HC_P2": {
+      "name": "Monster_GirReborn_HC_P2",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Girtablu": {
+      "name": "Girtablullu",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Girtablu_HC": {
+      "name": "Integrated - Girtablullu",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Gloomaron": {
+      "name": "Miasma Ravager - Huskron",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_GoblinGrey": {
+      "name": "Goblin",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_GoblinMetro": {
+      "name": "Metro Goblin",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_GoblinMetroRed": {
+      "name": "Metro Goblin - Energized",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_GoblinRed": {
+      "name": "Goblin - Energized",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_GoldenBomb": {
+      "name": "Golden Bangboo",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_GoldenBomb_Bookemon": {
+      "name": "Monster_GoldenBomb_Bookemon",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_GolemGrey": {
+      "name": "Hoplitai",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_GolemGrey_Bookemon": {
+      "name": "Monster_GolemGrey_Bookemon",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_GolemGreyPro_Bookemon": {
+      "name": "Monster_GolemGreyPro_Bookemon",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_GolemRed": {
+      "name": "Hoplitai - Energized",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_GolemRed_MusicActivity": {
+      "name": "Monster_GolemRed_MusicActivity",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_GraymaneCenturion": {
+      "name": "Sanguine Sweeper",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_GraymaneCenturion_Cloned": {
+      "name": "Monster_GraymaneCenturion_Cloned",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Greatsworder": {
+      "name": "Airspace Patrol Vanguard",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_GreedyGunner": {
+      "name": "Corrupted Bandit - Greedy Ranger",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_GrenadierJaeger": {
+      "name": "Demolition Jaeger",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_GrenadierJaegerCam": {
+      "name": "Grenadier Jaegers",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Guardian": {
+      "name": "Autonomous Support Unit - Guardian MK II",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_GuardianCam": {
+      "name": "Autonomous Support Unit - Guardian",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_GuardianMech": {
+      "name": "Autonomous Assault Unit - Guardian MK III",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Hacker": {
+      "name": "Mutant Formicarrier",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_HackerMecha_ExplosiveBarrel_01": {
+      "name": "Monster_HackerMecha_ExplosiveBarrel_01",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_HACMecha": {
+      "name": "Autonomous Tactical Unit - Conqueror",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Halberdier": {
+      "name": "Airspace Patrol Spearguard",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Halloween_PhaethonTrickyCar": {
+      "name": "Monster_Halloween_PhaethonTrickyCar",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Halloween_PheonyTrickyCar": {
+      "name": "Monster_Halloween_PheonyTrickyCar",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Halloween_YuzuhaTrickyCar": {
+      "name": "Monster_Halloween_YuzuhaTrickyCar",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_HarumasaOVA_HitTarget_01": {
+      "name": "Monster_HarumasaOVA_HitTarget_01",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_HarumasaOVA_Target_01_False": {
+      "name": "Monster_HarumasaOVA_Target_01_False",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_HarumasaOVA_Target_01_True": {
+      "name": "Monster_HarumasaOVA_Target_01_True",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Harvester": {
+      "name": "Lumberjack",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Harvester_Bookemon": {
+      "name": "Monster_Harvester_Bookemon",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_HatiArmoredBoss": {
+      "name": "Notorious - Armored Hati",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_HatiArmoredGrey": {
+      "name": "Armored Hati",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_HatiArmoredRed": {
+      "name": "Armored Hati - Energized",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_HatiBoss": {
+      "name": "Notorious - Hati",
+      "source": "MonsterCardConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_HatiGrey": {
+      "name": "Hati",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_HatiGrey_Mini": {
+      "name": "Monster_HatiGrey_Mini",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_HatiRed": {
+      "name": "Hati - Energized",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_HatiRedBoss": {
+      "name": "Hati Pack Leader — Energized",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Hayyot": {
+      "name": "Haytor",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Hayyot_Summon": {
+      "name": "Monster_Hayyot_Summon",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Hayyot_SummonA": {
+      "name": "Monster_Hayyot_SummonA",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Hayyot_SummonB": {
+      "name": "Monster_Hayyot_SummonB",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_HeavyFirePower": {
+      "name": "Assault Gunner",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_HeavyFirePowerCam": {
+      "name": "Heavy Gunner",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_HeavyJaeger": {
+      "name": "Patrol Jaeger",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_HeavyJaegerCam": {
+      "name": "Guard Jaeger",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_HeavySoldier": {
+      "name": "Riot Patroller",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_HeavyStriker": {
+      "name": "Autonomous Support Unit - Heavy Striker MK II",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_HeavyStriker_TurnBased": {
+      "name": "Monster_HeavyStriker_TurnBased",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_HeavyStrikerBoss": {
+      "name": "Autonomous Tactical Unit - Shielded Defender Omega",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_HeavyStrikerBossCam": {
+      "name": "Autonomous Tactical Unit — Shielded Defender",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_HeavyStrikerCam": {
+      "name": "Autonomous Support Unit - Heavy Striker",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_HeavyStrikerPro_TurnBased": {
+      "name": "Monster_HeavyStrikerPro_TurnBased",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_HereticHunter": {
+      "name": "Sacrifice - Heretic Jester",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_HereticHunter_Box": {
+      "name": "Monster_HereticHunter_Box",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Hitchspiker": {
+      "name": "Hitchspiker",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_HollowVenger": {
+      "name": "Monster_HollowVenger",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_HollowVenger_Summon": {
+      "name": "Monster_HollowVenger_Summon",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_HugoVlad": {
+      "name": "Abyssal Enforcer",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_HugoVladSlime": {
+      "name": "Ionized - Doppelganger - Abyssal Enforcer",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Huskron": {
+      "name": "Huskron",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Huskron_Bookemon": {
+      "name": "Monster_Huskron_Bookemon",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_HymnistWar": {
+      "name": "Exalting Hymnist",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_HymnistWar_TurnBased": {
+      "name": "Monster_HymnistWar_TurnBased",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_InnerKnight": {
+      "name": "Shining Promise - Billy",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_InnerKnight_HC": {
+      "name": "Monster_InnerKnight_HC",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_InnerKnight_Slime": {
+      "name": "Monster_InnerKnight_Slime",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_IonizedPugnus": {
+      "name": "Ionized - Pugnus",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Isolde": {
+      "name": "The Defector",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_IsoldeSlime": {
+      "name": "Doppelganger - The Defector",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_IsoldetheDefiler": {
+      "name": "The Defiler",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_IsoldetheDefiler_Tsunami_Seed": {
+      "name": "Monster_IsoldetheDefiler_Tsunami_Seed",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_IsoldetheDefiler_Tsunami_Wall": {
+      "name": "Monster_IsoldetheDefiler_Tsunami_Wall",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_JaneDoe": {
+      "name": "Jane Doe",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_JaneDoeSlime": {
+      "name": "Ionized - Doppelganger - Jane",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_LAAndroid": {
+      "name": "Autonomous Support Unit - Sweeper",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_LAAndroid_TurnBased": {
+      "name": "Monster_LAAndroid_TurnBased",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_LampasBlackVeil": {
+      "name": "Black Veil Marionette",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_LampasBlackVeil_MusicActivity": {
+      "name": "Monster_LampasBlackVeil_MusicActivity",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_LampasBlackVeil_MusicActivity_Clone": {
+      "name": "Monster_LampasBlackVeil_MusicActivity_Clone",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_LampasGreyVeil": {
+      "name": "Gray Veil Marionette",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Larval": {
+      "name": "Kusarikku",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Larval_Crevice": {
+      "name": "Monster_Larval_Crevice",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_LightfootRover": {
+      "name": "Autonomous Support Unit - Lightfoot Rover MK II",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_LightfootRoverCam": {
+      "name": "Autonomous Support Unit - Lightfoot Rover",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_LightJaeger": {
+      "name": "Scout Jaeger",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_LightJaegerCam": {
+      "name": "Light Jaeger",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_LiquidEther_10m": {
+      "name": "Monster_LiquidEther_10m",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_LiquidEther_4m": {
+      "name": "Monster_LiquidEther_4m",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_LiquidEther_6m": {
+      "name": "Monster_LiquidEther_6m",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Mandrake": {
+      "name": "Mandrake",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MandrakeRed": {
+      "name": "Mandrake - Energized",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Marionette_Twins": {
+      "name": "Twin Marionettes",
+      "source": "MonsterCardConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MaterialHandler": {
+      "name": "Hans",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MaterialHandlerPurple": {
+      "name": "Hans - Overclocked",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MaterialHandlerRed": {
+      "name": "Hans - Energized",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MazingerGoldenBomb": {
+      "name": "Mecha Golden Bangboo",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MazingerGoldenBomb_HitTarget_01": {
+      "name": "Monster_MazingerGoldenBomb_HitTarget_01",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MeleeJaeger": {
+      "name": "Private Jaeger",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MeleeJaegerCam": {
+      "name": "Rookie Jaeger",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MeleeSoldier": {
+      "name": "Search Patroller",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MentorMevorakh": {
+      "name": "Miasma Priest",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MentorMevorakh_MusicActivity": {
+      "name": "Monster_MentorMevorakh_MusicActivity",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MentorMevorakh_MusicActivity_Clone": {
+      "name": "Monster_MentorMevorakh_MusicActivity_Clone",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MetalGorilla": {
+      "name": "Autonomous Tactical Unit - Typhon Slugger",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MetalGorilla_TurnBased": {
+      "name": "Monster_MetalGorilla_TurnBased",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MetalGorillaCam": {
+      "name": "Autonomous Tactical Unit - Typhon Challenger",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MiasmaDubiousHero": {
+      "name": "Miasmic - Rampant Brute",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MiasmaFrenziedManiac": {
+      "name": "Miasmic - Frenzied Maniac",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MiasmaFrenziedManiac_MusicActivity": {
+      "name": "Monster_MiasmaFrenziedManiac_MusicActivity",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MiasmaHeavyStriker": {
+      "name": "Miasmic - Heavy Striker",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MiasmaHugoSlime": {
+      "name": "Miasmic - Doppelganger - Abyssal Enforcer",
+      "source": "MonsterCardConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MiasmaHugoVladSlime": {
+      "name": "Monster_MiasmaHugoVladSlime",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MiasmaIsoldeSlime": {
+      "name": "Miasmic - Doppelganger - The Defector",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MiasmaJaneDoeSlime": {
+      "name": "Monster_MiasmaJaneDoeSlime",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MiasmaJaneSlime": {
+      "name": "Miasmic - Doppelganger - Jane",
+      "source": "MonsterCardConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MiasmaLightfootRover": {
+      "name": "Miasmic - Lightfoot Rover",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MiasmaNoranoSlime": {
+      "name": "Miasmic Doppelganger Komano Manato",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MiasmaSlime": {
+      "name": "Miasmic - Doppelganger",
+      "source": "MonsterCardConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MiasmaSpawn": {
+      "name": "Miasma Spawn",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MiasmaSpider": {
+      "name": "Miasmic - Blastcrawler",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MiasmaSpider_Empty": {
+      "name": "Monster_MiasmaSpider_Empty",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MiasmaTerrorBird": {
+      "name": "Miasmic - Autonomous Support Unit - Terror Raptor",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MiasmaThracian": {
+      "name": "Miasmic - Thracian",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MiasmaTrinox": {
+      "name": "Miasmic - Trinox",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MiasmaTrinox_MusicActivity": {
+      "name": "Monster_MiasmaTrinox_MusicActivity",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MiasmaWalkerGrenadierJaeger": {
+      "name": "Miasmic Trooper - Cannoneer",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MiasmaWalkerGuardJaeger": {
+      "name": "Miasmic Trooper - Shieldguard",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MiasmaWickedWraith": {
+      "name": "Miasmic - Wicked Wraith",
+      "source": "MonsterCardConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MiasmaWickedWrath": {
+      "name": "Monster_MiasmaWickedWrath",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Minion": {
+      "name": "Kulullu",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MoltTarasqueMixer": {
+      "name": "Metamorphosed - Tarasque Mixer",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MonsterTest01": {
+      "name": "Monster_MonsterTest01",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MonsterTest02": {
+      "name": "Monster_MonsterTest02",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Mors": {
+      "name": "Mors",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_MorsSlime": {
+      "name": "Ionized - Doppelganger - Mors",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Mutant": {
+      "name": "Phaethon of the Scorched Horizon",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Mutant_HC": {
+      "name": "Integrated - Phaethon of the Scorched Horizon",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Mutant_Tornado": {
+      "name": "Monster_Mutant_Tornado",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Mutant_Tornado_Small": {
+      "name": "Monster_Mutant_Tornado_Small",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_NamelessOne": {
+      "name": "Miasmic Fiend - Unfathomable",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Nassellaria": {
+      "name": "Ionized - Nassellaria",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Nassellaria_TurnBased": {
+      "name": "Monster_Nassellaria_TurnBased",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Nineveh": {
+      "name": "Symbiotic Ethereal Swarm - Code Name: Nineveh",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_NinevehBee": {
+      "name": "Hornet",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_NinevehBee_AirCombat": {
+      "name": "Monster_NinevehBee_AirCombat",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_NinevehVine": {
+      "name": "Monster_NinevehVine",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Norano": {
+      "name": "Drowned Ideal - Komano Manato",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Norano_HC": {
+      "name": "Monster_Norano_HC",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_NoranoEgo_Slime": {
+      "name": "Ionized Doppelganger Komano Manato",
+      "source": "MonsterCardConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_NoranoSlime": {
+      "name": "Monster_NoranoSlime",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_NotoriousCottus": {
+      "name": "Notorious - Dead End Butcher",
+      "source": "MonsterCardConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_NotoriousDeadEndButcher": {
+      "name": "Monster_NotoriousDeadEndButcher",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_NotoriousDeadEndButcher_TurnBased": {
+      "name": "Monster_NotoriousDeadEndButcher_TurnBased",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_NotoriousMarionette": {
+      "name": "Notorious - Marionette",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_NotoriousMarionette_Summon": {
+      "name": "Monster_NotoriousMarionette_Summon",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_NotoriousPompey": {
+      "name": "Notorious - Pompey",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_ObsoleteAndroid": {
+      "name": "A-H0L0 Type Intelligent Tactical Construct - Mirage Archer Unit",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_OilTank_FightTest": {
+      "name": "Monster_OilTank_FightTest",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Palicus": {
+      "name": "Palicus",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Palicus_Clone": {
+      "name": "Monster_Palicus_Clone",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Patroller": {
+      "name": "Light Patroller",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Patroller_TurnBased": {
+      "name": "Monster_Patroller_TurnBased",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_PatrollerPro_TurnBased": {
+      "name": "Monster_PatrollerPro_TurnBased",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_PcyHACMecha": {
+      "name": "Autonomous Tactical Unit - Ares",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_PileDriver": {
+      "name": "Friday",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_PileDriverPurple": {
+      "name": "Friday - Overclocked",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_PileDriverRed": {
+      "name": "Friday - Energized",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Pinball_Car": {
+      "name": "Monster_Pinball_Car",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Pinball_Dog": {
+      "name": "Monster_Pinball_Dog",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Pinball_Dragon": {
+      "name": "Monster_Pinball_Dragon",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Pinball_Duck": {
+      "name": "Monster_Pinball_Duck",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Pinball_Duck_Purple": {
+      "name": "Monster_Pinball_Duck_Purple",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Pinball_ET": {
+      "name": "Monster_Pinball_ET",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Pinball_ETSpeed": {
+      "name": "Monster_Pinball_ETSpeed",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Pinball_Girl": {
+      "name": "Monster_Pinball_Girl",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Pinball_PureDog": {
+      "name": "Monster_Pinball_PureDog",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Pinball_UFO": {
+      "name": "Monster_Pinball_UFO",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_PinballBall_Dot": {
+      "name": "Monster_PinballBall_Dot",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_PinkBowTrooper": {
+      "name": "Wishful Finale - Aria",
+      "source": "MonsterCardConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_PlatinumBangboo": {
+      "name": "Platinum Bangboo",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_PorcelumeTerrorBird": {
+      "name": "The Decider - Terror Raptor",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Predator": {
+      "name": "Mushussu",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Pulchra": {
+      "name": "Pulchra",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_PulchraSlime": {
+      "name": "Ionized - Doppelganger - Pulchra",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Pure": {
+      "name": "Phaethon of the Scorched Horizon",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Pure_Meteorite": {
+      "name": "Monster_Pure_Meteorite",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Pure_Summon": {
+      "name": "Monster_Pure_Summon",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_PyroisExecute_01": {
+      "name": "Monster_PyroisExecute_01",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_PyroisExecute_02": {
+      "name": "Monster_PyroisExecute_02",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_PyroisExecute_03": {
+      "name": "Monster_PyroisExecute_03",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_RagingGuy": {
+      "name": "Illegal Support Unit - Enraged Sweeper",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Random": {
+      "name": "Random Enemy Card",
+      "source": "MonsterCardConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_RangeSoldier": {
+      "name": "Armed Patroller",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_RoscaSolider": {
+      "name": "Airspace Patrol Shieldguard",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_RuthlessFiend": {
+      "name": "Corrupted Bandit - Ruthless Fiend",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_SacrificeBringer": {
+      "name": "Sacrifice - Bringer",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_SacrificeBringer_MusicActivity": {
+      "name": "Monster_SacrificeBringer_MusicActivity",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_SacrificeBringer_MusicActivity_Clone": {
+      "name": "Monster_SacrificeBringer_MusicActivity_Clone",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_SacrificeBringerHand": {
+      "name": "Monster_SacrificeBringerHand",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Sapper": {
+      "name": "Special Anti-Riotboo",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Sapper_Blued": {
+      "name": "Monster_Sapper_Blued",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Satyrus": {
+      "name": "Faun",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Satyrus_Bookemon": {
+      "name": "Monster_Satyrus_Bookemon",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Satyrus_MusicActivity": {
+      "name": "Monster_Satyrus_MusicActivity",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_SatyrusPro_Bookemon": {
+      "name": "Monster_SatyrusPro_Bookemon",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_SatyrusRed": {
+      "name": "Faun - Energized",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_SecurityUnitLAAndroid": {
+      "name": "Tactical Security Unit - Medium Patroller",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_SecurityUnitPatroller": {
+      "name": "Tactical Security Unit - Light Patroller",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_SecurityUnitSoldier": {
+      "name": "Tactical Security Unit - Security Enforcer",
+      "source": "MonsterCardConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_SecurityUnitSoldier_HeavySoldier": {
+      "name": "Monster_SecurityUnitSoldier_HeavySoldier",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_SecurityUnitSoldier_MeleeSoldier": {
+      "name": "Monster_SecurityUnitSoldier_MeleeSoldier",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_SecurityUnitSoldier_MeleeSoldier_MusicActivity": {
+      "name": "Monster_SecurityUnitSoldier_MeleeSoldier_MusicActivity",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Sentinel": {
+      "name": "Autonomous Assault Unit - Airspace Sentinel",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Sharpshooter": {
+      "name": "Monster_Sharpshooter",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Shatterbug": {
+      "name": "Shatterbug",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Slime": {
+      "name": "Ionized - Doppelganger",
+      "source": "MonsterCardConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Sobek": {
+      "name": "Miasma Ravager - Sobek",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Sordidus": {
+      "name": "Sordidus",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_SordidusRed": {
+      "name": "Sordidus - Energized",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Specter": {
+      "name": "Specter",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_SpecterRed": {
+      "name": "Specter - Energized",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_SpiderGrey": {
+      "name": "Blastcrawler",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_SpiderGrey_Bookemon": {
+      "name": "Monster_SpiderGrey_Bookemon",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_SpiderGreyPro_Bookemon": {
+      "name": "Monster_SpiderGreyPro_Bookemon",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_SpiderRed": {
+      "name": "Blastcrawler - Energized",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Stalker": {
+      "name": "Ulidim",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Stalker_Boss": {
+      "name": "Monster_Stalker_Boss",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Stalker_Boss_Faker": {
+      "name": "Monster_Stalker_Boss_Faker",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_StrikeJaeger": {
+      "name": "Harrier Jaeger",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_StrikeJaegerCam": {
+      "name": "Strike Jaeger",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_SymbioticEtherealSinner": {
+      "name": "Infernal Revenant",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_SymbioticEtherealSinner_FireBall": {
+      "name": "Monster_SymbioticEtherealSinner_FireBall",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_SymbioticEtherealSinner_HC": {
+      "name": "Monster_SymbioticEtherealSinner_HC",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_SymbioticEtherealSinner_Tornado": {
+      "name": "Monster_SymbioticEtherealSinner_Tornado",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_TacticalAssaultGunner": {
+      "name": "Specialized Assault Bomber",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_TacticalAssaultGunner_TurnBased": {
+      "name": "Monster_TacticalAssaultGunner_TurnBased",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_TarasqueMixer": {
+      "name": "Tarasque Mixer",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Tepes": {
+      "name": "Tepes",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_TerrorBird": {
+      "name": "Terror Raptor",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_TerrorBird_TurnBased": {
+      "name": "Monster_TerrorBird_TurnBased",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Thracian": {
+      "name": "Thracian",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Thracian_RAB": {
+      "name": "Monster_Thracian_RAB",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Thracian_TurnBased": {
+      "name": "Monster_Thracian_TurnBased",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_ThugAssaulter": {
+      "name": "Hollow Thug - Ambusher",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_ThugAssaulter_NoMask": {
+      "name": "Monster_ThugAssaulter_NoMask",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_ThugAssaulterPro_NoMask": {
+      "name": "Monster_ThugAssaulterPro_NoMask",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_ThugAssaulterVest": {
+      "name": "Hollow Thug - Assaulter",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_ThugBulkyAbuser": {
+      "name": "Hollow Thug - Wanted Intimidator",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_ThugBulkyAbuser_MusicActivity": {
+      "name": "Monster_ThugBulkyAbuser_MusicActivity",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_ThugBulkyAbuserVest": {
+      "name": "Hollow Thug - Bulky Intimidator",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_ThugBulkyEnforcer": {
+      "name": "Hollow Thug - Wanted Enforcer",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_ThugBulkyEnforcer_TurnBased": {
+      "name": "Monster_ThugBulkyEnforcer_TurnBased",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_ThugBulkyEnforcerBoss": {
+      "name": "Troublemaker - Wanted Enforcer",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_ThugBulkyEnforcerPro": {
+      "name": "Monster_ThugBulkyEnforcerPro",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_ThugBulkyEnforcerVest": {
+      "name": "Hollow Thug - Bulky Enforcer",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_ThugPoacher": {
+      "name": "Hollow Thug - Rustler",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_ThugPoacherVest": {
+      "name": "Hollow Thug - Poacher",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_ThugPyromaniac": {
+      "name": "Hollow Thug - Arsonist",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_ThugPyromaniacVest": {
+      "name": "Hollow Thug - Pyromaniac",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_ThugRaider": {
+      "name": "Hollow Thug - Looter",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_ThugRaiderVest": {
+      "name": "Hollow Thug - Raider",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_TyphonDestroyer": {
+      "name": "Autonomous Assault Unit - Typhon Destroyer",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_TyphonDestroyer_MusicActivity": {
+      "name": "Monster_TyphonDestroyer_MusicActivity",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_TyrantPompey": {
+      "name": "Corrupted Overlord - Pompey",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_TyrfingInfested": {
+      "name": "Tyrfing (Infested)",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_UAV_Air": {
+      "name": "Monster_UAV_Air",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_UAV_Ground": {
+      "name": "Monster_UAV_Ground",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Unknown": {
+      "name": "Unknown Unit",
+      "source": "MonsterCardConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_UVARaven": {
+      "name": "Raven UAV",
+      "source": "MonsterCardConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_UVARavenPro": {
+      "name": "Raven UAV - Activated",
+      "source": "MonsterCardConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Vesper": {
+      "name": "Discordant Solo - Vesper",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Vessel": {
+      "name": "Primordial Nightmare - \"The Creator\"",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Vessel_HC": {
+      "name": "Integrated - Primordial Nightmare - \"The Creator\"",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_Vessel_Test": {
+      "name": "Monster_Vessel_Test",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_ViciousStriker": {
+      "name": "Corrupted Bandit - Vicious Striker",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_ViciousStriker_Bookemon": {
+      "name": "Monster_ViciousStriker_Bookemon",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_ViciousStriker_MusicActivity": {
+      "name": "Monster_ViciousStriker_MusicActivity",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_ViciousStrikerPro_Bookemon": {
+      "name": "Monster_ViciousStrikerPro_Bookemon",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_WanderingHunter": {
+      "name": "Wandering Hunter",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_WanderingHunter_Chasing": {
+      "name": "Monster_WanderingHunter_Chasing",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_WanderingHunter_Child_Lucia_Fake": {
+      "name": "Monster_WanderingHunter_Child_Lucia_Fake",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_WanderingHunter_Child_Lucia_True": {
+      "name": "Monster_WanderingHunter_Child_Lucia_True",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_WanderingHunter_LiquidEtherLaser": {
+      "name": "Monster_WanderingHunter_LiquidEtherLaser",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_WickedWrath": {
+      "name": "Corrupted Bandit - Wicked Wraith",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_WingedAvarus": {
+      "name": "Metamorphosed - Avarus",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_WingedChelonethid": {
+      "name": "Metamorphosed - Scorpse",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_WingedChelonethid_Spider": {
+      "name": "Monster_WingedChelonethid_Spider",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_WingedChelonethid_Summon": {
+      "name": "Monster_WingedChelonethid_Summon",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "Monster_ZeroMazingerGoldenBomb": {
+      "name": "Mecha Golden Bangboo",
+      "source": "MonsterConfigTemplateTb.json + English TextMap"
+    },
+    "NangongYu": {
+      "name": "Nangong Yu",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Nicole": {
+      "name": "Nicole",
+      "source": "AvatarBaseTemplateTb + English TextMap"
+    },
+    "Norano": {
+      "name": "Manato",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Norma": {
+      "name": "Norma",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Nostradamus": {
+      "name": "Nicole",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "OokumaMari": {
+      "name": "Koleda",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Panyinhu": {
+      "name": "Yinhu",
+      "source": "AvatarBaseTemplateTb + English TextMap"
+    },
+    "PanYinhu": {
+      "name": "Yinhu",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Promeia": {
+      "name": "Promeia",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Pryce": {
+      "name": "Roxy",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Pulchra": {
+      "name": "Pulchra",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Pyrois": {
+      "name": "Pyrois",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Qingyi": {
+      "name": "QingYi",
+      "source": "AvatarBaseTemplateTb + English TextMap"
+    },
+    "QingYi": {
+      "name": "QingYi",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Remielle": {
+      "name": "Remielle",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Rina": {
+      "name": "Rina",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Seed": {
+      "name": "Seed",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Seth": {
+      "name": "Seth",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Sigrid": {
+      "name": "Sigrid",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Silveranby": {
+      "name": "Soldier 0 - Anby",
+      "source": "AvatarBaseTemplateTb + English TextMap"
+    },
+    "SilverAnby": {
+      "name": "Soldier 0 - Anby",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "SPBilly": {
+      "name": "Starlight - Billy",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Summer": {
+      "name": "Sunna",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Trigger": {
+      "name": "Trigger",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Tsubaki": {
+      "name": "Nekomata",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Unagi": {
+      "name": "Miyabi",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Velina": {
+      "name": "Velina",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Vivian": {
+      "name": "Vivian",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Wise": {
+      "name": "Wise",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "XiaoZhao": {
+      "name": "Zhao",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Yanagi": {
+      "name": "Yanagi",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Yidhari": {
+      "name": "Yidhari",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Yixuan": {
+      "name": "YiXuan",
+      "source": "AvatarBaseTemplateTb + English TextMap"
+    },
+    "YiXuan": {
+      "name": "YiXuan",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Yuzuha": {
+      "name": "Yuzuha",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Zhenzhen": {
+      "name": "Ye Shunguang",
+      "source": "AvatarBaseTemplateTb localization codename"
+    },
+    "Zhuyuan": {
+      "name": "Zhu Yuan",
+      "source": "AvatarBaseTemplateTb + English TextMap"
+    },
+    "ZhuYuan": {
+      "name": "Zhu Yuan",
+      "source": "AvatarBaseTemplateTb localization codename"
+    }
+  }
+}

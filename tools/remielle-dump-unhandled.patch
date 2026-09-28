@@ -1,0 +1,44 @@
+diff --git a/gamesv/src/messaging/handlers.zig b/gamesv/src/messaging/handlers.zig
+index e7ba09a..cab9487 100644
+--- a/gamesv/src/messaging/handlers.zig
++++ b/gamesv/src/messaging/handlers.zig
+@@ -1,6 +1,7 @@
+ const log = std.log.scoped(.@"remielle-gamesv::messaging");
+ 
+ var endbattle_dump_seq: u64 = 0;
++var unhandled_dump_seq: u64 = 0;
+ 
+ const namespaces: []const type = &.{
+     @import("handlers/player.zig"),
+@@ -65,6 +66,31 @@ pub fn process(
+             .{ msg_header.cmd_id, frame.clients.get(.addr, frame.target_index) },
+         );
+ 
++        // battlestats: dump the decrypted body of every unhandled message so in-fight
++        // reports (cmd 5216 on CNBetaWin3.3.0) can be decoded offline. One file per
++        // message; the name carries sequence, cmd id, packet id and receive time (ms).
++        dump_unhandled: {
++            const body = arena.alloc(u8, msg_header.body_len) catch break :dump_unhandled;
++            xored_reader.interface.readSliceAll(body) catch break :dump_unhandled;
++
++            const cwd = Io.Dir.cwd();
++            cwd.createDirPath(frame.io, "logs/unhandled/") catch {};
++            unhandled_dump_seq += 1;
++
++            const now_ms = Io.Timestamp.now(frame.io, .real).toMilliseconds();
++            var path_buf: [128]u8 = undefined;
++            const path = std.fmt.bufPrint(
++                &path_buf,
++                "logs/unhandled/{d:0>6}_cmd{d}_pkt{d}_t{d}.bin",
++                .{ unhandled_dump_seq, msg_header.cmd_id, head.packet_id, now_ms },
++            ) catch break :dump_unhandled;
++
++            if (cwd.createFile(frame.io, path, .{})) |file| {
++                defer file.close(frame.io);
++                file.writeStreamingAll(frame.io, body) catch {};
++            } else |_| {}
++        }
++
+         if (head.packet_id == 0) return;
+ 
+         try messaging.sendDummy(

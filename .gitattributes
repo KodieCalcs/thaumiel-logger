@@ -1,0 +1,10 @@
+* text=auto eol=lf
+assets/server_pc.json -text
+# Windows-only files players open: keep CRLF so Notepad and cmd.exe read them right.
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+packaging/*.txt text eol=crlf
+# Upstream rewrites README.md on every client update; this fork's README is its own. The
+# follow-upstream workflow enables the "ours" driver, so those merges keep this file and the
+# workflow copies upstream's README to README.upstream.md instead.
+README.md merge=ours

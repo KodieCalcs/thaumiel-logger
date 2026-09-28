@@ -1,0 +1,2 @@
+This file turns off the large developer-only metadata dump (il2cpp-v7.tsv, ~50 MB per launch).
+Delete it only if you are updating the logger for a new game version.

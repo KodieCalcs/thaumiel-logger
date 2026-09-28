@@ -1,3 +1,16 @@
 zig-out/
 .zig-cache/
+.zig-global-cache/
 .direnv/
+*.exe
+*.pdb
+*.dll
+*.tmp
+__pycache__/
+# Game/session data never belongs in this repo (see README "What must never be committed").
+local-data/
+*.tsv
+*.pb
+*.dmp
+# Release packaging output (packaging/make-release.ps1).
+dist/

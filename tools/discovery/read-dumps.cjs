@@ -1,0 +1,6 @@
+const fs=require('fs');
+for(const file of fs.readdirSync('local-data/crash-analysis').filter(x=>x.endsWith('.dmp'))){
+const b=fs.readFileSync('local-data/crash-analysis/'+file),u=o=>b.readUInt32LE(o),q=o=>b.readBigUInt64LE(o),h=x=>'0x'+x.toString(16); const streams={};for(let i=0;i<u(8);i++){let o=u(12)+12*i;streams[u(o)]={r:u(o+8),s:u(o+4)};}
+const mods=[];let m=streams[4].r;for(let i=0;i<u(m);i++){let o=m+4+108*i,n=u(o+20);mods.push({base:q(o),size:BigInt(u(o+8)),name:b.toString('utf16le',n+4,n+4+u(n))});}const locate=x=>{let m=mods.find(m=>x>=m.base&&x<m.base+m.size);return m?m.name.split('\\').pop()+'+'+h(x-m.base):h(x)};
+let e=streams[6].r,c=u(e+164);const out={file,time:new Date(u(20)*1000).toISOString(),thread:u(e),exception:h(u(e+8)),address:locate(q(e+24)),parameters:Array.from({length:u(e+32)},(_,i)=>h(q(e+40+8*i))),registers:{},modules:mods.filter(m=>/GameAssembly|thaumiel/.test(m.name)).map(m=>({name:m.name,base:h(m.base),size:h(m.size)}))};for(const [n,o]of Object.entries({rax:120,rcx:128,rdx:136,rbx:144,rsp:152,rbp:160,rsi:168,rdi:176,r8:184,r9:192,r10:200,r11:208,r12:216,r13:224,r14:232,r15:240,rip:248}))out.registers[n]=locate(q(c+o));console.log(JSON.stringify(out,null,2));
+}

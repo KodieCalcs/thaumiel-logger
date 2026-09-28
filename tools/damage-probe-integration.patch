@@ -1,0 +1,20 @@
+--- a/build.zig
++++ b/build.zig
+@@ -39,3 +39,5 @@
+     });
+     dynlib.root_module.link_libc = true;
++    dynlib.root_module.addCSourceFile(.{ .file = b.path("src/damage_probe.c"), .flags = &.{} });
++    dynlib.root_module.addAssemblyFile(b.path("src/damage_probe.S"));
+ 
+--- a/src/dynlib.zig
++++ b/src/dynlib.zig
+@@ -13,3 +13,4 @@
+ const sampler = @import("sampler.zig");
+ const hitlog = @import("hitlog.zig");
++extern fn damage_probe_start() callconv(.c) c_int;
+ const Interception = @import("Interception.zig");
+@@ -108,3 +109,4 @@
+     // Per-hit log: hooks ConfigEntityAnimEvent::TriggerAttackPattern.
+     hitlog.start(syscall);
++    log.info("damage probe status {d} (0 disabled, 1 installed, 2 installed/protection warning, negative refused)", .{damage_probe_start()});
+ }

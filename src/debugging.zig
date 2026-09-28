@@ -60,6 +60,8 @@ pub fn logFn(
     comptime format: []const u8,
     args: anytype,
 ) void {
+    if (comptime scope == .hitlog or scope == .dumper or scope == .eventlog or scope == .capture or scope == .timescale or scope == .statelog)
+        @import("startup_log.zig").note(level, scope, format, args);
     std.log.defaultLogFileTerminal(level, scope, format, args, terminal) catch {};
     terminal.writer.flush() catch {};
 }

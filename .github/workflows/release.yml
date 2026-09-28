@@ -1,0 +1,85 @@
+# Builds the DLL + launcher, runs the no-game tests, packages the player zip
+# (packaging/make-release.ps1) and publishes it as a GitHub Release.
+#
+# Runs on every push to main that changes something shipped, by hand (Actions tab ->
+# "Build and release" -> Run workflow), and from follow-upstream.yml after it merges a new
+# upstream client patch. The release title says whether the combat logger is ON for that
+# client version or OFF until the logger is updated.
+name: Build and release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "assets/**"
+      - "build.zig"
+      - "build.zig.zon"
+      - "tools/*.mjs"
+      - "tools/*.json"
+      - "packaging/**"
+      - "README.upstream.md"
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      ref:
+        description: Branch or commit to build
+        type: string
+        default: main
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.16.0
+
+      - name: Tests (no game needed)
+        run: zig build test --summary all
+
+      - name: Build
+        run: zig build -Doptimize=ReleaseFast "-Dreleases-url=${{ github.server_url }}/${{ github.repository }}/releases/latest"
+
+      - name: Package
+        shell: pwsh
+        run: ./packaging/make-release.ps1 -Out dist
+
+      - name: Publish release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $info = Get-Content dist/release-info.json | ConvertFrom-Json
+          $sha = git rev-parse --short HEAD
+          $tag = "$($info.patchClient)-$sha"
+          gh release view $tag *> $null
+          if ($LASTEXITCODE -eq 0) { Write-Host "Release $tag already exists."; exit 0 }
+          if ($info.loggerOn) {
+            $title = "$($info.patchClient): game patch + combat logger"
+            $status = "The combat logger is **ON** for this game version."
+          } else {
+            $title = "$($info.patchClient): game patch only (logger off until updated)"
+            $status = "This release follows upstream thaumiel's patch for **$($info.patchClient)** so you can keep playing right away. " +
+                      "The combat logger was made for **$($info.loggerClient)**, so it switches itself off on this version (the game is unaffected). " +
+                      "A new release with the logger on will follow."
+          }
+          $notes = @"
+          $status
+
+          **Install:** download ``$($info.name).zip`` below, unzip it, and copy everything inside into your game folder (replace ``remielle.exe`` and ``thaumiel.dll``). ``READ ME FIRST.txt`` in the zip explains the rest.
+
+          After starting the game, ``logger-status.txt`` in the game folder says whether the logger is on.
+          "@
+          gh release create $tag "$($info.zip)" --title $title --notes $notes --latest

@@ -1,0 +1,56 @@
+diff --git a/build.zig b/build.zig
+index 095f5ce..74eaa13 100644
+--- a/build.zig
++++ b/build.zig
+@@ -25,9 +25,19 @@ pub fn build(b: *std.Build) void {
+             .root_source_file = b.path("src/dynlib.zig"),
+             .target = target,
+             .optimize = optimize,
++            .unwind_tables = .sync,
+         }),
+     });
+     b.installArtifact(dynlib);
++    dynlib.root_module.addCSourceFile(.{
++        .file = b.path("src/dumper_guard.c"),
++        .flags = &.{"-fms-extensions"},
++    });
++    dynlib.root_module.addCSourceFile(.{
++        .file = b.path("src/hit_hook.c"),
++        .flags = &.{"-fms-extensions"},
++    });
++    dynlib.root_module.link_libc = true;
+ 
+     const assets_dir = b.build_root.handle.openDir(b.graph.io, "assets", .{ .iterate = true }) catch |err| {
+         std.debug.panic("unable to open assets directory: {t}", .{err});
+diff --git a/src/dynlib.zig b/src/dynlib.zig
+index 8967fbb..681db8d 100644
+--- a/src/dynlib.zig
++++ b/src/dynlib.zig
+@@ -9,6 +9,9 @@ const String = GameAssembly.String;
+ 
+ const nt = @import("nt.zig");
+ const debugging = @import("debugging.zig");
++const dumper = @import("dumper.zig");
++const sampler = @import("sampler.zig");
++const hitlog = @import("hitlog.zig");
+ const Interception = @import("Interception.zig");
+ 
+ pub const std_options: std.Options = .{
+@@ -93,6 +96,17 @@ fn initPatches(syscall: *nt.Syscall) !void {
+         game_assembly.add(.@"MoleMole.UIMainCityMiniMenuWidgetController::RefreshGachaTimeIcon"),
+         &.{0xC3},
+     );
++
++    // Enumerate metadata through the verified existing Unity API table.
++    // The worker attaches to il2cpp before any metadata enumeration.
++    dumper.start();
++
++    // Sampling profiler: superseded by the hit hook below, kept for profiling
++    // questions. Re-enable if needed; it costs ~30 thread suspends/second.
++    if (false) sampler.start();
++
++    // Per-hit log: hooks ConfigEntityAnimEvent::TriggerAttackPattern.
++    hitlog.start(syscall);
+ }
+ 
+ const server_public_key: [:0]const u8 = @embedFile("server_public_key.xml");

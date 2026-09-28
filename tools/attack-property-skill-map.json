@@ -1,0 +1,929 @@
+{
+ "_note": "AttackProperty name (result+0xA8 -> +0x20, schema 5 a8s20) -> settlement skill id. Sources: client asset profiles (anim events) and the 20260912-230910 hop-2 capture (identity join for anim-event hits; settlement reconciliation for 1181020/1561021). Unique in every capture so far. Ability name (+0x10) is NOT a skill key: Lisa_Normal spans 1181001-1181004.",
+ "map": {
+  "Bangboo_Plugboo_Attackproperty_Attack01_01": {
+   "skill_id": 5400801,
+   "source": "capture:20260912-230910-hop2:identity"
+  },
+  "Bangboo_Plugboo_Attackproperty_Attack01_02": {
+   "skill_id": 5400801,
+   "source": "capture:20260912-230910-hop2:identity"
+  },
+  "Bangboo_Plugboo_Attackproperty_Attack01_03": {
+   "skill_id": 5400801,
+   "source": "capture:20260912-230910-hop2:identity"
+  },
+  "Bangboo_Plugboo_Attackproperty_Attack01_04": {
+   "skill_id": 5400801,
+   "source": "capture:20260912-230910-hop2:identity"
+  },
+  "Bangboo_Plugboo_Attackproperty_Attack01_05": {
+   "skill_id": 5400801,
+   "source": "capture:20260912-230910-hop2:identity"
+  },
+  "Lisa_Attack_AssaultAid_AttackProperty_01": {
+   "skill_id": 1181012,
+   "source": "asset:lisa-profiles.json"
+  },
+  "Lisa_Attack_AssaultAid_AttackProperty_Bullet_01": {
+   "skill_id": 1181012,
+   "source": "capture:20260918-181913-daze:settlement-reconciliation"
+  },
+  "Lisa_Attack_AssaultAid_AttackProperty_Bullet_02": {
+   "skill_id": 1181012,
+   "source": "capture:20260918-181913-daze:settlement-reconciliation"
+  },
+  "Lisa_Attack_BeHitAid_AttackProperty_01": {
+   "skill_id": 1181011,
+   "source": "capture:20260912-230910-hop2:identity"
+  },
+  "Lisa_Attack_BeHitAid_AttackProperty_02": {
+   "skill_id": 1181011,
+   "source": "capture:20260912-230910-hop2:identity"
+  },
+  "Lisa_Attack_Branch_01_AttackProperty_01": {
+   "skill_id": 1181005,
+   "source": "capture:20260918-181913-daze:settlement-reconciliation"
+  },
+  "Lisa_Attack_Branch_01_AttackProperty_01_UniqueSkill": {
+   "skill_id": 1181016,
+   "source": "capture:20260912-230910-hop2:identity"
+  },
+  "Lisa_Attack_Branch_01_AttackProperty_02": {
+   "skill_id": 1181005,
+   "source": "capture:20260918-181913-daze:settlement-reconciliation"
+  },
+  "Lisa_Attack_Branch_01_AttackProperty_02_UniqueSkill": {
+   "skill_id": 1181016,
+   "source": "capture:20260912-230910-hop2:identity"
+  },
+  "Lisa_Attack_Branch_02_AttackProperty_01_UniqueSkill": {
+   "skill_id": 1181017,
+   "source": "capture:20260912-230910-hop2:identity"
+  },
+  "Lisa_Attack_Branch_02_AttackProperty_02_UniqueSkill": {
+   "skill_id": 1181017,
+   "source": "capture:20260912-230910-hop2:identity"
+  },
+  "Lisa_Attack_Branch_03_AttachBullet_AttackProperty_01": {
+   "skill_id": 1181020,
+   "source": "capture:20260912-230910-hop2:name"
+  },
+  "Lisa_Attack_Branch_03_AttachBullet_AttackProperty_02": {
+   "skill_id": 1181020,
+   "source": "capture:20260912-230910-hop2:name"
+  },
+  "Lisa_Attack_Branch_03_AttachBullet_AttackProperty_03": {
+   "skill_id": 1181020,
+   "source": "capture:20260912-230910-hop2:name"
+  },
+  "Lisa_Attack_Branch_03_Extra_AttackProperty_01": {
+   "skill_id": 1181019,
+   "source": "capture:20260913-035206-fight2:settlement"
+  },
+  "Lisa_Attack_Counter_AttackProperty_01": {
+   "skill_id": 1181008,
+   "source": "capture:20260913-035206-fight2:settlement"
+  },
+  "Lisa_Attack_Counter_AttackProperty_02": {
+   "skill_id": 1181008,
+   "source": "capture:20260913-035206-fight2:settlement"
+  },
+  "Lisa_Attack_Normal_01_AttackProperty_01": {
+   "skill_id": 1181001,
+   "source": "asset:lisa-profiles.json"
+  },
+  "Lisa_Attack_Normal_01_AttackProperty_02": {
+   "skill_id": 1181001,
+   "source": "asset:lisa-profiles.json"
+  },
+  "Lisa_Attack_Normal_02_AttackProperty_01": {
+   "skill_id": 1181002,
+   "source": "asset:lisa-profiles.json"
+  },
+  "Lisa_Attack_Normal_02_AttackProperty_02": {
+   "skill_id": 1181002,
+   "source": "asset:lisa-profiles.json"
+  },
+  "Lisa_Attack_Normal_03_AttackProperty_01": {
+   "skill_id": 1181003,
+   "source": "asset:lisa-profiles.json"
+  },
+  "Lisa_Attack_Normal_03_AttackProperty_02": {
+   "skill_id": 1181003,
+   "source": "asset:lisa-profiles.json"
+  },
+  "Lisa_Attack_Normal_03_AttackProperty_03": {
+   "skill_id": 1181003,
+   "source": "capture:20260912-230910-hop2:identity"
+  },
+  "Lisa_Attack_Normal_04_AttackProperty_01": {
+   "skill_id": 1181004,
+   "source": "asset:lisa-profiles.json"
+  },
+  "Lisa_Attack_Normal_04_AttackProperty_02": {
+   "skill_id": 1181004,
+   "source": "asset:lisa-profiles.json"
+  },
+  "Lisa_Attack_Normal_Move_AttackProperty_01": {
+   "skill_id": 1181015,
+   "source": "asset:lisa-profiles.json"
+  },
+  "Lisa_Attack_Normal_Move_AttackProperty_02": {
+   "skill_id": 1181015,
+   "source": "asset:lisa-profiles.json"
+  },
+  "Lisa_Attack_Rush_AttackProperty_01": {
+   "skill_id": 1181007,
+   "source": "asset:lisa-profiles.json"
+  },
+  "Lisa_Attack_Rush_AttackProperty_02": {
+   "skill_id": 1181007,
+   "source": "asset:lisa-profiles.json"
+  },
+  "Lisa_SwitchIn_Attack_AttackProperty_01": {
+   "skill_id": 1181009,
+   "source": "capture:20260913-035206-fight2:settlement"
+  },
+  "Lisa_SwitchIn_Attack_AttackProperty_02": {
+   "skill_id": 1181009,
+   "source": "capture:20260913-035206-fight2:settlement"
+  },
+  "Lisa_SwitchIn_Attack_AttackProperty_03": {
+   "skill_id": 1181009,
+   "source": "capture:20260913-035206-fight2:settlement"
+  },
+  "Lisa_SwitchIn_Attack_Ex_AttackProperty_01": {
+   "skill_id": 1181010,
+   "source": "capture:20260913-035206-fight2:settlement"
+  },
+  "Lisa_SwitchIn_Attack_Ex_AttackProperty_02": {
+   "skill_id": 1181010,
+   "source": "capture:20260913-035206-fight2:settlement"
+  },
+  "Lisa_SwitchIn_Attack_Ex_AttackProperty_03": {
+   "skill_id": 1181010,
+   "source": "capture:20260913-035206-fight2:settlement"
+  },
+  "Lisa_SwitchIn_Attack_Ex_AttackProperty_04": {
+   "skill_id": 1181010,
+   "source": "capture:20260913-035206-fight2:settlement"
+  },
+  "Lisa_SwitchIn_Attack_Ex_AttackProperty_05": {
+   "skill_id": 1181010,
+   "source": "capture:20260913-035206-fight2:settlement"
+  },
+  "Rina_Anastacia_Attack_AssaultAid_AttackProperty_01_01": {
+   "skill_id": 1211022,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_Attack_AssaultAid_AttackProperty_01_02": {
+   "skill_id": 1211022,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_Attack_AssaultAid_AttackProperty_02": {
+   "skill_id": 1211022,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_Attack_BeHitAid_AttackProperty_01_01": {
+   "skill_id": 1211020,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_Attack_BeHitAid_AttackProperty_01_02": {
+   "skill_id": 1211020,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_Attack_BeHitAid_AttackProperty_01_03": {
+   "skill_id": 1211020,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_Attack_BeHitAid_AttackProperty_02_01": {
+   "skill_id": 1211020,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_Attack_BeHitAid_AttackProperty_02_02": {
+   "skill_id": 1211020,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_Attack_BeHitAid_AttackProperty_02_03": {
+   "skill_id": 1211020,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_Attack_Branch_01_AttackProperty_01": {
+   "skill_id": 1211008,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_Attack_Branch_01_AttackProperty_02": {
+   "skill_id": 1211008,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_Attack_Branch_01_AttackProperty_03": {
+   "skill_id": 1211008,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_Attack_Branch_01_AttackProperty_04": {
+   "skill_id": 1211008,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_Attack_Branch_01_AttackProperty_05_01": {
+   "skill_id": 1211008,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_Attack_Branch_01_AttackProperty_05_02": {
+   "skill_id": 1211008,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_Attack_Branch_02_AttackProperty_01": {
+   "skill_id": 1211009,
+   "source": "capture:20260912-230910-hop2:identity"
+  },
+  "Rina_Anastacia_Attack_Branch_02_AttackProperty_02_01": {
+   "skill_id": 1211009,
+   "source": "capture:20260912-230910-hop2:identity"
+  },
+  "Rina_Anastacia_Attack_Branch_02_AttackProperty_02_02": {
+   "skill_id": 1211009,
+   "source": "capture:20260912-230910-hop2:identity"
+  },
+  "Rina_Anastacia_Attack_Branch_02_AttackProperty_02_03": {
+   "skill_id": 1211009,
+   "source": "capture:20260912-230910-hop2:identity"
+  },
+  "Rina_Anastacia_Attack_Counter_AttackProperty_01_01": {
+   "skill_id": 1211014,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_Attack_Counter_AttackProperty_01_02": {
+   "skill_id": 1211014,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_Attack_Counter_AttackProperty_01_03": {
+   "skill_id": 1211014,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_Attack_Counter_AttackProperty_02_01": {
+   "skill_id": 1211014,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_Attack_Counter_AttackProperty_02_02": {
+   "skill_id": 1211014,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_Attack_Counter_AttackProperty_02_03": {
+   "skill_id": 1211014,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_Attack_Normal_03_AttackProperty_01": {
+   "skill_id": 1211005,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_Attack_Normal_03_AttackProperty_02": {
+   "skill_id": 1211005,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_Attack_Normal_03_AttackProperty_03": {
+   "skill_id": 1211005,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_Attack_Normal_03_FollowAttack_AttackProperty_01": {
+   "skill_id": 1211026,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_Attack_Normal_03_FollowAttack_AttackProperty_02": {
+   "skill_id": 1211026,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_Attack_Normal_03_FollowAttack_AttackProperty_03": {
+   "skill_id": 1211026,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_Attack_Rush_AttackProperty_01": {
+   "skill_id": 1211012,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_Attack_Rush_AttackProperty_02": {
+   "skill_id": 1211012,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_Attack_Rush_AttackProperty_03": {
+   "skill_id": 1211012,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_Attack_Rush_AttackProperty_04": {
+   "skill_id": 1211012,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_Attack_Rush_AttackProperty_05": {
+   "skill_id": 1211012,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_Attack_Rush_AttackProperty_06": {
+   "skill_id": 1211012,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_Attack_Rush_AttackProperty_07": {
+   "skill_id": 1211012,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_Attack_Rush_AttackProperty_08": {
+   "skill_id": 1211012,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_Attack_Rush_AttackProperty_09": {
+   "skill_id": 1211012,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_Attack_Rush_AttackProperty_10": {
+   "skill_id": 1211012,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_SwitchIn_Attack_AttackProperty_01_01": {
+   "skill_id": 1211016,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_SwitchIn_Attack_AttackProperty_01_02": {
+   "skill_id": 1211016,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_SwitchIn_Attack_AttackProperty_02": {
+   "skill_id": 1211016,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_SwitchIn_Attack_Ex_AttackProperty_01_01": {
+   "skill_id": 1211018,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_SwitchIn_Attack_Ex_AttackProperty_01_02": {
+   "skill_id": 1211018,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Anastacia_SwitchIn_Attack_Ex_AttackProperty_02": {
+   "skill_id": 1211018,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Attack_Branch_03_AttackProperty_01_01": {
+   "skill_id": 1211007,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Attack_Branch_03_AttackProperty_01_02": {
+   "skill_id": 1211007,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Attack_Branch_03_AttackProperty_01_03": {
+   "skill_id": 1211007,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Attack_Branch_03_AttackProperty_01_04": {
+   "skill_id": 1211007,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Attack_Branch_03_AttackProperty_02_01": {
+   "skill_id": 1211007,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Attack_Branch_03_AttackProperty_02_02": {
+   "skill_id": 1211007,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Attack_Branch_03_AttackProperty_02_03": {
+   "skill_id": 1211007,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Attack_Branch_03_AttackProperty_02_04": {
+   "skill_id": 1211007,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Attack_Branch_03_AttackProperty_02_05": {
+   "skill_id": 1211007,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Attack_Branch_03_AttackProperty_02_06": {
+   "skill_id": 1211007,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Attack_Branch_03_AttackProperty_02_07": {
+   "skill_id": 1211007,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Attack_Branch_03_AttackProperty_02_08": {
+   "skill_id": 1211007,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Attack_Branch_03_AttackProperty_02_09": {
+   "skill_id": 1211007,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Attack_Branch_03_AttackProperty_02_10": {
+   "skill_id": 1211007,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Attack_Branch_03_AttackProperty_02_11": {
+   "skill_id": 1211007,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Attack_Branch_03_AttackProperty_02_12": {
+   "skill_id": 1211007,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Attack_Branch_03_AttackProperty_02_13": {
+   "skill_id": 1211007,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Attack_Branch_03_AttackProperty_02_14": {
+   "skill_id": 1211007,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Attack_Branch_03_AttackProperty_02_15": {
+   "skill_id": 1211007,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Attack_Branch_03_AttackProperty_02_16": {
+   "skill_id": 1211007,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Attack_Branch_03_AttackProperty_02_17": {
+   "skill_id": 1211007,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Attack_Rush_AttackProperty_Check": {
+   "skill_id": 1211010,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_AssaultAid_AttackProperty_01_01": {
+   "skill_id": 1211021,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_AssaultAid_AttackProperty_01_02": {
+   "skill_id": 1211021,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_AssaultAid_AttackProperty_02": {
+   "skill_id": 1211021,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_BeHitAid_AttackProperty_01_01": {
+   "skill_id": 1211019,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_BeHitAid_AttackProperty_01_02": {
+   "skill_id": 1211019,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_BeHitAid_AttackProperty_01_03": {
+   "skill_id": 1211019,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_BeHitAid_AttackProperty_02_01": {
+   "skill_id": 1211019,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_BeHitAid_AttackProperty_02_02": {
+   "skill_id": 1211019,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_BeHitAid_AttackProperty_02_03": {
+   "skill_id": 1211019,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Branch_FollowAttack_AttackProperty_01_01": {
+   "skill_id": 1211027,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Branch_FollowAttack_AttackProperty_01_02": {
+   "skill_id": 1211027,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Branch_FollowAttack_AttackProperty_02": {
+   "skill_id": 1211027,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Counter_AttackProperty_01_01": {
+   "skill_id": 1211013,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Counter_AttackProperty_01_02": {
+   "skill_id": 1211013,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Counter_AttackProperty_01_03": {
+   "skill_id": 1211013,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Counter_AttackProperty_02_01": {
+   "skill_id": 1211013,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Counter_AttackProperty_02_02": {
+   "skill_id": 1211013,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Counter_AttackProperty_02_03": {
+   "skill_id": 1211013,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Normal_01_01_AttackProperty_01": {
+   "skill_id": 1211001,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Normal_01_01_AttackProperty_02": {
+   "skill_id": 1211001,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Normal_01_02_AttackProperty_01": {
+   "skill_id": 1211002,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Normal_01_02_AttackProperty_02": {
+   "skill_id": 1211002,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Normal_01_02_AttackProperty_03": {
+   "skill_id": 1211002,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Normal_01_02_FollowAttack_AttackProperty_01": {
+   "skill_id": 1211023,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Normal_01_02_FollowAttack_AttackProperty_02": {
+   "skill_id": 1211023,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Normal_01_02_FollowAttack_AttackProperty_03": {
+   "skill_id": 1211023,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Normal_02_AttackProperty_01": {
+   "skill_id": 1211003,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Normal_02_AttackProperty_02": {
+   "skill_id": 1211003,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Normal_02_AttackProperty_03": {
+   "skill_id": 1211003,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Normal_02_AttackProperty_04": {
+   "skill_id": 1211003,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Normal_02_AttackProperty_05": {
+   "skill_id": 1211003,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Normal_02_AttackProperty_06": {
+   "skill_id": 1211003,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Normal_02_AttackProperty_07": {
+   "skill_id": 1211003,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Normal_02_FollowAttack_AttackProperty_01": {
+   "skill_id": 1211024,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Normal_02_FollowAttack_AttackProperty_02": {
+   "skill_id": 1211024,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Normal_02_FollowAttack_AttackProperty_03": {
+   "skill_id": 1211024,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Normal_02_FollowAttack_AttackProperty_04": {
+   "skill_id": 1211024,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Normal_02_FollowAttack_AttackProperty_05": {
+   "skill_id": 1211024,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Normal_02_FollowAttack_AttackProperty_06": {
+   "skill_id": 1211024,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Normal_02_FollowAttack_AttackProperty_07": {
+   "skill_id": 1211024,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Normal_03_AttackProperty_01": {
+   "skill_id": 1211004,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Normal_03_AttackProperty_02": {
+   "skill_id": 1211004,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Normal_03_AttackProperty_03": {
+   "skill_id": 1211004,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Normal_03_FollowAttack_AttackProperty_01": {
+   "skill_id": 1211025,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Normal_03_FollowAttack_AttackProperty_02": {
+   "skill_id": 1211025,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Normal_03_FollowAttack_AttackProperty_03": {
+   "skill_id": 1211025,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Rush_AttackProperty_01": {
+   "skill_id": 1211011,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Rush_AttackProperty_02": {
+   "skill_id": 1211011,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Rush_AttackProperty_03": {
+   "skill_id": 1211011,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Rush_AttackProperty_04": {
+   "skill_id": 1211011,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Rush_AttackProperty_05": {
+   "skill_id": 1211011,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Rush_AttackProperty_06": {
+   "skill_id": 1211011,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Rush_AttackProperty_07": {
+   "skill_id": 1211011,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Rush_AttackProperty_08": {
+   "skill_id": 1211011,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Rush_AttackProperty_09": {
+   "skill_id": 1211011,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_Attack_Rush_AttackProperty_10": {
+   "skill_id": 1211011,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_SwitchIn_Attack_AttackProperty_01_01": {
+   "skill_id": 1211015,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_SwitchIn_Attack_AttackProperty_01_02": {
+   "skill_id": 1211015,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_SwitchIn_Attack_AttackProperty_02": {
+   "skill_id": 1211015,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_SwitchIn_Attack_Ex_AttackProperty_01_01": {
+   "skill_id": 1211017,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_SwitchIn_Attack_Ex_AttackProperty_01_02": {
+   "skill_id": 1211017,
+   "source": "asset:rina-profiles.json"
+  },
+  "Rina_Drusilla_SwitchIn_Attack_Ex_AttackProperty_02": {
+   "skill_id": 1211017,
+   "source": "asset:rina-profiles.json"
+  },
+  "Velina_Attack_AssaultAid_AttackProperty_01_01": {
+   "skill_id": 1561019,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_AssaultAid_AttackProperty_01_02": {
+   "skill_id": 1561019,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_AssaultAid_AttackProperty_02": {
+   "skill_id": 1561019,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_AssaultAid_AttackProperty_03_01": {
+   "skill_id": 1561019,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_AssaultAid_AttackProperty_03_02": {
+   "skill_id": 1561019,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_AssaultAid_AttackProperty_03_03": {
+   "skill_id": 1561019,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_BeHitAid_AttackProperty_01_01": {
+   "skill_id": 1561015,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_BeHitAid_AttackProperty_01_02": {
+   "skill_id": 1561015,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_BeHitAid_AttackProperty_02": {
+   "skill_id": 1561015,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_BeHitAid_AttackProperty_03": {
+   "skill_id": 1561015,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_Branch_01_AttackProperty_01": {
+   "skill_id": 1561008,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_Branch_01_AttackProperty_02": {
+   "skill_id": 1561008,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_Branch_01_AttackProperty_03": {
+   "skill_id": 1561008,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_Branch_02_01_AttackProperty_01": {
+   "skill_id": 1561009,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_Branch_02_01_AttackProperty_02": {
+   "skill_id": 1561009,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_Branch_02_02_AttackProperty_01": {
+   "skill_id": 1561010,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_Branch_02_02_AttackProperty_02": {
+   "skill_id": 1561010,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_Branch_02_AttackProperty_03_01": {
+   "skill_id": 1561010,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_Branch_02_AttackProperty_03_02": {
+   "skill_id": 1561010,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_Counter_AttackProperty_01_01": {
+   "skill_id": 1561012,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_Counter_AttackProperty_01_02": {
+   "skill_id": 1561012,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_Counter_AttackProperty_02": {
+   "skill_id": 1561012,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_Counter_AttackProperty_03": {
+   "skill_id": 1561012,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_Normal_01_AttackProperty_01": {
+   "skill_id": 1561001,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_Normal_01_AttackProperty_02": {
+   "skill_id": 1561001,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_Normal_02_AttackProperty_01": {
+   "skill_id": 1561002,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_Normal_02_AttackProperty_02": {
+   "skill_id": 1561002,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_Normal_03_AttackProperty_01_01": {
+   "skill_id": 1561003,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_Normal_03_AttackProperty_01_02": {
+   "skill_id": 1561003,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_Normal_03_AttackProperty_02": {
+   "skill_id": 1561003,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_Normal_03_AttackProperty_03": {
+   "skill_id": 1561003,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_Normal_04_AttackProperty_01": {
+   "skill_id": 1561004,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_Normal_04_AttackProperty_02": {
+   "skill_id": 1561004,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_Normal_05_AttackProperty_01": {
+   "skill_id": 1561005,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_Normal_05_AttackProperty_02_01": {
+   "skill_id": 1561005,
+   "source": "capture:20260913-035206-fight2:settlement"
+  },
+  "Velina_Attack_Normal_05_AttackProperty_02_02": {
+   "skill_id": 1561005,
+   "source": "capture:20260913-035206-fight2:settlement"
+  },
+  "Velina_Attack_Normal_Enhance_AttackProperty_01": {
+   "skill_id": 1561006,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_Normal_Enhance_AttackProperty_02": {
+   "skill_id": 1561006,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_Rush_AttackProperty_01": {
+   "skill_id": 1561011,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_Rush_AttackProperty_02": {
+   "skill_id": 1561011,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_SmallWind_AttackProperty_01": {
+   "skill_id": 1561021,
+   "source": "capture:20260912-230910-hop2:name"
+  },
+  "Velina_Attack_SmallWind_AttackProperty_02": {
+   "skill_id": 1561021,
+   "source": "capture:20260912-230910-hop2:name"
+  },
+  "Velina_Attack_SwitchIn_Attack_AttackProperty_01_01": {
+   "skill_id": 1561013,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_SwitchIn_Attack_AttackProperty_01_02": {
+   "skill_id": 1561013,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_SwitchIn_Attack_AttackProperty_02_01": {
+   "skill_id": 1561013,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_SwitchIn_Attack_AttackProperty_02_02": {
+   "skill_id": 1561013,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_SwitchIn_Attack_AttackProperty_02_03": {
+   "skill_id": 1561013,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_SwitchIn_Attack_Ex_AttackProperty_01_01": {
+   "skill_id": 1561014,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_SwitchIn_Attack_Ex_AttackProperty_01_02": {
+   "skill_id": 1561014,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_SwitchIn_Attack_Ex_AttackProperty_02": {
+   "skill_id": 1561014,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_SwitchIn_Attack_Ex_AttackProperty_03_01": {
+   "skill_id": 1561014,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_SwitchIn_Attack_Ex_AttackProperty_03_02": {
+   "skill_id": 1561014,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_SwitchIn_Attack_Ex_AttackProperty_03_03": {
+   "skill_id": 1561014,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_SwitchIn_Attack_Ex_AttackProperty_04_01": {
+   "skill_id": 1561014,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_SwitchIn_Attack_Ex_AttackProperty_04_02": {
+   "skill_id": 1561014,
+   "source": "asset:velina-profiles.json"
+  },
+  "Velina_Attack_WindRegion_AttackProperty_01": {
+   "skill_id": 1561007,
+   "source": "capture:20260912-230910-hop2:identity"
+  },
+  "Velina_Attack_WindRegion_ExtraDamage_AttackProperty_01_Elec": {
+   "skill_id": 1561020,
+   "source": "capture:20260913-035206:settlement (1711 = the only settlement-only damage)"
+  }
+ }
+}

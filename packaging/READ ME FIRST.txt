@@ -1,0 +1,75 @@
+thaumiel + combat logger
+========================
+
+This is thaumiel (the client patch for the Remielle private server) with a combat logger
+added. It works exactly like normal thaumiel, and it also records every hit in your
+battles: damage, crits, Daze, Anomaly buildup and the stats each hit used.
+
+You need to already be set up to play on a Remielle server. This replaces the thaumiel
+files you use now; you do not need both.
+
+
+INSTALL
+-------
+1. Close the game.
+2. Copy EVERYTHING in this folder into your game folder (the folder with the game's
+   .exe in it, where you put remielle.exe and thaumiel.dll before). Say yes to replacing
+   remielle.exe and thaumiel.dll.
+3. Start the game with remielle.exe, as usual.
+
+After the game starts, open logger-status.txt in the game folder:
+  "Combat logger: ON"   everything is working.
+  "Combat logger: OFF"  your game version is newer than this logger. The game still
+                        works; only logging is paused. See UPDATES below.
+
+
+WHERE YOUR BATTLES GO
+---------------------
+Game folder\
+  Combat Logs\
+    2026-09-28 14.03.26\        one folder each time you start the game (date and time)
+      Battle 1 - 14.05.12\      one folder per battle (the time it started)
+      Battle 2 - 14.09.40\
+      Before first battle\      menus and lobby before your first battle (usually empty)
+
+The files inside a battle folder are raw data. To get files you can read or share, use
+"Make shareable log" below.
+
+
+SHARING A BATTLE
+----------------
+Double-click "Make shareable log.cmd" in the game folder. It lists your recent battles;
+press Enter for the newest one, or type its number. (You can also drag a "Battle N"
+folder onto the .cmd file.)
+
+It creates a "Share" folder inside that battle and opens it:
+  combat-log.csv   every hit, one row each. Opens in Excel or Google Sheets.
+  summary.json     damage per character and per skill, battle length, game version.
+
+Those two files are the ones to send people. They contain no account information.
+
+The first time, it may ask you to install Node.js (free, from nodejs.org). Pick the
+"LTS" version, install it with the default options, then double-click the .cmd again.
+
+
+UPDATES
+-------
+When the game updates, a new thaumiel for the new version is usually released first,
+with the logger switched OFF (the logger has to be updated separately). Download the
+newest release, copy it over again, and play normally. When the logger catches up, a
+new release with the logger ON appears; copy that one over too.
+
+Your old Combat Logs are never touched by an update.
+
+
+TURNING THINGS OFF
+------------------
+Delete damage-probe-enable.txt   stops damage logging (the game is unaffected).
+dumper-disable.txt               leave this in place; it skips a large developer-only
+                                 file. Only people updating the logger need that file.
+
+
+LICENSE
+-------
+GNU Affero General Public License v3 (see LICENSE). The source code is on the page you
+downloaded this from.

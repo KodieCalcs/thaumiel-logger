@@ -1,3 +1,5 @@
+// Modified from upstream thaumiel (0e669bc) for the per-hit logger fork, 2026-09-11..13: wires the
+// il2cpp dumper, hit log and damage probes into initPatches(). See README.md (AGPL-3.0 §5a).
 const std = @import("std");
 const mem = std.mem;
 
@@ -9,6 +11,23 @@ const String = GameAssembly.String;
 
 const nt = @import("nt.zig");
 const debugging = @import("debugging.zig");
+const dumper = @import("dumper.zig");
+const sampler = @import("sampler.zig");
+const hitlog = @import("hitlog.zig");
+const eventlog = @import("eventlog.zig");
+const timescalelog = @import("timescalelog.zig");
+const statelog = @import("statelog.zig");
+const capture = @import("capture.zig");
+const logger_client = @import("logger_client.zig");
+extern fn damage_probe_start() callconv(.c) c_int;
+extern fn damage_numeric_start() callconv(.c) c_int;
+extern fn damage_event_start() callconv(.c) c_int;
+extern fn damage_enqueue_start() callconv(.c) c_int;
+extern fn damage_result_start() callconv(.c) c_int;
+extern fn damage_snapshot_start() callconv(.c) c_int;
+extern fn damage_daze_start() callconv(.c) c_int;
+extern fn damage_anomaly_start() callconv(.c) c_int;
+extern fn damage_probe_note_status(name: [*:0]const u8, status: c_int) callconv(.c) void;
 const Interception = @import("Interception.zig");
 
 pub const std_options: std.Options = .{
@@ -93,6 +112,63 @@ fn initPatches(syscall: *nt.Syscall) !void {
         game_assembly.add(.@"MoleMole.UIMainCityMiniMenuWidgetController::RefreshGachaTimeIcon"),
         &.{0xC3},
     );
+
+    // Everything above is upstream thaumiel's client patch; everything below is the combat
+    // logger. On a client the logger was not built for, start none of it (logger_client.zig), so
+    // a build that follows a newer upstream runs exactly like upstream.
+    if (!logger_client.supported()) {
+        log.info("combat logger off: this client is not {s}", .{logger_client.client_name});
+        return;
+    }
+
+    // Sampling profiler: superseded by the hit hook below, kept for profiling
+    // questions. Re-enable if needed; it costs ~30 thread suspends/second.
+    if (false) sampler.start();
+
+    // Capture folder: Combat Logs\<launch>\Battle <n> - <time>\ for everything below (capture.zig).
+    capture.start();
+    // Per-hit log: hooks ConfigEntityAnimEvent::TriggerAttackPattern.
+    @import("startup_log.zig").start();
+    hitlog.start(syscall);
+    // Open hit output before publishing it to the worker. A ready runtime must
+    // never let installFromWorker observe an unopened file and silently return.
+    dumper.start();
+    // Animator-event log: hooks the anim-event system's per-frame queue drain (all event types).
+    eventlog.start(syscall);
+    // Global time-scale log: hooks the level time manager's per-frame step (timescalelog.zig).
+    timescalelog.start();
+    // Buff / property / Stun state log: hooks the property write, modifier lifecycle and stun
+    // mixin (statelog.zig). Opens the file here; the hooks install from the dumper's worker.
+    statelog.start();
+    const damage_status = damage_probe_start();
+    damage_probe_note_status("string", damage_status);
+    log.info("damage probe status {d} (0 disabled, 1 installed, 2 installed/protection warning, negative refused)", .{damage_status});
+    const numeric_status = if (damage_status == 1) damage_numeric_start() else @as(c_int, 0);
+    damage_probe_note_status("numeric", numeric_status);
+    log.info("damage numeric probe status {d} (1 installed; requires string probe status 1)", .{numeric_status});
+    // Damage-display event handler: the struct the combat engine hands the UI, one per number.
+    const event_status = if (damage_status == 1) damage_event_start() else @as(c_int, 0);
+    damage_probe_note_status("event", event_status);
+    log.info("damage event probe status {d} (1 installed; requires string probe status 1)", .{event_status});
+    // Enqueue side of the same event: fires at hit time on the combat stack; its caller is the publisher.
+    const enqueue_status = if (damage_status == 1) damage_enqueue_start() else @as(c_int, 0);
+    damage_probe_note_status("enqueue", enqueue_status);
+    const result_status = if (damage_status == 1) damage_result_start() else @as(c_int, 0);
+    damage_probe_note_status("result", result_status);
+    log.info("damage result probe status {d}", .{result_status});
+    // Hit-result factory: the attacker snapshot object the result is built from (not reachable from the result).
+    const snapshot_status = if (damage_status == 1) damage_snapshot_start() else @as(c_int, 0);
+    damage_probe_note_status("snapshot", snapshot_status);
+    log.info("damage snapshot probe status {d}", .{snapshot_status});
+    // Stun component be-hit handler: the target's Daze gauge before each hit (applied Daze is result+0x18c).
+    const daze_status = if (damage_status == 1) damage_daze_start() else @as(c_int, 0);
+    damage_probe_note_status("daze", daze_status);
+    log.info("damage daze probe status {d}", .{daze_status});
+    // Per-element anomaly gauge receive: the target's Anomaly Buildup gauge before each hit (requested/applied are result+0xf8/+0x150).
+    const anomaly_status = if (damage_status == 1) damage_anomaly_start() else @as(c_int, 0);
+    damage_probe_note_status("anomaly", anomaly_status);
+    log.info("damage anomaly probe status {d}", .{anomaly_status});
+    log.info("damage enqueue probe status {d} (1 installed; requires string probe status 1)", .{enqueue_status});
 }
 
 const server_public_key: [:0]const u8 = @embedFile("server_public_key.xml");
