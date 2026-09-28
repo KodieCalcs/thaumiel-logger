@@ -34,11 +34,21 @@ export function identitySkill(buffer, client, index) {
   }
   return { id: ids.size === 1 ? [...ids][0] : null, candidates: [...ids].sort((a, b) => a - b) };
 }
+// The universal base Anomaly multipliers (Burn, Shock, Corruption, Shatter, Assault, Windswept).
+// Corruption ticks arrive with NO ability or AttackProperty string at all (null pointer, 14 of 14
+// on the 2026-09-28 Disorder capture); a nameless row at one of these multipliers is that Anomaly's tick.
+// Across 69 captures no other damaging row is nameless, and Phoenix's Nirvana (0.5, no
+// AttackProperty) keeps its ability name, so it never matches.
+const BASE_ANOMALY_MV = [0.5, 1.25, 0.625, 5, 7.13, 12.5];
 // Order: config-pointer identity, then the hand/capture map, then the client's own AttackProperty
 // config (clientMap, generate-attack-property-skills.mjs) for hits identity cannot see (projectiles).
-export function attribute({ ability, prop, buffer, client, index, map, clientMap = {}, warn = console.error }) {
+export function attribute({ ability, prop, buffer, client, index, map, clientMap = {}, dmgMv, attackTags = '', warn = console.error }) {
   // Anomaly effect pointers can retain the triggering attack. That is not the tick's skill.
   if (ability === 'Player_ElementAbnormalBuff') return { id: 'anomaly', source: 'name' };
+  // The game's own tags (logged since 2026-09-28): every Anomaly instance leads with "Buff" (on the
+  // first tagged capture exactly the 147 Anomaly rows did, and no direct hit).
+  if (attackTags.split('|')[0] === 'Buff') return { id: 'anomaly', source: 'tags' };
+  if (!ability && !prop && typeof dmgMv === 'number' && BASE_ANOMALY_MV.some((mv) => Math.abs(dmgMv - mv) < 1e-4)) return { id: 'anomaly', source: 'mv' };
   const derived = identitySkill(buffer, client, index);
   const mapped = map[prop]?.skill_id;
   if (derived.candidates.length > 1) warn(`AMBIGUOUS skill identity: ${prop}: ${derived.candidates.join(', ')}`);

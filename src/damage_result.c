@@ -15,13 +15,14 @@ static const unsigned char result_fingerprint[64] = {
     0x00,0x00,0x00,0x44,0x0f,0x29,0x8d,0xd0,0x00,0x00,0x00,0x44,0x0f,0x29,0x85,0xc0,
     0x00,0x00,0x00,0x0f,0x29,0xbd,0xb0,0x00,0x00,0x00,0x0f,0x29,0xb5,0xa0,0x00,0x00};
 static const char *result_header =
-    "# schema=5 client=CNBetaWin3.3.4 target_rva=0x19bf3530 a8=first_0x50_bytes_of_the_HMKMLBCLJAH_object_at_result+0x80 a8s18=string a8s20=string a8s28=string(slot_semantics_provisional_pending_capture,3.3.3_was_ability@0x28,attack_property@0x20,other@0x10) strings=0x10,0x30,0x88,0x90,0xb8,0xc0 geometry=result+0x60 dictionary=result+0xb0 phase=before_display_conversion string_encoding=utf16le_hex max_string_units=192 dictionary60_max_slots=128 dictionary60_stride=24 numeric_field_map=per-hit-log.mjs_LAYOUTS_CNBetaWin3.3.4\n"
+    "# schema=5 client=CNBetaWin3.3.4 target_rva=0x19bf3530 a8=first_0x50_bytes_of_the_HMKMLBCLJAH_object_at_result+0x80 a8s18=string a8s20=string a8s28=string(slot_semantics_provisional_pending_capture,3.3.3_was_ability@0x28,attack_property@0x20,other@0x10) strings=0x10,0x30,0x88,0x90,0xb8,0xc0 geometry=result+0x60 dictionary=result+0xb0 phase=before_display_conversion string_encoding=utf16le_hex max_string_units=192 dictionary60_max_slots=128 dictionary60_stride=24 tags=List<String>_at_result+0x48(items+0x10,size+0x18,max_16) numeric_field_map=per-hit-log.mjs_LAYOUTS_CNBetaWin3.3.4\n"
     "sequence\telapsed_ms\tthread\tskipped\tcaller_rva\tcontext_ptr\tentity1_ptr\tentity2_ptr\tresult_ptr\tcomponent_ptr\toutput_event_ptr"
     "\tcontext_bytes\tcontext_hex\tentity1_bytes\tentity1_hex\tentity2_bytes\tentity2_hex\tresult_bytes\tresult_hex\tcomponent_bytes\tcomponent_hex"
     "\ts10_length\ts10_bytes\ts10_hex\ts40_length\ts40_bytes\ts40_hex\ts58_length\ts58_bytes\ts58_hex\ts70_length\ts70_bytes\ts70_hex"
     "\tsa0_length\tsa0_bytes\tsa0_hex\tsc0_length\tsc0_bytes\tsc0_hex"
     "\tgeometryb0_bytes\tgeometryb0_hex\tdict60_bytes\tdict60_hex\tentries60_capacity\tentries60_bytes\tentries60_hex\tkeys60"
-    "\ta8_ptr\ta8_bytes\ta8_hex\ta8s18_length\ta8s18_bytes\ta8s18_hex\ta8s20_length\ta8s20_bytes\ta8s20_hex\ta8s28_length\ta8s28_bytes\ta8s28_hex\n";
+    "\ta8_ptr\ta8_bytes\ta8_hex\ta8s18_length\ta8s18_bytes\ta8s18_hex\ta8s20_length\ta8s20_bytes\ta8s20_hex\ta8s28_length\ta8s28_bytes\ta8s28_hex"
+    "\ttags_ptr\ttags_bytes\ttags_hex\ttags_size\ttags_capacity\ttags\n";
 
 static char *result_hex(char *p, const unsigned char *bytes, SIZE_T n) {
     static const char hex[] = "0123456789abcdef";
@@ -102,6 +103,35 @@ static char *result_a8(char *p, const unsigned char *result, SIZE_T count) {
     }
     return p;
 }
+/* 3.3.4: HAJJIAGHAFN's only List<String> (+0x48), expected to be the hit's attack tags -- every
+ * Anomaly instance is tagged "Buff" + its Anomaly ("Erosion", "Disorder", ...) and an Abloom also
+ * "Abloom" (Leifa, 2026-09-28; the settlement carries the same lists). On the 2026-09-28 Disorder
+ * capture the pointer is non-null and distinct on all 357 rows, Anomaly ticks included, so it is a
+ * per-hit list, not a shared config one. List<T>: _items +0x10, _size +0x18 (the dump reports
+ * generic-definition offsets as zero, as for the dictionary above); the raw 0x20-byte header is
+ * kept so the first capture verifies both. One TSV cell: index:length:bytes:utf16hex, | separated. */
+#define TAGS_MAX 16
+static char *result_tags(char *p, const unsigned char *result, SIZE_T count) {
+    uintptr_t list=0, items=0; unsigned char header[0x20]; SIZE_T n=0;
+    int32_t size=-1; uint64_t capacity=UINT64_MAX;
+    if(count>=0x48+8) memcpy(&list,result+0x48,8);
+    if(list) n=snapshot(list,header,sizeof(header));
+    p+=sprintf(p,"\t0x%llx\t%llu\t",(unsigned long long)list,(unsigned long long)n);
+    p=result_hex(p,header,n);
+    if(n>=0x1c) { memcpy(&items,header+0x10,8); memcpy(&size,header+0x18,4); }
+    if(!items || snapshot(items+0x18,&capacity,8)!=8 || capacity>1048576) capacity=UINT64_MAX;
+    p+=sprintf(p,"\t%d\t%lld\t",size,capacity==UINT64_MAX?-1LL:(long long)capacity);
+    if(size>0 && capacity!=UINT64_MAX && (uint64_t)size<=capacity) {
+        uintptr_t strings[TAGS_MAX]; SIZE_T wanted=size>TAGS_MAX?TAGS_MAX:(SIZE_T)size;
+        SIZE_T got=snapshot(items+0x20,strings,wanted*8)/8;
+        for(SIZE_T i=0;i<got;i++) {
+            char text[850]; char *end=result_string(text,strings[i]);
+            for(char *c=text;c<end;c++) if(*c=='\t') *c=':';
+            p+=sprintf(p,"%llu%s|",(unsigned long long)i,text);
+        }
+    }
+    *p=0; return p;
+}
 void damage_result_record(const ProbeRegisters *r, const uint64_t *entry_stack) {
     DWORD error=GetLastError();
     if (result_output==INVALID_HANDLE_VALUE) { SetLastError(error); return; }
@@ -111,8 +141,9 @@ void damage_result_record(const ProbeRegisters *r, const uint64_t *entry_stack) 
      * so the raw dump is 0x2b0 to cover it with alignment slack. */
     unsigned char result[0x2b0]; SIZE_T count=snapshot(r->gpr[3],result,sizeof(result));
     /* Lock-owned buffer, not a 128 KB allocation on the game's stack. Worst case:
-     * <9 KB original row + <7 KB raw nested data + 128*(768+80) key bytes + <1.3 KB a8 <125 KB. */
-    static char line[131072]; char *p=line;
+     * <9 KB original row + <7 KB raw nested data + 128*(768+80) key bytes + <1.3 KB a8
+     * + 16*(768+40) tag bytes <138 KB. */
+    static char line[163840]; char *p=line;
     p+=sprintf(p,"%llu\t%llu\t%lu\t%ld\t0x%llx\t0x%llx\t0x%llx\t0x%llx\t0x%llx\t0x%llx\t0x%llx",
         (unsigned long long)++result_sequence,(unsigned long long)(GetTickCount64()-started),GetCurrentThreadId(),result_skipped,
         (unsigned long long)(stack[0]>=module_base?stack[0]-module_base:0),
@@ -133,6 +164,7 @@ void damage_result_record(const ProbeRegisters *r, const uint64_t *entry_stack) 
                                                  * exactly one field of that type in each build */
     p=result_block(p,geometry,0x78);p=result_dictionary(p,dict);
     p=result_a8(p,result,count);
+    p=result_tags(p,result,count);
     *p++='\n'; DWORD written=0;
     if(!WriteFile(result_output,line,(DWORD)(p-line),&written,NULL)||written!=(DWORD)(p-line)) InterlockedIncrement(&result_skipped);
     ReleaseSRWLockExclusive(&result_lock); SetLastError(error);

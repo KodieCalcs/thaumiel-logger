@@ -14,6 +14,17 @@ assert.deepEqual(attribute(args), { id: 7654321, source: 'identity' });
 assert.deepEqual(attribute({ ...args, map: { Unknown_Hit: { skill_id: 111 } } }), { id: 7654321, source: 'identity' });
 assert.match(warnings.pop(), /DISAGREEMENT/);
 assert.deepEqual(attribute({ ...args, ability: 'Player_ElementAbnormalBuff' }), { id: 'anomaly', source: 'name' });
+// A nameless row at a base Anomaly multiplier is that Anomaly's tick (Corruption carries no name).
+const nameless = { ...args, ability: '', prop: '', index: new Map() };
+assert.deepEqual(attribute({ ...nameless, dmgMv: 0.625 }), { id: 'anomaly', source: 'mv' });
+assert.deepEqual(attribute({ ...nameless, dmgMv: 7.130000114 }), { id: 'anomaly', source: 'mv' });
+// Negative controls: another multiplier, a named ability (Phoenix's Nirvana is 0.5), or a named hit.
+assert.deepEqual(attribute({ ...nameless, dmgMv: 0.6 }), { id: '', source: 'no-name' });
+assert.deepEqual(attribute({ ...nameless, ability: 'Pheony_UniqueSkill', dmgMv: 0.5 }), { id: '', source: 'no-name' });
+assert.deepEqual(attribute({ ...args, index: new Map(), dmgMv: 0.5 }), { id: '', source: 'unmapped' });
+// A "Buff" tag list is an Anomaly instance whatever its names or multiplier; other tags change nothing.
+assert.deepEqual(attribute({ ...nameless, dmgMv: 0.6, attackTags: 'Buff|Erosion' }), { id: 'anomaly', source: 'tags' });
+assert.deepEqual(attribute({ ...args, attackTags: 'AttackNormal|Normal' }), { id: 7654321, source: 'identity' });
 const collision = identityIndex([{ skillId: '7654321', attackEffect: '0x123' }, { skillId: '7654322', groundHitEffect: '0x123' }]);
 assert.equal(identitySkill(buffer, client, collision).id, null);
 assert.deepEqual(attribute({ ...args, index: collision }), { id: '', source: 'unmapped' });

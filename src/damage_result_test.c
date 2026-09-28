@@ -39,6 +39,14 @@ int main(void) {
      * (+0x20 null), and whose +0x30 carries a marker so the raw 0x50-byte snapshot is checked too. */
     unsigned char a8obj[0x50]={0}; memcpy(a8obj+0x18,&sp,8); memcpy(a8obj+0x28,&sp,8); memset(a8obj+0x30,0xEE,8);
     uintptr_t a8ptr=(uintptr_t)a8obj; memcpy(result+0x80,&a8ptr,8);
+    /* tags (3.3.4): result+0x48 -> List<String> (_items +0x10, _size +0x18); the items array keeps
+     * its capacity at +0x18 and its string pointers from +0x20. 20 slots alternate Buff / Abloom. */
+    unsigned char buff[0x14+8]={0},abloom[0x14+12]={0}; int four=4,six=6; memcpy(buff+0x10,&four,4); memcpy(abloom+0x10,&six,4);
+    for(int i=0;i<4;i++)buff[0x14+i*2]="Buff"[i]; for(int i=0;i<6;i++)abloom[0x14+i*2]="Abloom"[i];
+    unsigned char tagarray[0x20+20*8]={0},taglist[0x20]={0}; uint64_t tagcap=20; memcpy(tagarray+0x18,&tagcap,8);
+    for(int i=0;i<20;i++){uintptr_t s=(uintptr_t)(i%2?abloom:buff);memcpy(tagarray+0x20+i*8,&s,8);}
+    uintptr_t tagarrayptr=(uintptr_t)tagarray,taglistptr=(uintptr_t)taglist; int32_t tagsize=2;
+    memcpy(taglist+0x10,&tagarrayptr,8); memcpy(taglist+0x18,&tagsize,4); memcpy(result+0x48,&taglistptr,8);
     memcpy(before,result,sizeof(result));
     ProbeRegisters r={0};r.gpr[0]=(uintptr_t)context;r.gpr[1]=(uintptr_t)entity;r.gpr[2]=(uintptr_t)entity;r.gpr[3]=(uintptr_t)result;
     uint64_t stack[7]={0};stack[0]=module_base+0x134ed761;stack[5]=(uintptr_t)component;stack[6]=0x123456;
@@ -56,6 +64,14 @@ int main(void) {
     CHECK(strstr(text,"\thop1")==NULL&&strstr(text,"h2:")==NULL); /* schema-4 hop cells are gone */
     { unsigned char none[0x2b0]={0}; float d=1.0f; memcpy(none+0x118,&d,4); r.gpr[3]=(uintptr_t)none; damage_result_record(&r,stack); } /* a8 null: row still written */
     CHECK(result_sequence==3);
+    CHECK(strstr(text,"\t2\t20\t0:4:8:4200750066006600|1:6:12:410062006c006f006f006d00|\n")); /* tags, row 1 */
+    /* 20 tags keep the first 16; a size beyond the array's capacity reads none; a null list is -1/-1. */
+    r.gpr[3]=(uintptr_t)result; tagsize=20; memcpy(taglist+0x18,&tagsize,4); damage_result_record(&r,stack);
+    tagsize=21; memcpy(taglist+0x18,&tagsize,4); damage_result_record(&r,stack); CHECK(result_sequence==5);
+    SetFilePointer(result_output,0,NULL,FILE_BEGIN); static char again[520000]; CHECK(ReadFile(result_output,again,sizeof(again)-1,&n,NULL)); again[n]=0;
+    { char *row=strstr(again,"\t20\t20\t0:4:"); CHECK(row); char *eol=strchr(row,'\n'); CHECK(eol); *eol=0;
+      CHECK(strstr(row,"|15:6:12:410062006c006f006f006d00|")&&!strstr(row,"|16:")); *eol='\n'; }
+    CHECK(strstr(again,"\t21\t20\t\n")); CHECK(strstr(again,"\t0x0\t0\t\t-1\t-1\t\n"));
     CloseHandle(result_output);DeleteFileA("damage-result-test.tmp");VirtualFree((void*)damage_result_original,0,MEM_RELEASE);VirtualFree(image,0,MEM_RELEASE);
-    puts("PASS result: install gates/relocation, bounded snapshots, unreadable pointers, string truncation, unchanged inputs, lock skip, last error");
+    puts("PASS result: install gates/relocation, bounded snapshots, unreadable pointers, string truncation, unchanged inputs, lock skip, last error, tag list");
 }

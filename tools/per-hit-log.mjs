@@ -152,6 +152,13 @@ function modifiers(row) {
   }
   return out.join(";");
 }
+// tags: index:length:bytes:utf16hex| -- the result's List<String> at +0x48 (probe since 2026-09-28,
+// empty on older captures): the hit's attack tags, e.g. Buff|Erosion|...|Abloom. Verified on the
+// first tagged capture: size = decoded count and the raw _size on all 768 rows, and "Buff" on
+// exactly the Anomaly rows, each settling in its tag's bucket.
+function attackTags(row) {
+  return (row.tags || "").split("|").filter(Boolean).map((cell) => utf16(cell.split(":")[3] || "")).join("|");
+}
 // A null offset means "not established for this client build" and must render as an empty cell, not
 // throw and not read at +0. Only Fo handled that; F/I/Q now do too, because a partially-derived
 // layout (CNBetaWin3.3.3) is the normal state right after a client patch.
@@ -159,7 +166,7 @@ const F = (b, o) => (o == null ? "" : b.readFloatLE(o)), I = (b, o) => (o == nul
       Q = (b, o) => (o == null ? "" : "0x" + b.readBigUInt64LE(o).toString(16));
 const cols = ["seq", "elapsed_ms", "thread", "attacker_entity", "target_entity", "ability_name", "attack_property_name", "skill_id", "skill_id_source",
   "hit_split", "damage_unrounded", "damage_ceil", "crit", "dmg_mv", "daze_mv", "energy", "decibels", "daze", "daze_requested", "buildup_requested", "buildup_applied",
-  "atk", "impact", "anomaly_mastery", "anomaly_proficiency", "level", "target_state", "dmg_mult", "attenuation_curve", "attenuation", "f11c", "f174", "f0f8", "display_skill_id", "a8_str18", "modifiers"];
+  "atk", "impact", "anomaly_mastery", "anomaly_proficiency", "level", "target_state", "dmg_mult", "attenuation_curve", "attenuation", "f11c", "f174", "f0f8", "display_skill_id", "a8_str18", "attack_tags", "modifiers"];
 // attenuation_curve: the result's fifth string slot (3.3.2 +0xb8, 3.3.0 +0xa0; probe column sa0), e.g.
 // DistanceAttenuation_Lisa / DistanceAttenuation_Curve_01, empty on anomaly ticks and field hits.
 // The stun component's applier multiplies the hit's Daze by that curve evaluated on the
@@ -181,7 +188,7 @@ for (const r of res.rows) {
   rawJoinFields.set(+r.sequence, { daze_mv: F(b, L.daze_mv), impact: F(b, L.impact), buildup_requested: F(b, L.buildup_requested) });
   const { ability, prop, other: s18 } = a8Names(r);
   const mapped = prop ? skillMap[prop] : undefined;
-  const attribution = attribute({ ability, prop, buffer: b, client, index: identity, map: skillMap, clientMap, warn });
+  const attribution = attribute({ ability, prop, buffer: b, client, index: identity, map: skillMap, clientMap, dmgMv: F(b, L.dmg_mv), attackTags: attackTags(r), warn });
   const damage = F(b, L.damage);
   const p6 = (v) => (v === "" ? "" : +v.toPrecision(6));
   const prec = (v, digits) => (v === "" ? "" : +v.toPrecision(digits));
@@ -201,7 +208,7 @@ for (const r of res.rows) {
     // object ever holds 3.0, and the int32 at 0x158 does), so the layout says how to read it.
     // Reading an int 3 as a float yields 4.2e-45, which silently fails the `!== 3` stun test below.
     level: I(b, L.level), target_state: L.target_state_int ? I(b, L.target_state) : Fo(b, L.target_state), dmg_mult: p6(F(b, L.dmg_mult)), f11c: F(b, L.f11c), f174: p6(F(b, L.f174)), f0f8: p6(F(b, L.f0f8)),
-    display_skill_id: I(b, L.display_skill_id), a8_str18: s18, modifiers: modifiers(r),
+    display_skill_id: I(b, L.display_skill_id), a8_str18: s18, attack_tags: attackTags(r), modifiers: modifiers(r),
   });
 }
 const csvCell = (v) => (v === undefined || v === null ? "" : /[",\n]/.test(String(v)) ? '"' + String(v).replace(/"/g, '""') + '"' : String(v));

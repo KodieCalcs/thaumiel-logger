@@ -75,7 +75,8 @@ const targetOf = (e) => (entityName.has(e) ? nameOf(e) : e === mainTarget ? "ene
 
 // Readable ability from the AttackProperty name: drop the codename, "AttackProperty", keep the rest.
 const readable = (r) => {
-  if (r.ability_name === "Player_ElementAbnormalBuff") return "Anomaly proc";
+  // per-hit-log's attribution: by name, or a nameless row at a base Anomaly multiplier (Corruption).
+  if (r.skill_id === "anomaly") return "Anomaly proc";
   const s = stripCodename(r.attack_property_name || r.ability_name || "").replace(/_?Attack[pP]roperty_?/, " #").replace(/_/g, " ").trim();
   return s;
 };
