@@ -41,6 +41,13 @@ and UnityPlayer.dll there first) and `il2cpp-dump/`. Then, per update:
 5. **`py tools/update/rederive.py measure <new> <battle folder> --apply`**. This reads
    `daze_requested`, the effect fields and the name-object roles off that capture and writes them
    into the manifest, the `LAYOUTS` entry and `tools/attribution.mjs`.
+6. **Enemy DEF (not in `measure` yet):** add the new client to `DEF_REDUCTION_TYPE` in
+   `tools/enemy-state.mjs` (CNBetaWin3.3.4: `562`). Property type ids have not moved between builds
+   so far (0 HP, 7 Energy, 11 CurStun, 59 Decibels held from 3.3.3 to 3.3.4), so carry the old one
+   over, then confirm it on a battle with a DEF-reduction debuff (Nicole): the enemy's table (the one
+   with CurStun writes) gets writes of that type whose value is the ratio change (-0.4 on) and whose
+   second value is the DEF after it (952.8 -> 571.68). If the id is wrong, the reader's own check
+   (every write must give the same base DEF) leaves `enemy_def` empty rather than wrong.
 
 Replayed on both past updates from their archived binaries and launch reports. `finish 3.3.3 3.3.4`
 builds a DLL byte-identical to the committed 3.3.4 one (`tools/update/same_dll.py`: every section but
@@ -60,6 +67,7 @@ The rederive commits' messages carry the design and the full replay record.
 | 3b | `src/capture.zig` | `MoleMole.BattleStatsSubsystem::OnAwake` / `::OnDestroy` resolved by name; prologue checks: OnDestroy 12 verbatim bytes, OnAwake 10 verbatim bytes + `80 3D disp32 00` (re-encoded through rax in the stub) | Cheap — named; if a prologue changes, `disfn.py <ver> <rva>` and re-derive the relocation (comment at the top of `capture.zig`); a failure only costs the per-battle folders (everything lands in `battle-0`), logged under `capture` |
 | 3c | `src/timescalelog.zig` | 3.3.2 class `LOLPDHOFIHG` (obfuscated, renamed every build), `::Update/1` RVA `0x136C9610`, seven field offsets (+0x7c, +0xbc, +0xc4, +0xc8, +0xd0, +0xec, +0xf4) and a 12-byte prologue, all checked at install | Cheap but manual: the class is the tail-`jmp` target of the **named** `PlayTimeSlowUtils::InvokeTimeSlowKey/3` (`disfn.py <ver> <its rva>`); `disfn.py <ver> <Update rva>` gives the offsets from the `movss/mulss/addss` lines (the layout shifted between 3.3.0 and 3.3.2); `PinballSubsystem::ResolvePinballWorldTimeScale/0` cross-checks the scale/unscaled offsets. A failure costs only `timescale.tsv`, logged under `timescale` |
 | 4 | `damage_probe.c` | `target_rva = 0x1b104120` and `0x1482c410`, a 16-byte prologue and a 64-byte fingerprint | Cheap — anchored to a named function, see below |
+| 4b | `tools/enemy-state.mjs` | `DEF_REDUCTION_TYPE`: the enemy's DEF property type id per client (3.3.4: `562`) | Cheap: step 6 of "Updating with rederive.py"; a Nicole battle confirms it |
 | 5 | `damage_result.c`, `damage_stun.c`, `damage_snapshot.c` | result converter `0x1823a830` (obfuscated; found via the enqueue publisher), result factory `0x16fa7460` (obfuscated; found by scanning for the stores to the result's stat offsets, see the howto), Daze widget `0x1965b6a0` + `0x1965c070` (**named**: `UIStunDamageWidgetController::UpdateStunDamageUI` and its sibling); each with a 64-byte fingerprint and a 12-byte prologue | Named ones cheap; the result converter needs the howto's trace re-run |
 
 **Adding more hooks does not make an update meaningfully harder.** The cost is dominated by items 1

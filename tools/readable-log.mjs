@@ -114,10 +114,10 @@ const triggers = abloomTriggers(rows, (r) => actionName(r, nameOf(r.attacker_ent
 const t0 = rows.reduce((min, r) => Math.min(min, +r.elapsed_ms), Infinity);
 const pct = (v) => (v === "" ? "" : (+v * 100).toFixed(2));
 const mods = (r) => Object.fromEntries((r.modifiers || "").split(";").filter(Boolean).map((m) => m.split("=")));
-const cols = ["time_s", "attacker", "target", "skill_id", "ability", "client_name", "attack_tags", "hit_split", "damage", "daze", "crit", "during_stun",
-  "enemy_def", "enemy_def_reduction_pct",
-  "damage_mv_pct", "daze_mv_pct", "energy", "decibels", "atk", "impact", "anomaly_mastery", "anomaly_proficiency",
-  "dmg_bonus_pct", "crit_rate_pct", "crit_dmg_pct", "other_modifiers"];
+const cols = ["time_s", "attacker", "target", "skill_id", "ability", "client_name", "attack_tags", "hit_split", "damage", "daze", "anomaly_buildup", "crit", "during_stun",
+  "enemy_def", "enemy_def_reduction_pct", "enemy_debuffs",
+  "damage_mv_pct", "daze_mv_pct", "distance_attenuation", "energy", "decibels", "atk", "impact", "anomaly_mastery", "anomaly_proficiency",
+  "dmg_bonus_pct", "crit_rate_pct", "crit_dmg_pct", "pen_ratio_pct", "other_modifiers"];
 // The target's side (debuffs on it, e.g. Nicole's DEF reduction), which the hit's own record leaves out.
 const enemyAt = enemyStats(dir, logged);
 const out = [cols.join(",")];
@@ -127,11 +127,11 @@ for (const r of rows) {
     .map(([k, v]) => k.replace(/^Actor_/, "") + "=" + v).join("; ");
   const o = {
     time_s: ((+r.elapsed_ms - t0 - (pausedBefore(+r.elapsed_ms) - pausedBefore(t0))) / 1000).toFixed(3), attacker: att, target: targetOf(r.target_entity), skill_id: r.skill_id,
-    ability: (r.skill_id === "anomaly" ? anomalyName(r, att, names, triggers) : null) ?? actionName(r, att, names) ?? readable(r), client_name: readable(r), attack_tags: r.attack_tags ?? "", hit_split: r.hit_split, damage: r.damage_ceil, daze: r.daze === "" ? "" : (+r.daze).toFixed(2), crit: +r.crit ? "Yes" : "No", during_stun: duringStun(r), ...enemyAt(r),
-    damage_mv_pct: pct(r.dmg_mv), daze_mv_pct: pct(r.daze_mv), energy: r.energy, decibels: r.decibels,
+    ability: (r.skill_id === "anomaly" ? anomalyName(r, att, names, triggers) : null) ?? actionName(r, att, names) ?? readable(r), client_name: readable(r), attack_tags: r.attack_tags ?? "", hit_split: r.hit_split, damage: r.damage_ceil, daze: r.daze === "" ? "" : (+r.daze).toFixed(2), anomaly_buildup: r.buildup_applied === "" ? "" : (+r.buildup_applied).toFixed(2), crit: +r.crit ? "Yes" : "No", during_stun: duringStun(r), ...enemyAt(r),
+    damage_mv_pct: pct(r.dmg_mv), daze_mv_pct: pct(r.daze_mv), distance_attenuation: r.attenuation === "" ? "" : (+r.attenuation).toFixed(4), energy: r.energy, decibels: r.decibels,
     atk: r.atk, impact: r.impact, anomaly_mastery: r.anomaly_mastery, anomaly_proficiency: r.anomaly_proficiency,
     dmg_bonus_pct: r.dmg_mult === "" ? "" : ((+r.dmg_mult - 1) * 100).toFixed(2),
-    crit_rate_pct: m.Actor_CriticalDelta ? pct(m.Actor_CriticalDelta) : "", crit_dmg_pct: m.Actor_CriticalDamageRatioDelta ? pct(m.Actor_CriticalDamageRatioDelta) : "",
+    crit_rate_pct: m.Actor_CriticalDelta ? pct(m.Actor_CriticalDelta) : "", crit_dmg_pct: m.Actor_CriticalDamageRatioDelta ? pct(m.Actor_CriticalDamageRatioDelta) : "", pen_ratio_pct: pct(r.f174 ?? ""),
     other_modifiers: other,
   };
   out.push(cols.map((c) => { const v = String(o[c] ?? ""); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(","));

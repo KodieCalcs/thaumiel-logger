@@ -225,13 +225,17 @@ const HIT_FIELDS = {
   hit_split: "this hit's fraction of its action's total multiplier",
   damage: "final damage, as the game shows it",
   daze: "Daze the target's Stun gauge took from this hit (0 while it is Stunned)",
+  anomaly_buildup: "Anomaly buildup the target's gauge took from this hit (per Attribute: see the attacker)",
   crit: "Yes or No",
   during_stun: "Yes when the target was Stunned as the hit landed; null when that is not known",
   enemy_def: "the target's DEF at the hit, after debuffs on it; null when not known (and for hits on the team)",
   enemy_def_reduction_pct:
     "DEF reduction from debuffs on the target (e.g. Nicole's), %. The attacker's own DEF reduction is not in it: that is the DefenceRatio in other_modifiers",
+  enemy_debuffs:
+    "the team's debuffs on the target at the hit, by the game's internal names (Pheony = Phoenix, Summer = Sunna, Nostradamus = Nicole). Their amounts are not in the log: the game applies most of them while the hit is computed, without storing a stat",
   damage_mv_pct: "the hit's damage multiplier, %",
   daze_mv_pct: "the hit's Daze multiplier, %",
+  distance_attenuation: "the game's distance falloff on the hit, 1 = none (only some ranged attacks have one)",
   energy: "Energy the attacker gained from the hit",
   decibels: "Decibels the team gained from the hit",
   atk: "the attacker's ATK at the hit",
@@ -241,6 +245,7 @@ const HIT_FIELDS = {
   dmg_bonus_pct: "total DMG bonus on the hit, %",
   crit_rate_pct: "the attacker's CRIT Rate at the hit, %",
   crit_dmg_pct: "the attacker's CRIT DMG at the hit, %",
+  pen_ratio_pct: "the attacker's PEN Ratio at the hit, %. Flat PEN is not in the log: the build's flat PEN is in the loadout file",
   other_modifiers: "other modifiers active on the hit, name=value",
 };
 
