@@ -99,7 +99,11 @@ Found: the battle moves to `Combat Logs\<day>\Battle <n>\` (`Battle <n> (2)` if 
 reused the number that day), the settlement and `endbattle_<n>_loadout.json` are copied in
 (hidden), and it is summarized from a temporary copy of the raw files, so the readers'
 intermediate files never land in the battle folder; `combat-log.json` and the workbook's
-Breakdown tab carry the settlement cross-check. Not found: `no-settlement.txt`, and it stays in diagnostics. With no server folder
+Breakdown tab carry the settlement cross-check. Not found: `no-settlement.txt`, and it stays in diagnostics,
+looked at again on every run until it is pruned. Settlements are looked for in the logs folder
+`.tools\server-logs.txt` names and in the `logs\` of every server folder (one with `gamesv\`)
+beside the game folder, so an old plain Remielle server kept next to the battlestats one cannot
+hide them. With no server folder
 configured every battle with a hit is published, numbered through the day. The server's counter
 is in memory, so a server restart starts again at `endbattle_1` and overwrites the old file;
 matching by time and copying the file in at once is what keeps each battle's settlement. A battle

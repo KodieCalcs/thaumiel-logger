@@ -296,27 +296,30 @@ function summarizeBattle(dir) {
 
 // --- publishing ---------------------------------------------------------------------------------
 
-/** The server's logs folder: from .tools\server-logs.txt (relative to the game folder; written by
- *  install.cmd), else a folder beside the game folder with gamesv\ in it (how install.cmd finds
- *  it, for players who copied the release zip in instead), else null. */
-function serverLogsDir(root) {
+/** Every logs folder a settlement may be in: the one in .tools\server-logs.txt (relative to the game
+ *  folder; written by install.cmd) and the logs\ of every folder beside the game folder with gamesv\
+ *  in it. All of them, because a player can keep an old plain Remielle server next to the
+ *  battlestats one, and only the battlestats server writes settlements: picking one folder picked
+ *  the wrong one. A logs\ folder may not exist until the server's first settlement. */
+function serverLogsDirs(root) {
   const gameDir = path.dirname(root);
+  const dirs = [];
   try {
     const configured = fs.readFileSync(path.join(root, ".tools", "server-logs.txt"), "utf8").replace(/^﻿/, "").trim();
-    const dir = path.resolve(gameDir, configured);
-    if (fs.statSync(dir).isDirectory()) return dir;
+    if (configured) dirs.push(path.resolve(gameDir, configured));
   } catch {}
   try {
     const parent = path.dirname(gameDir);
     for (const d of fs.readdirSync(parent, { withFileTypes: true })) {
-      if (!d.isDirectory() || !fs.existsSync(path.join(parent, d.name, "gamesv"))) continue;
-      return path.join(parent, d.name, "logs"); // may not exist until the server's first settlement
+      if (d.isDirectory() && fs.existsSync(path.join(parent, d.name, "gamesv"))) dirs.push(path.join(parent, d.name, "logs"));
     }
   } catch {}
-  return null;
+  return [...new Set(dirs.map((d) => path.resolve(d).toLowerCase()))].map((lower) => dirs.find((d) => path.resolve(d).toLowerCase() === lower));
 }
 
-/** Battles the DLL has finished with (battle.txt written) and nobody has judged yet. */
+/** Battles the DLL has finished with (battle.txt written). `judged` ones were found unsettled
+ *  before; they are looked at again on every run until they are pruned, so a settlement the
+ *  logger was not watching at the time (a wrong server folder) still publishes them once it is. */
 function stagedBattles(root) {
   const out = [];
   const diagnostics = path.join(root, ".diagnostics");
@@ -331,7 +334,7 @@ function stagedBattles(root) {
     for (const sub of fs.readdirSync(launchDir, { withFileTypes: true })) {
       if (!sub.isDirectory() || !/^battle \d+$/.test(sub.name)) continue;
       const dir = path.join(launchDir, sub.name);
-      if (fs.existsSync(path.join(dir, "no-settlement.txt"))) continue;
+      const judged = fs.existsSync(path.join(dir, "no-settlement.txt"));
       let info;
       try {
         info = Object.fromEntries(
@@ -340,28 +343,30 @@ function stagedBattles(root) {
       } catch {
         continue; // still running, or from before battle.txt existed
       }
-      out.push({ dir, awake: +info.awake_unix_ms, destroy: +info.destroy_unix_ms, hits: +info.hits });
+      out.push({ dir, awake: +info.awake_unix_ms, destroy: +info.destroy_unix_ms, hits: +info.hits, judged });
     }
   }
   return out.sort((a, b) => a.awake - b.awake);
 }
 
 /** The settlement the server wrote while this battle ran (the latest, if somehow several). */
-function findSettlement(battle, logsDir) {
+function findSettlement(battle, logsDirs) {
   let best = null;
-  let names = [];
-  try {
-    names = fs.readdirSync(logsDir);
-  } catch {
-    return null; // no settlement written yet
-  }
-  for (const name of names) {
-    const m = /^endbattle_(\d+)\.pb$/.exec(name);
-    if (!m) continue;
-    const file = path.join(logsDir, name);
-    const t = fs.statSync(file).mtimeMs;
-    if (t < battle.awake - 2000 || t > battle.destroy + SETTLEMENT_GRACE_MS) continue;
-    if (!best || t > best.t) best = { n: +m[1], file, t };
+  for (const logsDir of logsDirs) {
+    let names = [];
+    try {
+      names = fs.readdirSync(logsDir);
+    } catch {
+      continue; // no settlement written there yet
+    }
+    for (const name of names) {
+      const m = /^endbattle_(\d+)\.pb$/.exec(name);
+      if (!m) continue;
+      const file = path.join(logsDir, name);
+      const t = fs.statSync(file).mtimeMs;
+      if (t < battle.awake - 2000 || t > battle.destroy + SETTLEMENT_GRACE_MS) continue;
+      if (!best || t > best.t) best = { n: +m[1], file, t };
+    }
   }
   return best;
 }
@@ -408,23 +413,26 @@ function publishWithoutServer(root, battle) {
 
 /** Judge every staged battle: publish it, leave it for later, or mark it never settled. */
 async function publishStaged(root) {
-  const logsDir = serverLogsDir(root);
-  if (!logsDir) note("no server logs folder found (.tools\\server-logs.txt, or a server folder beside the game folder); publishing every battle with a hit");
+  const logsDirs = serverLogsDirs(root);
+  if (!logsDirs.length) note("no server logs folder found (.tools\\server-logs.txt, or a server folder beside the game folder); publishing every battle with a hit");
   for (const battle of stagedBattles(root)) {
     try {
-      if (!logsDir) {
+      if (!logsDirs.length) {
         if (battle.hits > 0) note(`${publishWithoutServer(root, battle)}: published (no server to check)`);
-        else fs.writeFileSync(path.join(battle.dir, "no-settlement.txt"), "no hits\r\n");
+        else if (!battle.judged) fs.writeFileSync(path.join(battle.dir, "no-settlement.txt"), "no hits\r\n");
         continue;
       }
-      let settlement = findSettlement(battle, logsDir);
+      let settlement = findSettlement(battle, logsDirs);
       // The level can close before the server has written the file; give it a moment.
       while (!settlement && Date.now() < battle.destroy + SETTLEMENT_GRACE_MS) {
         await sleep(2000);
-        settlement = findSettlement(battle, logsDir);
+        settlement = findSettlement(battle, logsDirs);
       }
-      if (settlement) note(`${publish(root, battle, settlement)}: settled as ${path.basename(settlement.file)}`);
-      else {
+      if (settlement) {
+        const dest = publish(root, battle, settlement);
+        fs.rmSync(path.join(dest, "no-settlement.txt"), { force: true });
+        note(`${dest}: settled as ${path.basename(settlement.file)}${battle.judged ? " (found on a later look)" : ""}`);
+      } else if (!battle.judged) {
         fs.writeFileSync(path.join(battle.dir, "no-settlement.txt"), "the server wrote no settlement while this battle ran (retried or quit)\r\n");
         note(`${battle.dir}: no settlement, left in diagnostics`);
       }
@@ -505,7 +513,7 @@ if (pending) {
     for (;;) {
       await publishStaged(root);
       const todo = unsummarized(root).filter((d) => !failed.has(d));
-      if (todo.length === 0 && stagedBattles(root).length === 0) break;
+      if (todo.length === 0 && stagedBattles(root).every((b) => b.judged)) break;
       for (const dir of todo) {
         try {
           note(`${dir}: ${summarizeBattle(dir)}`);

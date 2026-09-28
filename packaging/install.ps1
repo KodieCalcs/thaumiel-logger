@@ -132,7 +132,14 @@ if (-not $Staging) {
     $currentOk = $current -and (Test-Path (Join-Path $GameFolder $current)) -or ($current -and [IO.Path]::IsPathRooted($current) -and (Test-Path $current))
     if (-not $currentOk) {
         $parent = Split-Path -Parent $GameFolder
-        $server = Get-ChildItem $parent -Directory -ErrorAction SilentlyContinue | Where-Object { Test-Path (Join-Path $_.FullName 'gamesv') } | Select-Object -First 1
+        # Several servers side by side (an old plain Remielle next to the battlestats one): prefer the
+        # one that has written settlements, then one named battlestats. The summarizer checks every
+        # server folder here anyway; this is only what server-logs.txt records.
+        $server = Get-ChildItem $parent -Directory -ErrorAction SilentlyContinue |
+            Where-Object { Test-Path (Join-Path $_.FullName 'gamesv') } |
+            Sort-Object @{ Expression = { [bool](Get-ChildItem (Join-Path $_.FullName 'logs') -Filter 'endbattle_*.pb' -ErrorAction SilentlyContinue | Select-Object -First 1) }; Descending = $true },
+                        @{ Expression = { $_.Name -match 'battlestats' }; Descending = $true } |
+            Select-Object -First 1
         $serverDir = if ($server) { $server.FullName } else { $null }
         if (-not $serverDir) {
             Add-Type -AssemblyName System.Windows.Forms
