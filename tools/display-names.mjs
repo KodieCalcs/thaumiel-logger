@@ -50,23 +50,60 @@ export function actionName(r, attacker, names) {
  * Anomaly, and for an Abloom also its trigger `<Codename>_TriggerBuffAttack[_part]` and "Abloom".
  * The client pairs each Attribute's Anomaly with a variant (Burn/Ignite, Electric/Overload,
  * Erosion/Chaos, Frozen/Frostbite); Catalysis is Vortex. A variant keeps its tag in the name. An
- * Abloom reads "Abloom (<trigger part or multiplier>, <Anomaly>)", with the trigger's owner in front
- * when that is another Agent. Null for a row without tags (logs from before 2026-09-28). The same
- * names as sheet-webapp's run export. */
+ * Abloom reads "Abloom (<what triggered it>, <Anomaly>)", with the trigger's owner in front when that
+ * is another Agent; `triggers` (abloomTriggers) says what triggered it. Null for a row without tags
+ * (logs from before 2026-09-28). The same names as sheet-webapp's run export. */
 const ANOMALY_TAGS = {
   Burn: "Burn", Ignite: "Burn (Ignite)", Electric: "Shock", Overload: "Shock (Overload)", Erosion: "Corruption", Chaos: "Corruption (Chaos)",
   Frozen: "Shatter", Frostbite: "Shatter", Frost: "Shatter (Frost)", Strike: "Assault", Wind: "Windswept", Catalysis: "Vortex",
   Disorder: "Disorder", Luminize: "Luminize",
 };
-export function anomalyName(r, attacker, names) {
+const TRIGGER = /^(.+?)_TriggerBuffAttack(?:_(.+))?$/;
+const triggerTag = (tags) => tags.find((t) => TRIGGER.test(t)) ?? "";
+/** Every Agent's Mindscape logic lives in four assets, Talent_01..04 (no Agent has a 05 or 06; M3
+ * and M5 only raise skill levels), and the client names Talent_04 "Talent06": M1, M2, M4, M6. */
+const TALENT_MINDSCAPE = { 1: "M1", 2: "M2", 3: "M4", 4: "M6" };
+const isAnomalyRow = (r) => r.skill_id === "anomaly" || (r.attack_tags || "").startsWith("Buff");
+/** What triggers each Abloom trigger tag in this log: a Mindscape where the tag names one
+ * (`..._Talent03` = M4), else the in-game action that most often lands just before it -- the
+ * attacker's last named hit within 100 ms, other Anomaly damage skipped (Phoenix: `_Brust` after
+ * Sinburn's final hit, `_SwitchIn_Ex` after Soulhunt's; 0-15 ms on the first tagged battle).
+ * `nameOf(row)` is the row's in-game action or null. Learned per log, so it needs no table and
+ * covers any Agent; a tag it cannot place keeps the game's name. */
+export function abloomTriggers(rows, nameOf) {
+  const votes = new Map();
+  rows.forEach((r, i) => {
+    const tags = (r.attack_tags || "").split("|");
+    if (tags[0] !== "Buff" || !tags.includes("Abloom")) return;
+    const tag = triggerTag(tags);
+    if (!tag || /_Talent0?\d$/.test(tag)) return;
+    for (let k = i - 1; k >= 0 && +r.elapsed_ms - +rows[k].elapsed_ms <= 100; k--) {
+      const p = rows[k];
+      if (p.attacker_entity !== r.attacker_entity || isAnomalyRow(p)) continue;
+      const name = nameOf(p);
+      if (!name) continue;
+      const v = votes.get(tag) ?? new Map();
+      v.set(name, (v.get(name) ?? 0) + 1);
+      votes.set(tag, v);
+      break;
+    }
+  });
+  const out = new Map();
+  for (const [tag, v] of votes) out.set(tag, [...v].sort((a, b) => b[1] - a[1])[0][0]);
+  return out;
+}
+/** "Basic Attack: Sinburn 3rd-Hit" -> "Sinburn": the action without its type and hit number. */
+const actionTitle = (name) => name.replace(/^[^:]*:\s*/, "").replace(/\s+\d+(st|nd|rd|th)-Hit$/, "");
+export function anomalyName(r, attacker, names, triggers = new Map()) {
   const tags = (r.attack_tags || "").split("|");
   if (tags[0] !== "Buff" || !tags[1]) return null;
   const anomaly = ANOMALY_TAGS[tags[1]] ?? `Anomaly (${tags[1]})`;
   if (!tags.includes("Abloom")) return anomaly;
-  const m = (tags.find((t) => /_TriggerBuffAttack(_|$)/.test(t)) ?? "").match(/^(.+?)_TriggerBuffAttack(?:_(.+))?$/);
+  const tag = triggerTag(tags), m = tag.match(TRIGGER);
   const owner = m ? names?.codenames?.[m[1].toLowerCase()] ?? m[1] : attacker;
+  const talent = m?.[2]?.match(/^Talent0?(\d)$/)?.[1];
   const mv = r.dmg_mv === "" || r.dmg_mv == null ? "" : `${Number((+r.dmg_mv * 100).toFixed(4))} %`;
-  const part = m?.[2]?.replace(/_/g, " ") ?? mv;
+  const part = TALENT_MINDSCAPE[talent] ?? (triggers.has(tag) ? actionTitle(triggers.get(tag)) : null) ?? m?.[2]?.replace(/_/g, " ") ?? mv;
   return `Abloom (${owner !== attacker ? `${owner}'s ` : ""}${[part, anomaly].filter(Boolean).join(", ")})`;
 }
 
