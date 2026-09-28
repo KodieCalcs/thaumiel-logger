@@ -67,6 +67,7 @@ Combat Logs\                               beside the launcher (names: src/captu
   2026-09-28\                              one folder per day (local time)
     Battle 7\                              SETTLED battles, named after the server's endbattle_7.pb
       combat-log.xlsx, combat-log.json     tools/summarize.mjs (workbook: tools/xlsx.mjs), run by the DLL when the battle ends
+      endbattle_7.pb, endbattle_7_loadout.json   the settlement and build, copied from the server (visible: the site takes both)
       hits.tsv events.tsv state.tsv timescale.tsv damage-*-<stamp>-<pid>.tsv    HIDDEN (attribute)
   .diagnostics\                            hidden
     <launch date time>\                    hitlog-startup.log, damage-probe-status.txt, il2cpp-v7.*
@@ -97,7 +98,7 @@ the game folder) for the settlement the battlestats Remielle wrote while the bat
 (`endbattle_<n>.pb` with an mtime between start - 2 s and end + 20 s, waiting up to 20 s for it).
 Found: the battle moves to `Combat Logs\<day>\Battle <n>\` (`Battle <n> (2)` if a server restart
 reused the number that day), the settlement and `endbattle_<n>_loadout.json` are copied in
-(hidden), and it is summarized from a temporary copy of the raw files, so the readers'
+(left visible, since the site takes both), and it is summarized from a temporary copy of the raw files, so the readers'
 intermediate files never land in the battle folder; `combat-log.json` and the workbook's
 Breakdown tab carry the settlement cross-check. Not found: `no-settlement.txt`, and it stays in diagnostics,
 looked at again on every run until it is pruned. Settlements are looked for in the logs folder

@@ -74,8 +74,11 @@ its loadout are copied into the folder. A few seconds after a battle ends, its f
 Daze is what the enemy's Stun gauge actually took, so hits that land while it is Stunned count 0;
 `during_stun` says which hits those are.
 
-**Share those two files, not whole folders.** Each battle folder also holds the raw data the two
-files are made from. It's hidden, because it can contain account details (File Explorer: View >
+The folder also has the server's settlement and your build for that battle,
+`endbattle_7.pb` and `endbattle_7_loadout.json`. Upload both to the site with the log.
+
+**Share those files, not whole folders.** Each battle folder also holds the raw data the two
+logs are made from. It's hidden, because it can contain account details (File Explorer: View >
 Show > Hidden items to see it).
 
 `logger status.txt` says **ON** or **OFF**. OFF means your game version is newer than the logger;

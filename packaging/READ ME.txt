@@ -17,8 +17,11 @@ This folder is where the combat logger (thaumiel + combat logger) saves your bat
 
 The two files appear a few seconds after a battle ends. They are the ones to share.
 
+Beside them are endbattle_7.pb and endbattle_7_loadout.json: the server's settlement
+and your build for that battle. The site needs both.
+
 Each battle folder also holds the raw data the two files are made from. It is hidden,
-because it can contain account details: share the two files, not whole folders.
+because it can contain account details: share the files above, not whole folders.
 (To see it anyway: in File Explorer, View > Show > Hidden items.)
 
 If "logger status.txt" says the logger is OFF, your game version is newer than the

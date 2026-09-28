@@ -11,7 +11,7 @@
 // giving its start and end. A battle is published only if the (battlestats) Remielle server
 // wrote a settlement for it -- "<server>\logs\endbattle_<n>.pb", matched by time, since the
 // server's counter restarts with the server -- and then becomes "Combat Logs\<day>\Battle <n>\"
-// with the settlement and its loadout copied in (hidden). Retried or quit battles have no
+// with the settlement and its loadout copied in (visible: the site takes both). Retried or quit battles have no
 // settlement and stay in diagnostics, where they are deleted 7 days later.
 //
 // The readers (per-hit-log.mjs, readable-log.mjs) run on a temporary copy of the raw files, so
@@ -37,9 +37,6 @@ if (!target) {
 const SETTLEMENT_GRACE_MS = 20_000;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-const hide = (file) => {
-  if (process.platform === "win32") spawnSync("attrib", ["+h", file], { windowsHide: true });
-};
 const logLines = [];
 const note = (line) => {
   logLines.push(`${new Date().toISOString()} ${line}`);
@@ -396,7 +393,6 @@ function publish(root, battle, settlement) {
     if (!fs.existsSync(file)) continue;
     const to = path.join(dest, path.basename(file));
     fs.copyFileSync(file, to);
-    hide(to);
   }
   return dest;
 }
