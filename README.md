@@ -66,7 +66,7 @@ its loadout are copied into the folder. A few seconds after a battle ends, its f
 
 | File | What's in it |
 |---|---|
-| `combat-log.csv` | Every hit, one row each: time, character, skill, damage, crit, Daze, Energy, the character's ATK / Impact / Anomaly stats at that moment, and active buffs. Opens in Excel or Google Sheets. |
+| `combat-log.csv` | Every hit, one row each: time, character, skill (its in-game name, e.g. "Ultimate: Annihilating Windstorm"; the game's internal name is in `client_name`), damage, crit, Daze, Energy, the character's ATK / Impact / Anomaly stats at that moment, and active buffs. Opens in Excel or Google Sheets. |
 | `summary.json` | Damage per character and per skill, battle length, hit count, crit rate, the game version, and how many skills match the server's settlement exactly. |
 
 **Share those two files, not whole folders.** Each battle folder also holds the raw data the two
