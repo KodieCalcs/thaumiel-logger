@@ -9,6 +9,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { parseCsv } from "./log-csv.mjs";
+import { enemyStats } from "./enemy-state.mjs";
 import { codename, displayName, stripCodename } from "./codename-labels.mjs";
 import { loadDisplayNames, entityNames, actionName, anomalyName, abloomTriggers, dropSummonCopies } from "./display-names.mjs";
 const dir = process.argv[2];
@@ -114,8 +115,11 @@ const t0 = rows.reduce((min, r) => Math.min(min, +r.elapsed_ms), Infinity);
 const pct = (v) => (v === "" ? "" : (+v * 100).toFixed(2));
 const mods = (r) => Object.fromEntries((r.modifiers || "").split(";").filter(Boolean).map((m) => m.split("=")));
 const cols = ["time_s", "attacker", "target", "skill_id", "ability", "client_name", "attack_tags", "hit_split", "damage", "daze", "crit", "during_stun",
+  "enemy_def", "enemy_def_reduction_pct",
   "damage_mv_pct", "daze_mv_pct", "energy", "decibels", "atk", "impact", "anomaly_mastery", "anomaly_proficiency",
   "dmg_bonus_pct", "crit_rate_pct", "crit_dmg_pct", "other_modifiers"];
+// The target's side (debuffs on it, e.g. Nicole's DEF reduction), which the hit's own record leaves out.
+const enemyAt = enemyStats(dir, logged);
 const out = [cols.join(",")];
 for (const r of rows) {
   const m = mods(r); const att = nameOf(r.attacker_entity);
@@ -123,7 +127,7 @@ for (const r of rows) {
     .map(([k, v]) => k.replace(/^Actor_/, "") + "=" + v).join("; ");
   const o = {
     time_s: ((+r.elapsed_ms - t0 - (pausedBefore(+r.elapsed_ms) - pausedBefore(t0))) / 1000).toFixed(3), attacker: att, target: targetOf(r.target_entity), skill_id: r.skill_id,
-    ability: (r.skill_id === "anomaly" ? anomalyName(r, att, names, triggers) : null) ?? actionName(r, att, names) ?? readable(r), client_name: readable(r), attack_tags: r.attack_tags ?? "", hit_split: r.hit_split, damage: r.damage_ceil, daze: r.daze === "" ? "" : (+r.daze).toFixed(2), crit: +r.crit ? "Yes" : "No", during_stun: duringStun(r),
+    ability: (r.skill_id === "anomaly" ? anomalyName(r, att, names, triggers) : null) ?? actionName(r, att, names) ?? readable(r), client_name: readable(r), attack_tags: r.attack_tags ?? "", hit_split: r.hit_split, damage: r.damage_ceil, daze: r.daze === "" ? "" : (+r.daze).toFixed(2), crit: +r.crit ? "Yes" : "No", during_stun: duringStun(r), ...enemyAt(r),
     damage_mv_pct: pct(r.dmg_mv), daze_mv_pct: pct(r.daze_mv), energy: r.energy, decibels: r.decibels,
     atk: r.atk, impact: r.impact, anomaly_mastery: r.anomaly_mastery, anomaly_proficiency: r.anomaly_proficiency,
     dmg_bonus_pct: r.dmg_mult === "" ? "" : ((+r.dmg_mult - 1) * 100).toFixed(2),

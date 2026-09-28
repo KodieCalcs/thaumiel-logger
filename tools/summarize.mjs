@@ -227,6 +227,9 @@ const HIT_FIELDS = {
   daze: "Daze the target's Stun gauge took from this hit (0 while it is Stunned)",
   crit: "Yes or No",
   during_stun: "Yes when the target was Stunned as the hit landed; null when that is not known",
+  enemy_def: "the target's DEF at the hit, after debuffs on it; null when not known (and for hits on the team)",
+  enemy_def_reduction_pct:
+    "DEF reduction from debuffs on the target (e.g. Nicole's), %. The attacker's own DEF reduction is not in it: that is the DefenceRatio in other_modifiers",
   damage_mv_pct: "the hit's damage multiplier, %",
   daze_mv_pct: "the hit's Daze multiplier, %",
   energy: "Energy the attacker gained from the hit",

@@ -12,7 +12,8 @@ This folder is where the combat logger (thaumiel + combat logger) saves your bat
                            Breakdown - damage and Daze per character and per
                            ability, with each one's share.
                            Every hit - time, character, skill, damage, Daze,
-                           crit, Energy, stats at that moment, active buffs.
+                           crit, Energy, stats at that moment, active buffs,
+                           and the enemy's DEF and DEF reduction from debuffs.
       combat-log.json      every hit, for programs and AI tools.
 
 The two files appear a few seconds after a battle ends. They are the ones to share.
