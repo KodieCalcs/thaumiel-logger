@@ -4,12 +4,19 @@
 //
 //   import { enemyStats } from "./enemy-state.mjs";
 //   const at = enemyStats(dir, perHitRows);   // rows of per-hit-log.csv
-//   at(row) -> { enemy_def, enemy_def_reduction_pct, enemy_debuffs }   ("" when not known)
+//   at(row) -> { enemy_def, enemy_def_reduction_pct, enemy_dmg_res_pct, enemy_daze_taken_pct,
+//                enemy_debuffs }   ("" when not known)
 //
 // enemy_debuffs names the team's modifiers live on the target at the hit (Velina's RES shred,
 // Phoenix's core, a Disc set's Anomaly RES shred...). Most such debuffs change no stored stat: the
 // game applies them while the hit is computed, and their amounts are in no log, so the names (and
-// when they were on) are what is captured. DEF reduction is the exception, as a stored stat.
+// when they were on) are what is captured. DEF reduction and DMG RES are stored stats, read below.
+//
+// enemy_daze_taken_pct is measured, not read: the Daze a hit asked for divided by its Daze
+// multiplier x (Impact + flat Impact bonus, BreakStunDelta) x (1 + the attacker's Daze bonus,
+// AddedBreakStunRatio) x its distance falloff is exactly 1 on every hit of four test battles except
+// under Assault, where it is 1.075 (33 of 35 hits in its window). The rest is the target's side.
+// Anomaly procs (their Daze does not come from Impact) and hits with no Daze get none.
 //
 // Every entity's stats live in a property table that the log names by the table's pointer. A table
 // is matched to the target whose damage it records: each hit's damage is written to its target's HP
@@ -22,10 +29,14 @@
 //   core passive: -0.4 on, +0.4 off) and its second value is the target's DEF after it
 //   (952.8 -> 571.68, x 0.6). CNBetaWin3.3.4 type 562: 191 applies / 190 removes, one per
 //   attach / detach of NosUniqueDebuffModifier (Nicole's codename is Nostradamus).
+//   DMG RES: the second value is the target's total DMG RES change in 1/10000 (-1000 = -10%, the
+//   target takes more), the first the change. CNBetaWin3.3.4 type 574: its writes coincide with
+//   every attach / detach of DamageResistRatio_Talent02 (a Mindscape 2 debuff) in a Yuzuha battle.
 import fs from "node:fs";
 import path from "node:path";
 
 const DEF_REDUCTION_TYPE = { "CNBetaWin3.3.4": "562" };
+const DMG_RES_TYPE = { "CNBetaWin3.3.4": "574" };
 const HP_TYPE = "0";
 const MATCH_MS = 50;
 
@@ -138,16 +149,32 @@ function tableTargets(props, hits) {
   return new Map([...tableOf].map(([target, { table }]) => [target, table]));
 }
 
+/** The target's share of a hit's Daze, % over what the attacker's side accounts for (see the header). */
+export function dazeTakenPct(row) {
+  if (row.skill_id === "anomaly" || !(+row.daze_mv > 0) || !(+row.daze_requested > 0) || !(+row.impact > 0)) return "";
+  const m = Object.fromEntries((row.modifiers || "").split(";").filter(Boolean).map((kv) => kv.split("=")));
+  const flat = +(m.Actor_BreakStunDelta || 0);
+  const bonus = +(m.Actor_AddedBreakStunRatio || 0);
+  const distance = row.attenuation === "" || row.attenuation === undefined ? 1 : +row.attenuation;
+  const expected = +row.daze_mv * (+row.impact + flat) * (1 + bonus) * distance;
+  if (!(expected > 0)) return "";
+  const v = (+row.daze_requested / expected - 1) * 100;
+  // Float rounding in the logged multipliers leaves up to ~0.1% on an unaffected hit.
+  return Math.abs(v) < 0.2 ? "0" : v.toFixed(1);
+}
+
 export function enemyStats(dir, perHitRows) {
-  const empty = { enemy_def: "", enemy_def_reduction_pct: "", enemy_debuffs: "" };
+  const empty = { enemy_def: "", enemy_def_reduction_pct: "", enemy_dmg_res_pct: "", enemy_debuffs: "" };
+  const withDaze = (row, cols) => ({ ...cols, enemy_daze_taken_pct: dazeTakenPct(row) });
   const state = readState(dir);
-  if (!state) return () => empty;
+  if (!state) return (row) => withDaze(row, empty);
   const { props, mods } = state;
   const attackers = new Set(perHitRows.map((r) => String(r.attacker_entity).toLowerCase()));
   const debuffs = debuffsOn(mods, attackers);
   const debuffText = (row) => debuffs(String(row.target_entity).toLowerCase(), +row.elapsed_ms).join("; ");
-  const type = DEF_REDUCTION_TYPE[clientOf(dir)];
-  if (!type) return (row) => ({ ...empty, enemy_debuffs: debuffText(row) });
+  const client = clientOf(dir);
+  const type = DEF_REDUCTION_TYPE[client];
+  if (!type) return (row) => withDaze(row, { ...empty, enemy_debuffs: debuffText(row) });
   const none = () => ({ enemy_def: "", enemy_def_reduction_pct: "" });
   const hits = perHitRows
     .map((r) => ({ t: +r.elapsed_ms, target: String(r.target_entity).toLowerCase(), damage: +r.damage_ceil }))
@@ -190,5 +217,28 @@ export function enemyStats(dir, perHitRows) {
       ? { enemy_def: last.def.toFixed(2), enemy_def_reduction_pct: pct(last.reduction) }
       : { enemy_def: baseDef.get(table).toFixed(2), enemy_def_reduction_pct: "0" };
   };
-  return (row) => ({ ...defAt(row), enemy_debuffs: debuffText(row) });
+  // DMG RES: the running total is the write's second value; each must equal the previous plus the
+  // change, else the table is not read right and its column stays empty.
+  const resType = DMG_RES_TYPE[client];
+  const res = new Map();
+  for (const w of props) {
+    if (!resType || w.type !== resType) continue;
+    const s = res.get(w.table) ?? [];
+    s.push({ t: w.t, total: w.after, ok: Math.abs((s.length ? s[s.length - 1].total : 0) + w.change - w.after) <= 0.5 });
+    res.set(w.table, s);
+  }
+  const resAt = (row) => {
+    const table = tables.get(String(row.target_entity).toLowerCase());
+    if (!table || !resType) return "";
+    const s = res.get(table);
+    if (!s) return "0";
+    if (!s.every((w) => w.ok)) return "";
+    let total = 0;
+    for (const w of s) {
+      if (w.t > +row.elapsed_ms) break;
+      total = w.total;
+    }
+    return Math.abs(total) < 1e-6 ? "0" : (total / 100).toFixed(2);
+  };
+  return (row) => withDaze(row, { ...defAt(row), enemy_dmg_res_pct: resAt(row), enemy_debuffs: debuffText(row) });
 }

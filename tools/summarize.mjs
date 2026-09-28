@@ -231,6 +231,9 @@ const HIT_FIELDS = {
   enemy_def: "the target's DEF at the hit, after debuffs on it; null when not known (and for hits on the team)",
   enemy_def_reduction_pct:
     "DEF reduction from debuffs on the target (e.g. Nicole's), %. The attacker's own DEF reduction is not in it: that is the DefenceRatio in other_modifiers",
+  enemy_dmg_res_pct: "the target's DMG RES change from debuffs on it, %; negative = it takes more damage (e.g. -10)",
+  enemy_daze_taken_pct:
+    "extra Daze the target took from this hit because of its side (e.g. Assault: 7.5), %, measured: the hit's Daze against its Daze multiplier, the attacker's Impact (with flat bonuses) and Daze bonus, and distance. Empty on Anomaly procs and hits with no Daze",
   enemy_debuffs:
     "the team's debuffs on the target at the hit, by the game's internal names (Pheony = Phoenix, Summer = Sunna, Nostradamus = Nicole). Their amounts are not in the log: the game applies most of them while the hit is computed, without storing a stat",
   damage_mv_pct: "the hit's damage multiplier, %",

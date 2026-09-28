@@ -13,8 +13,8 @@ This folder is where the combat logger (thaumiel + combat logger) saves your bat
                            ability, with each one's share.
                            Every hit - time, character, skill, damage, Daze,
                            crit, Energy, stats at that moment, active buffs,
-                           Anomaly buildup, and the enemy's DEF, DEF reduction
-                           and the team's debuffs on it.
+                           Anomaly buildup, and the enemy's DEF, DEF reduction,
+                           DMG RES, extra Daze taken and the team's debuffs on it.
       combat-log.json      every hit, for programs and AI tools.
 
 The two files appear a few seconds after a battle ends. They are the ones to share.
