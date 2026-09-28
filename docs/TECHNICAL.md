@@ -66,7 +66,7 @@ Combat Logs\                               beside the launcher (names: src/captu
   READ ME.txt                              the player explanation (packaging/READ ME.txt)
   2026-09-28\                              one folder per day (local time)
     Battle 7\                              SETTLED battles, named after the server's endbattle_7.pb
-      combat-log.csv, summary.json         tools/summarize.mjs, run by the DLL when the battle ends
+      combat-log.xlsx, summary.json        tools/summarize.mjs (workbook: tools/xlsx.mjs), run by the DLL when the battle ends
       hits.tsv events.tsv state.tsv timescale.tsv damage-*-<stamp>-<pid>.tsv    HIDDEN (attribute)
   .diagnostics\                            hidden
     <launch date time>\                    hitlog-startup.log, damage-probe-status.txt, il2cpp-v7.*

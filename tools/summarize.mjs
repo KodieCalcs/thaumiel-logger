@@ -1,4 +1,4 @@
-// Publishes settled battles and writes their two readable files, combat-log.csv and summary.json.
+// Publishes settled battles and writes their two readable files, combat-log.xlsx and summary.json.
 //
 //   node summarize.mjs --pending "<Combat Logs>"   publish + summarize everything outstanding
 //   node summarize.mjs "<battle folder>"           summarize that battle (again)
@@ -20,6 +20,7 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { parseCsv } from "./log-csv.mjs";
+import { writeXlsx } from "./xlsx.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
@@ -64,37 +65,50 @@ const round = (v, d = 0) => Number(v.toFixed(d));
 
 // --- summarizing -------------------------------------------------------------------------------
 
-/** Damage per attacker and per skill from the readable log, plus the settlement cross-check. */
-function summarize(dir, allRows, check) {
-  const header = fs.readFileSync(resultFileOf(dir), "utf8").split("\n", 1)[0];
-  // The team is whoever attacks the most-hit target. The log names an enemy once it has hit an
-  // Agent, so without this its hits on the team would count as team damage.
+/** The team's hits on enemies, and the enemies' hits on the team. The team is whoever attacks the
+ *  most-hit target: the log names an enemy once it has hit an Agent, so without this its hits on
+ *  the team would count as team damage. */
+function splitTeam(allRows) {
   const targetHits = new Map();
   for (const r of allRows) targetHits.set(r.target, (targetHits.get(r.target) ?? 0) + 1);
   const mainTarget = [...targetHits].sort((a, b) => b[1] - a[1])[0]?.[0];
   const team = new Set(allRows.filter((r) => r.target === mainTarget && r.attacker !== mainTarget).map((r) => r.attacker));
-  const rows = allRows.filter((r) => team.has(r.attacker) && !team.has(r.target));
-  const taken = allRows.filter((r) => team.has(r.target) && !team.has(r.attacker));
+  return {
+    rows: allRows.filter((r) => team.has(r.attacker) && !team.has(r.target)),
+    taken: allRows.filter((r) => team.has(r.target) && !team.has(r.attacker)),
+  };
+}
+
+const abilityOf = (r) => r.ability.replace(/ #\d+$/, "");
+
+/** Damage and Daze per attacker and per skill from the readable log, plus the settlement cross-check. */
+function summarize(dir, allRows, check) {
+  const header = fs.readFileSync(resultFileOf(dir), "utf8").split("\n", 1)[0];
+  const { rows, taken } = splitTeam(allRows);
   const total = rows.reduce((s, r) => s + (+r.damage || 0), 0);
+  const totalDaze = rows.reduce((s, r) => s + (+r.daze || 0), 0);
   const byAttacker = new Map();
   for (const r of rows) {
     const name = r.attacker || "unknown";
-    const a = byAttacker.get(name) ?? { name, damage: 0, hits: 0, crits: 0, skills: new Map() };
+    const a = byAttacker.get(name) ?? { name, damage: 0, daze: 0, hits: 0, crits: 0, skills: new Map() };
     const dmg = +r.damage || 0;
+    const daze = +r.daze || 0;
     a.damage += dmg;
+    a.daze += daze;
     a.hits += 1;
     if (r.crit === "Yes") a.crits += 1;
-    const ability = r.ability.replace(/ #\d+$/, "");
+    const ability = abilityOf(r);
     const key = `${r.skill_id}|${ability}`;
-    const s = a.skills.get(key) ?? { skill_id: r.skill_id, ability, damage: 0, hits: 0 };
+    const s = a.skills.get(key) ?? { skill_id: r.skill_id, ability, damage: 0, daze: 0, hits: 0 };
     s.damage += dmg;
+    s.daze += daze;
     s.hits += 1;
     a.skills.set(key, s);
     byAttacker.set(name, a);
   }
   const times = rows.map((r) => +r.time_s).filter(Number.isFinite);
   return {
-    about: "Combat logger summary. combat-log.csv next to this file has every hit.",
+    about: "Combat logger summary. combat-log.xlsx next to this file has the same breakdown and every hit.",
     gameVersion: /client=(\S+)/.exec(header)?.[1] ?? null,
     battle: `${path.basename(path.dirname(dir))} ${path.basename(dir)}`,
     settlement: check?.settlement
@@ -103,6 +117,7 @@ function summarize(dir, allRows, check) {
     durationSeconds: times.length ? round(Math.max(...times) - Math.min(...times), 1) : 0,
     hits: rows.length,
     totalDamage: Math.round(total),
+    totalDaze: round(totalDaze, 1),
     damageTaken: { hits: taken.length, damage: Math.round(taken.reduce((s, r) => s + (+r.damage || 0), 0)) },
     attackers: [...byAttacker.values()]
       .sort((a, b) => b.damage - a.damage)
@@ -110,10 +125,93 @@ function summarize(dir, allRows, check) {
         name: a.name,
         damage: Math.round(a.damage),
         damageShare: total ? round((a.damage / total) * 100, 2) : 0,
+        daze: round(a.daze, 1),
+        dazeShare: totalDaze ? round((a.daze / totalDaze) * 100, 2) : 0,
         hits: a.hits,
         critRate: a.hits ? round((a.crits / a.hits) * 100, 1) : 0,
-        skills: [...a.skills.values()].sort((x, y) => y.damage - x.damage).map((s) => ({ ...s, damage: Math.round(s.damage) })),
+        skills: [...a.skills.values()]
+          .sort((x, y) => y.damage - x.damage)
+          .map((s) => ({ ...s, damage: Math.round(s.damage), daze: round(s.daze, 1) })),
       })),
+  };
+}
+
+/** The workbook's first sheet: damage and Daze per character, then per character and ability. */
+function breakdownSheet(summary, allRows) {
+  const { rows } = splitTeam(allRows);
+  const share = (part, whole) => ({ v: whole ? part / whole : 0, s: "pct" });
+  const out = [
+    [{ v: "Damage and Daze breakdown", s: "title" }],
+    ["Battle", summary.battle],
+    ["Game version", summary.gameVersion ?? ""],
+    ["Duration (seconds)", { v: summary.durationSeconds, s: "dec" }],
+    [
+      "Server settlement",
+      summary.settlement
+        ? `${summary.settlement.file}: ${summary.settlement.skillsMatchingExactly} skill totals match exactly, ${summary.settlement.skillsNotMatching} do not`
+        : "none found (totals not cross-checked)",
+    ],
+    ["Damage taken by the team", { v: summary.damageTaken.damage, s: "int" }, `${summary.damageTaken.hits} hits`],
+    [],
+    ["Character", "Damage", "Share of damage", "Daze", "Share of Daze", "Hits", "Crit rate"].map((v) => ({ v, s: "bold" })),
+  ];
+  for (const a of summary.attackers) {
+    out.push([a.name, { v: a.damage, s: "int" }, share(a.damage, summary.totalDamage), { v: a.daze, s: "dec" }, share(a.daze, summary.totalDaze), a.hits, { v: a.critRate / 100, s: "pct" }]);
+  }
+  out.push([
+    { v: "Team", s: "bold" },
+    { v: summary.totalDamage, s: "boldInt" },
+    { v: 1, s: "boldPct" },
+    { v: summary.totalDaze, s: "boldDec" },
+    { v: summary.totalDaze ? 1 : 0, s: "boldPct" },
+    { v: summary.hits, s: "boldInt" },
+  ]);
+  out.push([]);
+  out.push(
+    ["Character", "Ability", "Damage", "Share of team damage", "Share of character's damage", "Daze", "Share of team Daze", "Share of character's Daze", "Hits"].map(
+      (v) => ({ v, s: "bold" }),
+    ),
+  );
+  // By the ability's name: skills the game splits into several ids under one name read as one line.
+  for (const a of summary.attackers) {
+    const byName = new Map();
+    for (const r of rows) {
+      if ((r.attacker || "unknown") !== a.name) continue;
+      const name = abilityOf(r);
+      const e = byName.get(name) ?? { name, damage: 0, daze: 0, hits: 0 };
+      e.damage += +r.damage || 0;
+      e.daze += +r.daze || 0;
+      e.hits += 1;
+      byName.set(name, e);
+    }
+    for (const e of [...byName.values()].sort((x, y) => y.damage - x.damage || y.daze - x.daze)) {
+      out.push([
+        a.name,
+        e.name,
+        { v: Math.round(e.damage), s: "int" },
+        share(e.damage, summary.totalDamage),
+        share(e.damage, a.damage),
+        { v: round(e.daze, 1), s: "dec" },
+        share(e.daze, summary.totalDaze),
+        share(e.daze, a.daze),
+        e.hits,
+      ]);
+    }
+  }
+  return { name: "Breakdown", rows: out, widths: [24, 44, 14, 20, 26, 12, 20, 24, 8] };
+}
+
+/** The workbook's second sheet: the readable log, one row per hit. */
+function hitsSheet(csv) {
+  const lines = parseCsv(csv);
+  const header = Object.keys(lines[0] ?? {});
+  const wide = { attacker: 18, target: 14, ability: 40, client_name: 30, other_modifiers: 60 };
+  return {
+    name: "Every hit",
+    rows: [header.map((v) => ({ v, s: "bold" })), ...lines.map((r) => header.map((h) => r[h]))],
+    widths: header.map((h) => wide[h] ?? Math.max(9, h.length + 2)),
+    freezeRows: 1,
+    filter: true,
   };
 }
 
@@ -137,9 +235,12 @@ function summarizeBattle(dir) {
     try {
       check = JSON.parse(fs.readFileSync(path.join(work, "settlement-check.json"), "utf8"));
     } catch {}
-    const summary = summarize(dir, parseCsv(csv), check);
-    fs.writeFileSync(path.join(dir, "combat-log.csv"), csv);
+    const rows = parseCsv(csv);
+    const summary = summarize(dir, rows, check);
+    writeXlsx(path.join(dir, "combat-log.xlsx"), [breakdownSheet(summary, rows), hitsSheet(csv)]);
     fs.writeFileSync(path.join(dir, "summary.json"), JSON.stringify(summary, null, 2) + "\n");
+    // Earlier versions wrote the hits as combat-log.csv; the workbook's "Every hit" sheet replaces it.
+    fs.rmSync(path.join(dir, "combat-log.csv"), { force: true });
     return `${summary.hits} hits, ${summary.totalDamage} damage`;
   } finally {
     fs.rmSync(work, { recursive: true, force: true });
@@ -271,7 +372,8 @@ async function publishStaged(root) {
   }
 }
 
-/** Visible battle folders (<day>\<battle>) with hits and no summary.json yet. */
+/** Visible battle folders (<day>\<battle>) with hits and no summary.json or combat-log.xlsx yet
+ *  (a folder from before the workbook existed is summarized again). */
 function unsummarized(root) {
   const out = [];
   for (const day of fs.readdirSync(root, { withFileTypes: true })) {
@@ -280,7 +382,8 @@ function unsummarized(root) {
       if (!battle.isDirectory()) continue;
       const dir = path.join(root, day.name, battle.name);
       const result = resultFileOf(dir);
-      if (result && hasHits(result) && !fs.existsSync(path.join(dir, "summary.json"))) out.push(dir);
+      const done = fs.existsSync(path.join(dir, "summary.json")) && fs.existsSync(path.join(dir, "combat-log.xlsx"));
+      if (result && hasHits(result) && !done) out.push(dir);
     }
   }
   return out;

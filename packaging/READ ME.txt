@@ -8,11 +8,12 @@ This folder is where the combat logger (thaumiel + combat logger) saves your bat
     Battle 7\              one folder per battle the server settled, named after
                            its settlement file (endbattle_7.pb). Retried or quit
                            battles get none.
-      combat-log.csv       every hit: time, character, skill, damage, crit, Daze,
-                           Energy, stats at that moment, active buffs. Opens in
-                           Excel or Google Sheets.
-      summary.json         damage per character and per skill, battle length,
-                           hit count, crit rate, game version.
+      combat-log.xlsx      opens in Excel or Google Sheets. Two tabs:
+                           Breakdown - damage and Daze per character and per
+                           ability, with each one's share.
+                           Every hit - time, character, skill, damage, Daze,
+                           crit, Energy, stats at that moment, active buffs.
+      summary.json         the same totals, for programs.
 
 The two files appear a few seconds after a battle ends. They are the ones to share.
 

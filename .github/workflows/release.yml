@@ -82,6 +82,6 @@ jobs:
 
           **Or download:** get ``$($info.name).zip`` below, close the game, and copy everything inside into your game folder (replace ``remielle.exe`` and ``thaumiel.dll``).
 
-          After starting the game, ``Combat Logs\logger status.txt`` says whether the logger is on; each battle's ``combat-log.csv`` and ``summary.json`` appear in ``Combat Logs`` a few seconds after it ends.
+          After starting the game, ``Combat Logs\logger status.txt`` says whether the logger is on; each battle's ``combat-log.xlsx`` and ``summary.json`` appear in ``Combat Logs`` a few seconds after it ends.
           "@
           gh release create $tag "$($info.zip)" --title $title --notes $notes --latest
