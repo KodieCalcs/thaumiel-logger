@@ -2,12 +2,15 @@
 //!
 //! Everything lives under `Combat Logs\` beside remielle.exe (names in capture_names.zig):
 //!
-//!   Combat Logs\2026-09-28\Battle 3 - 14.05\   one folder per battle, numbered through the day;
-//!                                              only combat-log.csv and summary.json are visible,
-//!                                              the raw logs (hits.tsv, events.tsv, damage-*.tsv,
-//!                                              ...) are hidden in place
+//!   Combat Logs\2026-09-28\Battle 3\           one folder per FINISHED battle, numbered through
+//!                                              the day; only combat-log.csv and summary.json are
+//!                                              visible, the raw logs (hits.tsv, events.tsv,
+//!                                              damage-*.tsv, ...) are hidden in place
 //!   Combat Logs\.diagnostics\<launch>\         hidden: hitlog-startup.log, damage-probe-status.txt,
-//!                                              il2cpp-v7.*, and lobby\ (launch -> first battle)
+//!                                              il2cpp-v7.*, lobby\ (launch -> first battle),
+//!                                              battle <k>\ (the k-th battle of the launch while it
+//!                                              runs; stays here if it was left through the pause
+//!                                              menu), after battle <k>\ (result screen, lobby)
 //!   Combat Logs\.tools\                        hidden: the summarizer, run at each battle's end
 //!
 //! Every reader (per-hit-log.mjs, name-capture-states.mjs, import-rotation.mjs, ...) takes a
@@ -18,9 +21,11 @@
 //! level and destroyed with it, unlike the `GlobalSubsystemBase` family) that collects the
 //! settlement report. Its `OnAwake` rotates every log -- hits.tsv, events.tsv, the damage-*
 //! probes -- and resets the shared clock origin, so `elapsed_ms` reads as time since the battle
-//! awoke and the two runs of a session cannot be confused. `OnDestroy` only flushes: rows after
-//! it (the result screen, the lobby) stay in the battle's folder, and if awake never fires the
-//! whole session stays in the diagnostics lobby\ folder. Both
+//! awoke and the two runs of a session cannot be confused. `OnDestroy` closes the battle's files
+//! (rows after it go to `after battle <k>\`) and decides where the battle goes: left through the
+//! pause menu (capture_names.endedFromPauseMenu) or without a single hit, it stays in
+//! diagnostics; otherwise it moves to `Combat Logs\<day>\Battle <n>\` and is summarized. If
+//! awake never fires, the whole session stays in the diagnostics lobby\ folder. Both
 //! methods are resolved by name through the dumper's verified il2cpp metadata API, like the hit
 //! hooks; a lookup or prologue failure installs nothing and is logged.
 //!
@@ -62,6 +67,7 @@ extern "kernel32" fn SetFileAttributesA([*:0]const u8, u32) callconv(.winapi) w.
 extern "kernel32" fn FindFirstFileA([*:0]const u8, *FindData) callconv(.winapi) w.HANDLE;
 extern "kernel32" fn FindNextFileA(w.HANDLE, *FindData) callconv(.winapi) w.BOOL;
 extern "kernel32" fn FindClose(w.HANDLE) callconv(.winapi) w.BOOL;
+extern "kernel32" fn MoveFileA([*:0]const u8, [*:0]const u8) callconv(.winapi) w.BOOL;
 
 /// WIN32_FIND_DATAA.
 const FindData = extern struct {
@@ -100,13 +106,15 @@ pub const PathBuf = [260]u8;
 
 /// Clock origin shared by hitlog.zig and eventlog.zig (`elapsed_ms`); reset on every battle awake.
 pub var started: u64 = 0;
-/// Number of awakes seen this launch (0 = before the first battle). The number in a battle
-/// folder's name is per day instead, one past the highest already in that day's folder.
+/// Number of awakes seen this launch (0 = before the first battle). The number in a finished
+/// battle's folder name is per day instead, one past the highest already in that day's folder.
 pub var battle: u32 = 0;
+/// hitlog.hits at the current battle's awake.
+var hits_at_awake: u64 = 0;
 
 var session_dir: PathBuf = undefined; // "Combat Logs\.diagnostics\<launch>\"
 var session_len: usize = 0;
-var battle_dir: PathBuf = undefined; // "Combat Logs\<day>\Battle <n> - <time>\", or "<session>lobby\"
+var battle_dir: PathBuf = undefined; // "<session>battle <k>\", "<session>after battle <k>\" or "<session>lobby\"
 var battle_len: usize = 0;
 
 fn sessionDirZ() [*:0]const u8 {
@@ -135,13 +143,12 @@ pub fn hide(path: [*:0]const u8) void {
     _ = SetFileAttributesA(path, attributes | ATTRIBUTE_HIDDEN);
 }
 
-/// Hide every file in the current battle folder except the summarizer's two outputs, so a player
-/// opening it sees combat-log.csv and summary.json. The raw logs stay where every reader expects
-/// them; setting the attribute works on files this process still has open.
-fn hideRawFiles() void {
-    if (battle == 0) return; // the lobby folder is inside the hidden diagnostics folder
+/// Hide every file in `dir` (with its trailing backslash) except the summarizer's two outputs,
+/// so a player opening a battle folder sees combat-log.csv and summary.json. The raw logs stay
+/// where every reader expects them.
+fn hideRawFiles(dir: []const u8) void {
     var pattern: PathBuf = undefined;
-    const p = std.fmt.bufPrintZ(&pattern, "{s}*", .{battle_dir[0..battle_len]}) catch return;
+    const p = std.fmt.bufPrintZ(&pattern, "{s}*", .{dir}) catch return;
     var data: FindData = undefined;
     const handle = FindFirstFileA(p.ptr, &data);
     if (handle == w.INVALID_HANDLE_VALUE) return;
@@ -150,7 +157,7 @@ fn hideRawFiles() void {
         const name = std.mem.sliceTo(&data.file_name, 0);
         if (data.attributes & ATTRIBUTE_DIRECTORY == 0 and !names.isVisibleOutput(name)) {
             var path: PathBuf = undefined;
-            hide(battlePath(&path, name));
+            hide((std.fmt.bufPrintZ(&path, "{s}{s}", .{ dir, name }) catch continue).ptr);
         }
         if (FindNextFileA(handle, &data) == .FALSE) break;
     }
@@ -175,23 +182,50 @@ fn nextBattleNumber(day_dir: []const u8) u32 {
     return highest + 1;
 }
 
+/// `<session><name>\` becomes the folder every log writes to.
+fn setBattleDirIn(comptime fmt: []const u8, args: anytype) void {
+    var name: [64]u8 = undefined;
+    const n = std.fmt.bufPrint(&name, fmt, args) catch unreachable;
+    const s = std.fmt.bufPrintZ(&battle_dir, "{s}{s}\\", .{ session_dir[0..session_len], n }) catch unreachable;
+    battle_len = s.len;
+    _ = CreateDirectoryA(battleDirZ(), null);
+}
+
 fn setBattleDir() void {
-    if (battle == 0) {
-        const s = std.fmt.bufPrintZ(&battle_dir, "{s}lobby\\", .{session_dir[0..session_len]}) catch unreachable;
-        battle_len = s.len;
-        _ = CreateDirectoryA(battleDirZ(), null);
-        return;
-    }
+    if (battle == 0) setBattleDirIn("lobby", .{}) else setBattleDirIn("battle {d}", .{battle});
+}
+
+/// Every log reopens in the current `battle_dir` (the clock is not reset).
+fn rotateAll() void {
+    hitlog.rotate();
+    eventlog.rotate();
+    timescalelog.rotate();
+    statelog.rotate();
+    damage_probe_rotate(battleDirZ(), started);
+}
+
+/// Move a finished battle's folder (`staged`, with its trailing backslash) to
+/// `Combat Logs\<day>\Battle <n>`, hide its raw files and summarize it.
+fn publish(staged: []const u8) void {
     var now: SystemTime = undefined;
     GetLocalTime(&now);
     var day_buf: PathBuf = undefined;
     var day_name: [16]u8 = undefined;
     const day = std.fmt.bufPrintZ(&day_buf, root_dir ++ "\\{s}\\", .{names.dayFolderName(&day_name, now)}) catch unreachable;
     _ = CreateDirectoryA(day.ptr, null);
-    var name: [64]u8 = undefined;
-    const s = std.fmt.bufPrintZ(&battle_dir, "{s}{s}\\", .{ day, names.battleFolderName(&name, nextBattleNumber(day), now) }) catch unreachable;
-    battle_len = s.len;
-    _ = CreateDirectoryA(battleDirZ(), null);
+    var from_buf: PathBuf = undefined;
+    const from = std.fmt.bufPrintZ(&from_buf, "{s}", .{staged[0 .. staged.len - 1]}) catch unreachable;
+    var name: [32]u8 = undefined;
+    var to_buf: PathBuf = undefined;
+    const to = std.fmt.bufPrintZ(&to_buf, "{s}{s}", .{ day, names.battleFolderName(&name, nextBattleNumber(day)) }) catch unreachable;
+    if (MoveFileA(from.ptr, to.ptr) == .FALSE) {
+        log.err("could not move {s} to {s}; the battle stays in diagnostics", .{ from, to });
+        return;
+    }
+    var dir_buf: PathBuf = undefined;
+    hideRawFiles(std.fmt.bufPrint(&dir_buf, "{s}\\", .{to}) catch return);
+    log.info("battle {d} finished: {s}", .{ battle, to });
+    startSummarizer();
 }
 
 /// Create `Combat Logs\.diagnostics\<launch>\lobby\` and start the clock. Must run before any log
@@ -253,26 +287,37 @@ export fn capture_battle_awake(self: u64) callconv(.c) void {
     battle += 1;
     setBattleDir();
     started = GetTickCount64();
-    hitlog.rotate();
-    eventlog.rotate();
-    timescalelog.rotate();
-    statelog.rotate();
-    damage_probe_rotate(battleDirZ(), started);
-    hideRawFiles();
+    hits_at_awake = hitlog.hits;
+    rotateAll();
     log.info("battle {d} awake (subsystem 0x{X}) {d} ms after battle {d} began; logging to {s}", .{ battle, self, elapsed, previous, battle_dir[0..battle_len] });
 }
 
-/// Called at BattleStatsSubsystem::OnDestroy: the level is going away, so make the battle's
-/// files complete on disk and summarize it. Nothing closes -- see the module comment.
+/// Called at BattleStatsSubsystem::OnDestroy: the level is going away. Close the battle's files
+/// (what follows -- result screen, lobby -- goes to `after battle <k>\`), then publish it if it
+/// was finished: not left through the pause menu, and at least one hit.
 export fn capture_battle_destroy(self: u64) callconv(.c) void {
-    hitlog.flushAll();
-    eventlog.flushAll();
-    timescalelog.flushAll();
-    statelog.flushAll();
-    damage_probe_flush();
-    hideRawFiles(); // catches files opened after the awake pass
-    startSummarizer();
-    log.info("battle {d} destroyed (subsystem 0x{X}) at {d} ms", .{ battle, self, GetTickCount64() - started });
+    const ended = GetTickCount64();
+    if (battle == 0) { // destroy without an awake: nothing to publish, just make it durable
+        hitlog.flushAll();
+        eventlog.flushAll();
+        timescalelog.flushAll();
+        statelog.flushAll();
+        damage_probe_flush();
+        return;
+    }
+    var staged: PathBuf = undefined;
+    const staged_len = battle_len;
+    @memcpy(staged[0..staged_len], battle_dir[0..staged_len]);
+    const battle_hits = hitlog.hits - hits_at_awake;
+    const paused = names.endedFromPauseMenu(ended, timescalelog.last_pause_wall);
+    setBattleDirIn("after battle {d}", .{battle});
+    rotateAll();
+    log.info("battle {d} destroyed (subsystem 0x{X}) at {d} ms: {d} hits, {s}", .{
+        battle, self, ended - started, battle_hits,
+        if (paused) "left through the pause menu" else "finished",
+    });
+    if (paused or battle_hits == 0) return; // stays in diagnostics as battle <k>
+    publish(staged[0..staged_len]);
 }
 
 // --- install ------------------------------------------------------------------

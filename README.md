@@ -53,12 +53,13 @@ Everything the logger writes goes in one folder in your game folder:
 Combat Logs\
   logger status.txt        is the logger ON for your game version?
   2026-09-28\              one folder per day
-    Battle 1 - 14.05\      one folder per battle (number and start time)
+    Battle 1\              one folder per finished battle
       combat-log.csv
       summary.json
 ```
 
-A few seconds after a battle ends, its folder gets:
+Only battles you finish get a folder: a battle you leave through the pause menu (retry or
+quit) is skipped. A few seconds after a battle ends, its folder gets:
 
 | File | What's in it |
 |---|---|

@@ -85,8 +85,10 @@ pub fn statusText(buffer: []u8, ok: bool, id: ?Identity, summaries: Summaries) !
             \\Summaries: {s}
             \\
             \\Your battles are saved in this folder, one folder per day:
-            \\  2026-09-28\Battle 1 - 14.05\
-            \\  2026-09-28\Battle 2 - 14.09\
+            \\  2026-09-28\Battle 1\
+            \\  2026-09-28\Battle 2\
+            \\Only finished battles get a folder; a battle left through the pause menu
+            \\(retry or quit) is skipped.
             \\
             \\A few seconds after a battle ends, its folder gets two files:
             \\  combat-log.csv   every hit (opens in Excel / Google Sheets)

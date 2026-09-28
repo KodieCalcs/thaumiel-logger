@@ -5,7 +5,8 @@ This folder is where the combat logger (thaumiel + combat logger) saves your bat
 
   logger status.txt        whether the logger is ON for your game version
   2026-09-28\              one folder per day
-    Battle 1 - 14.05\      one folder per battle (number and start time)
+    Battle 1\              one folder per finished battle (a battle left through
+                           the pause menu, to retry or quit, gets none)
       combat-log.csv       every hit: time, character, skill, damage, crit, Daze,
                            Energy, stats at that moment, active buffs. Opens in
                            Excel or Google Sheets.

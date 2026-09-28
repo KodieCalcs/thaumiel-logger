@@ -126,7 +126,8 @@ const PAGE_EXECUTE_READWRITE: u32 = 0x40;
 var out: ?w.HANDLE = null;
 var buf: [32 << 10]u8 = undefined;
 var len: usize = 0;
-var hits: u64 = 0;
+/// Hits seen this launch; capture.zig takes the difference across a battle.
+pub var hits: u64 = 0;
 /// Clock origin shared with eventlog.zig so the two logs join on elapsed_ms; owned by capture.zig.
 const started = &capture.started;
 /// GameAssembly.dll base, set in install(); return addresses are logged relative to it.

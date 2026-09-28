@@ -4,7 +4,8 @@
 //   node summarize.mjs "<battle folder>"           that battle (re-summarizes it)
 //
 // The DLL runs the --pending form in the background when a battle ends (src/capture.zig), from
-// "Combat Logs\.tools\" where install.cmd / the release zip put this file and its readers. The
+// "Combat Logs\.tools\" where install.cmd / the release zip put this file and its readers, once
+// the DLL has moved the finished battle to "Combat Logs\<day>\Battle <n>\". The
 // readers (per-hit-log.mjs, readable-log.mjs) run on a temporary copy of the raw files, so their
 // intermediate outputs never appear in the battle folder. Nothing in the battle folder is
 // changed except the two files written here.
@@ -138,6 +139,34 @@ function takeLock(root) {
   }
 }
 
+/** Battles left through the pause menu stay in .diagnostics\<launch>\ as "battle <k>" (tens of MB
+ *  each), with an "after battle <k>" folder for the result screen and lobby. Delete those a week
+ *  after they were last written; finished battles and the per-launch logs are never touched. */
+function pruneDiagnostics(root) {
+  const cutoff = Date.now() - 7 * 24 * 3600 * 1000;
+  const diagnostics = path.join(root, ".diagnostics");
+  let launches = [];
+  try {
+    launches = fs.readdirSync(diagnostics, { withFileTypes: true }).filter((d) => d.isDirectory());
+  } catch {
+    return;
+  }
+  for (const launch of launches) {
+    const launchDir = path.join(diagnostics, launch.name);
+    for (const sub of fs.readdirSync(launchDir, { withFileTypes: true })) {
+      if (!sub.isDirectory() || !/^(after )?battle \d+$/.test(sub.name)) continue;
+      const dir = path.join(launchDir, sub.name);
+      const newest = Math.max(0, ...fs.readdirSync(dir).map((f) => fs.statSync(path.join(dir, f)).mtimeMs));
+      if (newest < cutoff) {
+        try {
+          fs.rmSync(dir, { recursive: true, force: true });
+          note(`pruned ${dir}`);
+        } catch {}
+      }
+    }
+  }
+}
+
 const logLines = [];
 const note = (line) => {
   logLines.push(`${new Date().toISOString()} ${line}`);
@@ -163,6 +192,7 @@ if (pending) {
         }
       }
     }
+    pruneDiagnostics(root);
   } finally {
     fs.rmSync(lock, { force: true });
     try {
