@@ -63,15 +63,15 @@ Combat Logs\                               beside the launcher (names: src/captu
   logger status.txt                        logger ON/OFF for this client, summaries on/off, in plain words
   READ ME.txt                              the player explanation (packaging/READ ME.txt)
   2026-09-28\                              one folder per day (local time)
-    Battle 3\                              FINISHED battles, numbered through the day, across launches
+    Battle 7\                              SETTLED battles, named after the server's endbattle_7.pb
       combat-log.csv, summary.json         tools/summarize.mjs, run by the DLL when the battle ends
       hits.tsv events.tsv state.tsv timescale.tsv damage-*-<stamp>-<pid>.tsv    HIDDEN (attribute)
   .diagnostics\                            hidden
     <launch date time>\                    hitlog-startup.log, damage-probe-status.txt, il2cpp-v7.*
       lobby\                               launch -> first battle (lobby; header-only files, usually)
-      battle <k>\                          the k-th battle of the launch while it runs; stays here
-                                           if left through the pause menu or without a hit (pruned
-                                           by summarize.mjs 7 days after its last write)
+      battle <k>\                          the k-th battle of the launch until the summarizer finds
+                                           its settlement; stays here (no-settlement.txt) if the
+                                           server wrote none (pruned 7 days after its last write)
       after battle <k>\                    result screen and lobby after battle k
     summarize.log                          one line per summarized battle
   .tools\                                  hidden: summarize.mjs, the readers, node\node.exe, LICENSE
@@ -87,15 +87,20 @@ settlement report. Both are resolved by name through the il2cpp metadata like th
 awake every log rotates into `.diagnostics\<launch>\battle <k>\` and the shared `elapsed_ms`
 origin resets (so every file in a folder reads as time since that battle awoke; the first hit lands
 ~1.7 s in). On destroy every log rotates on into `after battle <k>\`, which closes the battle's
-files, and the battle is judged: if the game was paused within 5 s before the level closed
-(`capture_names.endedFromPauseMenu`: the pause menu's retry / quit; on the 2026-09-28 session every
-retried battle paused 1.8-3.4 s before, the one that settled never paused) or it has no hit, it
-stays in diagnostics. Otherwise it moves to `Combat Logs\<day>\Battle <n>\` (n = one past the
-highest in that day's folder), its raw files are marked hidden, and
+files, hides them, writes `battle.txt` (the battle's start and end, Unix ms, and its hit count), and
 `Combat Logs\.tools\summarize.mjs --pending` starts in the background (bundled `node.exe`, else
-`node` on PATH; no window, below-normal priority). It summarizes every battle folder that has hits
-and no `summary.json` yet, one run at a time (`.tools\summarize.lock`), reading a temporary copy of
-the raw files so the readers' intermediate files never land in the battle folder. A battle
+`node` on PATH; no window, below-normal priority), one run at a time (`.tools\summarize.lock`).
+It looks in the server's logs folder (`.tools\server-logs.txt`, set by install.ps1, relative to
+the game folder) for the settlement the battlestats Remielle wrote while the battle ran
+(`endbattle_<n>.pb` with an mtime between start - 2 s and end + 20 s, waiting up to 20 s for it).
+Found: the battle moves to `Combat Logs\<day>\Battle <n>\` (`Battle <n> (2)` if a server restart
+reused the number that day), the settlement and `endbattle_<n>_loadout.json` are copied in
+(hidden), and it is summarized from a temporary copy of the raw files, so the readers'
+intermediate files never land in the battle folder and `summary.json` carries the settlement
+cross-check. Not found: `no-settlement.txt`, and it stays in diagnostics. With no server folder
+configured every battle with a hit is published, numbered through the day. The server's counter
+is in memory, so a server restart starts again at `endbattle_1` and overwrites the old file;
+matching by time and copying the file in at once is what keeps each battle's settlement. A battle
 folder holds exactly awake -> destroy; the result screen and lobby rows are in
 `after battle <k>\`. If the hooks do not install (logged as
 `capture` in `hitlog-startup.log`), everything stays in the diagnostics `lobby\` folder.

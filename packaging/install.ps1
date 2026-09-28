@@ -118,6 +118,36 @@ Copy-Item (Join-Path $repo 'LICENSE') $tools -Force
 Copy-Item (Join-Path $repo 'packaging\READ ME.txt') $logs -Force
 (Get-Item $tools -Force).Attributes = 'Directory, Hidden'
 
+# The server's logs folder, where it writes each settlement (endbattle_<n>.pb): a battle gets a
+# "Battle <n>" folder only when its settlement is found there (tools/summarize.mjs). Kept across
+# installs; otherwise found next to the game folder (a folder with gamesv\ in it), else asked.
+$serverConfig = Join-Path $tools 'server-logs.txt'
+if (-not $Staging) {
+    $current = if (Test-Path $serverConfig) { (Get-Content $serverConfig -Raw).Trim() } else { '' }
+    $currentOk = $current -and (Test-Path (Join-Path $GameFolder $current)) -or ($current -and [IO.Path]::IsPathRooted($current) -and (Test-Path $current))
+    if (-not $currentOk) {
+        $parent = Split-Path -Parent $GameFolder
+        $server = Get-ChildItem $parent -Directory -ErrorAction SilentlyContinue | Where-Object { Test-Path (Join-Path $_.FullName 'gamesv') } | Select-Object -First 1
+        $serverDir = if ($server) { $server.FullName } else { $null }
+        if (-not $serverDir) {
+            Add-Type -AssemblyName System.Windows.Forms
+            $dialog = New-Object System.Windows.Forms.FolderBrowserDialog
+            $dialog.Description = 'Select your Remielle server folder (the one with gamesv and logs in it). Battles are saved when the server settles them.'
+            $dialog.ShowNewFolderButton = $false
+            if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { $serverDir = $dialog.SelectedPath }
+        }
+        if ($serverDir) {
+            # Relative to the game folder when they sit side by side, so the path works on the
+            # game machine however this installer reached it (e.g. over the network).
+            $value = if ((Split-Path -Parent $serverDir) -eq $parent) { '..\' + (Split-Path -Leaf $serverDir) + '\logs' } else { Join-Path $serverDir 'logs' }
+            Set-Content -Path $serverConfig -Value $value -Encoding ascii
+            Say "Server settlements: $value"
+        } else {
+            Say 'No server folder chosen: every battle with a hit will be saved, settled or not. Run install.cmd again to set it.'
+        }
+    }
+}
+
 # --- 5. tidy up older layouts --------------------------------------------------------------------
 # Files the first public build (2026-09-28) put beside the launcher; the logger no longer reads them.
 foreach ($f in 'logger-status.txt', 'Make shareable log.cmd', 'READ ME FIRST.txt', 'damage-probe-enable.txt', 'dumper-disable.txt') {

@@ -22,9 +22,11 @@ git clone https://github.com/KodieCalcs/thaumiel-logger.git
 Then double-click **`install.cmd`** in that folder. The first time, it:
 
 1. asks you to pick your game folder (the one with `GameAssembly.dll` in it) and remembers it;
-2. downloads Zig (to build) and Node.js (for the summaries) into the repository's `.cache`
+2. finds your Remielle (battlestats) server folder next to the game folder, or asks for it:
+   battles are saved when the server writes their settlement;
+3. downloads Zig (to build) and Node.js (for the summaries) into the repository's `.cache`
    folder. Nothing is installed on your system;
-3. builds, and copies `remielle.exe` and `thaumiel.dll` into your game folder, plus a
+4. builds, and copies `remielle.exe` and `thaumiel.dll` into your game folder, plus a
    `Combat Logs` folder.
 
 Start the game with `remielle.exe`, as usual.
@@ -53,18 +55,19 @@ Everything the logger writes goes in one folder in your game folder:
 Combat Logs\
   logger status.txt        is the logger ON for your game version?
   2026-09-28\              one folder per day
-    Battle 1\              one folder per finished battle
+    Battle 7\              one folder per settled battle: Battle 7 = the server's endbattle_7.pb
       combat-log.csv
       summary.json
 ```
 
-Only battles you finish get a folder: a battle you leave through the pause menu (retry or
-quit) is skipped. A few seconds after a battle ends, its folder gets:
+Only battles the server settles get a folder, named after the settlement file the server
+writes (`endbattle_7.pb` → `Battle 7`); retried or quit battles are skipped. The settlement and
+its loadout are copied into the folder. A few seconds after a battle ends, its folder gets:
 
 | File | What's in it |
 |---|---|
 | `combat-log.csv` | Every hit, one row each: time, character, skill, damage, crit, Daze, Energy, the character's ATK / Impact / Anomaly stats at that moment, and active buffs. Opens in Excel or Google Sheets. |
-| `summary.json` | Damage per character and per skill, battle length, hit count, crit rate, and the game version. |
+| `summary.json` | Damage per character and per skill, battle length, hit count, crit rate, the game version, and how many skills match the server's settlement exactly. |
 
 **Share those two files, not whole folders.** Each battle folder also holds the raw data the two
 files are made from. It's hidden, because it can contain account details (File Explorer: View >
@@ -78,6 +81,7 @@ the game still works, and the next update turns it back on.
 | Problem | Try this |
 |---|---|
 | No `Combat Logs\logger status.txt` after starting the game | The game wasn't started with this `remielle.exe`, or it went into the wrong folder. Run `install.cmd` again. |
+| A battle you finished has no folder | The server must be the battlestats Remielle, and `install.cmd` must know its folder: run it again (delete `Combat Logs\.tools\server-logs.txt` first to pick the folder again). |
 | Battle folders but no `combat-log.csv` | Check the "Summaries" line in `logger status.txt`. Running `install.cmd` again fixes a missing tool or Node.js. |
 | `install.cmd` says the game is running | Close the game, then run it again. |
 | Wrong game folder | Delete `install-config.txt` in this folder and run `install.cmd` again. |

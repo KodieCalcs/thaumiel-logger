@@ -131,9 +131,6 @@ const State = struct {
 var last: State = .{};
 var seen_update = false;
 var last_update_wall: u64 = 0;
-/// GetTickCount64 at the last Update that ran paused (+0xc8 > 0); capture.zig reads it at battle
-/// destroy to tell a battle left through the pause menu from a finished one.
-pub var last_pause_wall: u64 = 0;
 /// Set by rotate(): the next Update writes a row whether or not anything changed.
 var force_next = true;
 
@@ -170,7 +167,6 @@ export fn timescalelog_record(self: u64, dt: f32) callconv(.c) void {
     };
     // The step's own formula (module comment); +0xf4 = scale * dt would divide by a zero dt.
     s.scale = if (s.unscaled != 0) 1.0 else s.raw * s.mult;
-    if (s.pause != 0) last_pause_wall = now;
     if (seen_update and now - last_update_wall > gap_ms) {
         // Report the stall at the previous step's time; the row below is the resumption.
         row(last_update_wall - capture.started, "gap", last);

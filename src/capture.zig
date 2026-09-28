@@ -2,15 +2,15 @@
 //!
 //! Everything lives under `Combat Logs\` beside remielle.exe (names in capture_names.zig):
 //!
-//!   Combat Logs\2026-09-28\Battle 3\           one folder per FINISHED battle, numbered through
-//!                                              the day; only combat-log.csv and summary.json are
-//!                                              visible, the raw logs (hits.tsv, events.tsv,
-//!                                              damage-*.tsv, ...) are hidden in place
+//!   Combat Logs\2026-09-28\Battle 7\           one folder per SETTLED battle, named after the
+//!                                              server's endbattle_7.pb; only combat-log.csv and
+//!                                              summary.json are visible, the raw logs (hits.tsv,
+//!                                              events.tsv, damage-*.tsv, ...) are hidden in place
 //!   Combat Logs\.diagnostics\<launch>\         hidden: hitlog-startup.log, damage-probe-status.txt,
 //!                                              il2cpp-v7.*, lobby\ (launch -> first battle),
-//!                                              battle <k>\ (the k-th battle of the launch while it
-//!                                              runs; stays here if it was left through the pause
-//!                                              menu), after battle <k>\ (result screen, lobby)
+//!                                              battle <k>\ (the k-th battle of the launch until the
+//!                                              summarizer finds its settlement; stays here if it
+//!                                              never settled), after battle <k>\ (result screen, lobby)
 //!   Combat Logs\.tools\                        hidden: the summarizer, run at each battle's end
 //!
 //! Every reader (per-hit-log.mjs, name-capture-states.mjs, import-rotation.mjs, ...) takes a
@@ -22,10 +22,12 @@
 //! settlement report. Its `OnAwake` rotates every log -- hits.tsv, events.tsv, the damage-*
 //! probes -- and resets the shared clock origin, so `elapsed_ms` reads as time since the battle
 //! awoke and the two runs of a session cannot be confused. `OnDestroy` closes the battle's files
-//! (rows after it go to `after battle <k>\`) and decides where the battle goes: left through the
-//! pause menu (capture_names.endedFromPauseMenu) or without a single hit, it stays in
-//! diagnostics; otherwise it moves to `Combat Logs\<day>\Battle <n>\` and is summarized. If
-//! awake never fires, the whole session stays in the diagnostics lobby\ folder. Both
+//! (rows after it go to `after battle <k>\`), hides them, writes `battle.txt` (the battle's
+//! start and end, Unix ms, and its hit count) and starts tools/summarize.mjs. The summarizer
+//! matches the battle to the settlement the server wrote between that start and end
+//! (`<server>\logs\endbattle_<n>.pb`) and only then moves it to `Combat Logs\<day>\Battle <n>\`;
+//! a battle with no settlement (retried, quit) stays in diagnostics. If awake never fires, the
+//! whole session stays in the diagnostics lobby\ folder. Both
 //! methods are resolved by name through the dumper's verified il2cpp metadata API, like the hit
 //! hooks; a lookup or prologue failure installs nothing and is logged.
 //!
@@ -67,7 +69,10 @@ extern "kernel32" fn SetFileAttributesA([*:0]const u8, u32) callconv(.winapi) w.
 extern "kernel32" fn FindFirstFileA([*:0]const u8, *FindData) callconv(.winapi) w.HANDLE;
 extern "kernel32" fn FindNextFileA(w.HANDLE, *FindData) callconv(.winapi) w.BOOL;
 extern "kernel32" fn FindClose(w.HANDLE) callconv(.winapi) w.BOOL;
-extern "kernel32" fn MoveFileA([*:0]const u8, [*:0]const u8) callconv(.winapi) w.BOOL;
+extern "kernel32" fn GetSystemTimeAsFileTime(*u64) callconv(.winapi) void;
+extern "kernel32" fn CreateFileA([*:0]const u8, u32, u32, ?*anyopaque, u32, u32, ?w.HANDLE) callconv(.winapi) w.HANDLE;
+extern "kernel32" fn WriteFile(w.HANDLE, [*]const u8, u32, *u32, ?*anyopaque) callconv(.winapi) w.BOOL;
+extern "kernel32" fn CloseHandle(w.HANDLE) callconv(.winapi) w.BOOL;
 
 /// WIN32_FIND_DATAA.
 const FindData = extern struct {
@@ -109,8 +114,15 @@ pub var started: u64 = 0;
 /// Number of awakes seen this launch (0 = before the first battle). The number in a finished
 /// battle's folder name is per day instead, one past the highest already in that day's folder.
 pub var battle: u32 = 0;
-/// hitlog.hits at the current battle's awake.
+/// hitlog.hits and the wall clock (Unix ms) at the current battle's awake.
 var hits_at_awake: u64 = 0;
+var awake_unix_ms: u64 = 0;
+
+fn unixMs() u64 {
+    var filetime: u64 = 0; // 100 ns ticks since 1601-01-01
+    GetSystemTimeAsFileTime(&filetime);
+    return (filetime -| 116444736000000000) / 10000;
+}
 
 var session_dir: PathBuf = undefined; // "Combat Logs\.diagnostics\<launch>\"
 var session_len: usize = 0;
@@ -163,25 +175,6 @@ fn hideRawFiles(dir: []const u8) void {
     }
 }
 
-/// One past the highest "Battle <n>" folder already in `day_dir`, so battles keep counting
-/// across launches on the same day.
-fn nextBattleNumber(day_dir: []const u8) u32 {
-    var pattern: PathBuf = undefined;
-    const p = std.fmt.bufPrintZ(&pattern, "{s}Battle *", .{day_dir}) catch return 1;
-    var data: FindData = undefined;
-    const handle = FindFirstFileA(p.ptr, &data);
-    if (handle == w.INVALID_HANDLE_VALUE) return 1;
-    defer _ = FindClose(handle);
-    var highest: u32 = 0;
-    while (true) {
-        if (data.attributes & ATTRIBUTE_DIRECTORY != 0) {
-            if (names.battleNumber(std.mem.sliceTo(&data.file_name, 0))) |n| highest = @max(highest, n);
-        }
-        if (FindNextFileA(handle, &data) == .FALSE) break;
-    }
-    return highest + 1;
-}
-
 /// `<session><name>\` becomes the folder every log writes to.
 fn setBattleDirIn(comptime fmt: []const u8, args: anytype) void {
     var name: [64]u8 = undefined;
@@ -204,28 +197,18 @@ fn rotateAll() void {
     damage_probe_rotate(battleDirZ(), started);
 }
 
-/// Move a finished battle's folder (`staged`, with its trailing backslash) to
-/// `Combat Logs\<day>\Battle <n>`, hide its raw files and summarize it.
-fn publish(staged: []const u8) void {
-    var now: SystemTime = undefined;
-    GetLocalTime(&now);
-    var day_buf: PathBuf = undefined;
-    var day_name: [16]u8 = undefined;
-    const day = std.fmt.bufPrintZ(&day_buf, root_dir ++ "\\{s}\\", .{names.dayFolderName(&day_name, now)}) catch unreachable;
-    _ = CreateDirectoryA(day.ptr, null);
-    var from_buf: PathBuf = undefined;
-    const from = std.fmt.bufPrintZ(&from_buf, "{s}", .{staged[0 .. staged.len - 1]}) catch unreachable;
-    var name: [32]u8 = undefined;
-    var to_buf: PathBuf = undefined;
-    const to = std.fmt.bufPrintZ(&to_buf, "{s}{s}", .{ day, names.battleFolderName(&name, nextBattleNumber(day)) }) catch unreachable;
-    if (MoveFileA(from.ptr, to.ptr) == .FALSE) {
-        log.err("could not move {s} to {s}; the battle stays in diagnostics", .{ from, to });
-        return;
-    }
-    var dir_buf: PathBuf = undefined;
-    hideRawFiles(std.fmt.bufPrint(&dir_buf, "{s}\\", .{to}) catch return);
-    log.info("battle {d} finished: {s}", .{ battle, to });
-    startSummarizer();
+/// `<dir>battle.txt`: when the battle ran and how many hits it had, for the summarizer to find
+/// its settlement by time.
+fn writeBattleInfo(dir: []const u8, awake_ms: u64, destroy_ms: u64, battle_hits: u64) void {
+    var path: PathBuf = undefined;
+    const p = std.fmt.bufPrintZ(&path, "{s}battle.txt", .{dir}) catch return;
+    const handle = CreateFileA(p.ptr, 0x40000000, 1, null, 2, 0x80 | ATTRIBUTE_HIDDEN, null);
+    if (handle == w.INVALID_HANDLE_VALUE) return;
+    defer _ = CloseHandle(handle);
+    var text: [128]u8 = undefined;
+    const t = std.fmt.bufPrint(&text, "awake_unix_ms={d}\r\ndestroy_unix_ms={d}\r\nhits={d}\r\n", .{ awake_ms, destroy_ms, battle_hits }) catch return;
+    var written: u32 = 0;
+    _ = WriteFile(handle, t.ptr, @intCast(t.len), &written, null);
 }
 
 /// Create `Combat Logs\.diagnostics\<launch>\lobby\` and start the clock. Must run before any log
@@ -251,8 +234,8 @@ pub fn start() void {
     damage_probe_set_dirs(sessionDirZ(), battleDirZ());
 }
 
-/// Run the summarizer in the background for every battle without a summary yet (the one that
-/// just ended included): `Combat Logs\.tools\summarize.mjs` under the bundled node, else a node
+/// Run the summarizer in the background: it publishes every staged battle the server settled
+/// (the one that just ended included) and summarizes it. Runs `Combat Logs\.tools\summarize.mjs` under the bundled node, else a node
 /// on PATH. Does nothing if the tools are not installed; with no node, CreateProcess just fails.
 fn startSummarizer() void {
     if (GetFileAttributesA(names.tools_dir ++ "\\summarize.mjs") == INVALID_ATTRIBUTES) return;
@@ -288,15 +271,17 @@ export fn capture_battle_awake(self: u64) callconv(.c) void {
     setBattleDir();
     started = GetTickCount64();
     hits_at_awake = hitlog.hits;
+    awake_unix_ms = unixMs();
     rotateAll();
     log.info("battle {d} awake (subsystem 0x{X}) {d} ms after battle {d} began; logging to {s}", .{ battle, self, elapsed, previous, battle_dir[0..battle_len] });
 }
 
 /// Called at BattleStatsSubsystem::OnDestroy: the level is going away. Close the battle's files
-/// (what follows -- result screen, lobby -- goes to `after battle <k>\`), then publish it if it
-/// was finished: not left through the pause menu, and at least one hit.
+/// (what follows -- result screen, lobby -- goes to `after battle <k>\`), hide them, record the
+/// battle's times, and start the summarizer, which publishes it if the server settled it.
 export fn capture_battle_destroy(self: u64) callconv(.c) void {
     const ended = GetTickCount64();
+    const destroy_ms = unixMs();
     if (battle == 0) { // destroy without an awake: nothing to publish, just make it durable
         hitlog.flushAll();
         eventlog.flushAll();
@@ -309,15 +294,12 @@ export fn capture_battle_destroy(self: u64) callconv(.c) void {
     const staged_len = battle_len;
     @memcpy(staged[0..staged_len], battle_dir[0..staged_len]);
     const battle_hits = hitlog.hits - hits_at_awake;
-    const paused = names.endedFromPauseMenu(ended, timescalelog.last_pause_wall);
     setBattleDirIn("after battle {d}", .{battle});
     rotateAll();
-    log.info("battle {d} destroyed (subsystem 0x{X}) at {d} ms: {d} hits, {s}", .{
-        battle, self, ended - started, battle_hits,
-        if (paused) "left through the pause menu" else "finished",
-    });
-    if (paused or battle_hits == 0) return; // stays in diagnostics as battle <k>
-    publish(staged[0..staged_len]);
+    hideRawFiles(staged[0..staged_len]);
+    writeBattleInfo(staged[0..staged_len], awake_unix_ms, destroy_ms, battle_hits);
+    log.info("battle {d} destroyed (subsystem 0x{X}) at {d} ms: {d} hits", .{ battle, self, ended - started, battle_hits });
+    startSummarizer();
 }
 
 // --- install ------------------------------------------------------------------
