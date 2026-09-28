@@ -28,12 +28,13 @@ extern "kernel32" fn FlushFileBuffers(w.HANDLE) callconv(.winapi) w.BOOL;
 extern "kernel32" fn GetFileAttributesA([*:0]const u8) callconv(.winapi) u32;
 extern fn dumper_guard(*const fn () callconv(.c) void, *u32, *usize) c_int;
 const expected = @import("dumper-rvas.zon");
+const pins = @import("pins.zig");
 // UnityPlayer.dll + this = Unity's 194-entry il2cpp API table (3.3.0: 0x1f96648;
 // 3.3.2/3.3.3: 0x1f9a6c8). MOVED 3.3.3 -> 3.3.4 (+0x1000, first move since 3.3.2): re-found
 // 2026-09-25 by find_unity_table.mjs with anchors re-derived from the 3.3.3 OLD-line output.
 // Both anchor sites agree on 0x1f9b6c8, and the reference count matches exactly (24434
 // call [rip+..] sites into 18 distinct slots -- identical to 3.3.3).
-const table_offset: usize = 0x1f9b6c8;
+const table_offset: usize = pins.unity_table_offset;
 var table: [194]usize = undefined;
 var table_valid = false;
 var game: usize = 0;
@@ -129,7 +130,7 @@ pub fn validateTable() !void {
     const pe = std.mem.readInt(u32, header[60..64], .little);
     if (pe > header.len - 0x90) return error.InvalidPE;
     game_size = std.mem.readInt(u32, header[pe + 0x50 ..][0..4], .little);
-    if (game_size != 0x21714000) return error.UnsupportedClient;
+    if (game_size != pins.dumper_size_of_image) return error.UnsupportedClient;
     if (!peek(@intFromPtr(unity) + table_offset, std.mem.asBytes(&table))) return error.TableUnreadable;
     // Report every mismatch before failing closed, so a patched client yields the real table in
     // one run instead of one index per run. Entries pinned to 0 only have to land in the image.
@@ -147,30 +148,15 @@ pub fn validateTable() !void {
     }
     if (mismatches != 0) return error.TableMismatch;
     // Verify the known code bytes too, not just pointers into a module.
-    // All seven re-read from the CNBetaWin3.3.4 binary at the RVAs the 2026-09-25 first-run
-    // report pinned (the run reported 88 unpinned slots and corrected 20 wrong offline pins,
-    // then failed closed with TableMismatch, by design). What changed from 3.3.3, and why:
-    //   63, 115  unchanged -- position-independent, no operands that move.
-    //   75       unchanged TOO this build: its field offset stayed [rcx+0x1c]. Still expect it
-    //            to shift on other builds, as it did 3.3.2 -> 3.3.3.
-    //   65       RIP-relative displacement; 152 a rel32 jmp. Both move whenever anything moves.
-    //   73, 167  per-build obfuscation constants: 73's movabs key regenerated; 167 keeps the
-    //            3.3.3 shape (mov eax,imm32; add eax,[rcx+disp]) with a new key and its field
-    //            offset moved 0x2c -> 0x3c.
-    const checks = .{
-        .{ 63, "\x48\x83\xec\x28\x48\x8b\x05" },
-        .{ 65, "\x48\x8b\x0d\x89\x54\xdb\x04" },
-        .{ 73, "\x48\xb8\xbe\x70\x37\x76\x11\x6e\x5a\x5e" },
-        .{ 75, "\x8b\x41\x1c\x25\xff\xff\xff\x00" },
-        .{ 115, "\x48\x8b\x51\x38\x48\x85\xd2" },
-        .{ 152, "\xe9\x6b\x76\x08\x00" },
-        .{ 167, "\xb8\x7e\x66\x04\x94\x03\x41\x3c" },
-    };
+    // The seven code checks come from src/pins.zig: `tools/update/rederive.py table` re-reads each
+    // at its slot's new RVA with the old length and classifies every change (unchanged /
+    // rip-relative / rel32 / immediate key / displacement; a changed shape stops for review).
+    const checks = pins.api_checks;
     inline for (checks) |check| {
         var bytes: [check[1].len]u8 = undefined;
         if (!peek(table[check[0]], &bytes) or !std.mem.eql(u8, &bytes, check[1])) return error.CodeMismatch;
     }
-    note("Validated CNBetaWin3.3.4: GameAssembly=0x{X}; Unity table=0x{X}", .{ game, @intFromPtr(unity) + table_offset });
+    note("Validated " ++ pins.client ++ ": GameAssembly=0x{X}; Unity table=0x{X}", .{ game, @intFromPtr(unity) + table_offset });
     table_valid = true;
 }
 fn loadTable() !void {

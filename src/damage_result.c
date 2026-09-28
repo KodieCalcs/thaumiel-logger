@@ -9,19 +9,25 @@ static HANDLE result_output = INVALID_HANDLE_VALUE;
 static SRWLOCK result_lock = SRWLOCK_INIT;
 static volatile LONG result_skipped;
 static uint64_t result_sequence;
-static const unsigned char result_fingerprint[64] = {
-    0x55,0x41,0x57,0x41,0x56,0x41,0x55,0x41,0x54,0x56,0x57,0x53,0x48,0x81,0xec,0x78,
-    0x01,0x00,0x00,0x48,0x8d,0xac,0x24,0x80,0x00,0x00,0x00,0x44,0x0f,0x29,0x95,0xe0,
-    0x00,0x00,0x00,0x44,0x0f,0x29,0x8d,0xd0,0x00,0x00,0x00,0x44,0x0f,0x29,0x85,0xc0,
-    0x00,0x00,0x00,0x0f,0x29,0xbd,0xb0,0x00,0x00,0x00,0x0f,0x29,0xb5,0xa0,0x00,0x00};
+static const unsigned char result_fingerprint[64] = PIN_ResultConverter_convert_FINGERPRINT;
 static const char *result_header =
-    "# schema=5 client=CNBetaWin3.3.4 target_rva=0x19bf3530 a8=first_0x50_bytes_of_the_HMKMLBCLJAH_object_at_result+0x80 a8s18=string a8s20=string a8s28=string(slot_semantics_provisional_pending_capture,3.3.3_was_ability@0x28,attack_property@0x20,other@0x10) strings=0x10,0x30,0x88,0x90,0xb8,0xc0 geometry=result+0x60 dictionary=result+0xb0 phase=before_display_conversion string_encoding=utf16le_hex max_string_units=192 dictionary60_max_slots=128 dictionary60_stride=24 tags=List<String>_at_result+0x48(items+0x10,size+0x18,max_16) numeric_field_map=per-hit-log.mjs_LAYOUTS_CNBetaWin3.3.4\n"
+    "# schema=5 client=" PIN_CLIENT " target_rva=" PIN_STR(PIN_ResultConverter_convert_RVA) " a8=first_0x50_bytes_of_the_"
+    PIN_HitNames_CLASS "_object_at_result+" PIN_STR(PIN_DamageResult_hit_names) " a8s" PIN_HitNames_strings_0_X "=string a8s"
+    PIN_HitNames_strings_1_X "=string a8s" PIN_HitNames_strings_2_X "=string(slot_semantics_provisional_pending_capture,"
+    "3.3.3_was_ability@0x28,attack_property@0x20,other@0x10) strings=" PIN_DamageResult_strings_TEXT " geometry=result+"
+    PIN_STR(PIN_DamageResult_geometry) " dictionary=result+" PIN_STR(PIN_DamageResult_stat_dict)
+    " phase=before_display_conversion string_encoding=utf16le_hex max_string_units=192 dictionary60_max_slots=128"
+    " dictionary60_stride=24 tags=List<String>_at_result+" PIN_STR(PIN_DamageResult_attack_tags)
+    "(items+0x10,size+0x18,max_16) numeric_field_map=per-hit-log.mjs_LAYOUTS_" PIN_CLIENT "\n"
     "sequence\telapsed_ms\tthread\tskipped\tcaller_rva\tcontext_ptr\tentity1_ptr\tentity2_ptr\tresult_ptr\tcomponent_ptr\toutput_event_ptr"
     "\tcontext_bytes\tcontext_hex\tentity1_bytes\tentity1_hex\tentity2_bytes\tentity2_hex\tresult_bytes\tresult_hex\tcomponent_bytes\tcomponent_hex"
     "\ts10_length\ts10_bytes\ts10_hex\ts40_length\ts40_bytes\ts40_hex\ts58_length\ts58_bytes\ts58_hex\ts70_length\ts70_bytes\ts70_hex"
     "\tsa0_length\tsa0_bytes\tsa0_hex\tsc0_length\tsc0_bytes\tsc0_hex"
     "\tgeometryb0_bytes\tgeometryb0_hex\tdict60_bytes\tdict60_hex\tentries60_capacity\tentries60_bytes\tentries60_hex\tkeys60"
-    "\ta8_ptr\ta8_bytes\ta8_hex\ta8s18_length\ta8s18_bytes\ta8s18_hex\ta8s20_length\ta8s20_bytes\ta8s20_hex\ta8s28_length\ta8s28_bytes\ta8s28_hex"
+    "\ta8_ptr\ta8_bytes\ta8_hex"
+    "\ta8s" PIN_HitNames_strings_0_X "_length\ta8s" PIN_HitNames_strings_0_X "_bytes\ta8s" PIN_HitNames_strings_0_X "_hex"
+    "\ta8s" PIN_HitNames_strings_1_X "_length\ta8s" PIN_HitNames_strings_1_X "_bytes\ta8s" PIN_HitNames_strings_1_X "_hex"
+    "\ta8s" PIN_HitNames_strings_2_X "_length\ta8s" PIN_HitNames_strings_2_X "_bytes\ta8s" PIN_HitNames_strings_2_X "_hex"
     "\ttags_ptr\ttags_bytes\ttags_hex\ttags_size\ttags_capacity\ttags\n";
 
 static char *result_hex(char *p, const unsigned char *bytes, SIZE_T n) {
@@ -30,7 +36,7 @@ static char *result_hex(char *p, const unsigned char *bytes, SIZE_T n) {
     *p=0; return p;
 }
 static char *result_block(char *p, uintptr_t ptr, SIZE_T size) {
-    unsigned char bytes[0x2b0];
+    unsigned char bytes[PIN_DamageResult_dump_bytes];
     SIZE_T n=snapshot(ptr,bytes,size);
     p+=sprintf(p,"\t%llu\t",(unsigned long long)n);
     return result_hex(p,bytes,n);
@@ -89,14 +95,14 @@ static char *result_a8(char *p, const unsigned char *result, SIZE_T count) {
      * constant would have dereferenced a string as the name object.
      * 3.3.4: KAMFFCFIJLK -> HMKMLBCLJAH (one candidate), and the field moved +0x50 -> +0x80 --
      * again the only field of that type in the result object; 3.3.4's +0x50 is a different class. */
-    if (count >= 0x80 + 8) memcpy(&a8, result + 0x80, 8);
+    if (count >= PIN_DamageResult_hit_names + 8) memcpy(&a8, result + PIN_DamageResult_hit_names, 8);
     if (a8) n = snapshot(a8, obj, sizeof(obj));
     p += sprintf(p, "\t0x%llx\t%llu\t", (unsigned long long)a8, (unsigned long long)n);
     p = result_hex(p, obj, n);
     /* 3.3.4: HMKMLBCLJAH's three System.String fields are 0x18/0x20/0x28 (3.3.3: 0x10/0x20/0x28 --
      * the first string swapped places with the object pointer at +0x10). Which slot is the ability
      * vs. the AttackProperty name is settled by the first capture, not assumed. */
-    const unsigned offsets[] = {0x18, 0x20, 0x28};
+    const unsigned offsets[] = PIN_HitNames_strings;
     for (unsigned i = 0; i < 3; i++) {
         uintptr_t str = 0; if (n >= offsets[i] + 8) memcpy(&str, obj + offsets[i], 8);
         p = result_string(p, str);
@@ -114,7 +120,7 @@ static char *result_a8(char *p, const unsigned char *result, SIZE_T count) {
 static char *result_tags(char *p, const unsigned char *result, SIZE_T count) {
     uintptr_t list=0, items=0; unsigned char header[0x20]; SIZE_T n=0;
     int32_t size=-1; uint64_t capacity=UINT64_MAX;
-    if(count>=0x48+8) memcpy(&list,result+0x48,8);
+    if(count>=PIN_DamageResult_attack_tags+8) memcpy(&list,result+PIN_DamageResult_attack_tags,8);
     if(list) n=snapshot(list,header,sizeof(header));
     p+=sprintf(p,"\t0x%llx\t%llu\t",(unsigned long long)list,(unsigned long long)n);
     p=result_hex(p,header,n);
@@ -139,7 +145,7 @@ void damage_result_record(const ProbeRegisters *r, const uint64_t *entry_stack) 
     uint64_t stack[7]; snapshot((uintptr_t)entry_stack,stack,sizeof(stack));
     /* 3.3.4: the result object grew -- its last instance field sits at +0x2a0 (3.3.3: +0x284),
      * so the raw dump is 0x2b0 to cover it with alignment slack. */
-    unsigned char result[0x2b0]; SIZE_T count=snapshot(r->gpr[3],result,sizeof(result));
+    unsigned char result[PIN_DamageResult_dump_bytes]; SIZE_T count=snapshot(r->gpr[3],result,sizeof(result));
     /* Lock-owned buffer, not a 128 KB allocation on the game's stack. Worst case:
      * <9 KB original row + <7 KB raw nested data + 128*(768+80) key bytes + <1.3 KB a8
      * + 16*(768+40) tag bytes <138 KB. */
@@ -155,12 +161,12 @@ void damage_result_record(const ProbeRegisters *r, const uint64_t *entry_stack) 
      * has exactly six, as KJDILJALAJA did). 3.3.3: 0x20,0x28,0x38,0x40,0xa0,0xb0; 3.3.2:
      * 0x28,0x58,0x88,0x90,0xb8,0xc8. Mapped positionally, as the previous re-derivations were;
      * the attenuation-curve slot 0xa0 -> 0x88 also has a factory `lea` code witness. */
-    const unsigned offsets[]={0x10,0x30,0x88,0x90,0xb8,0xc0};
+    const unsigned offsets[]=PIN_DamageResult_strings;
     for(unsigned i=0;i<6;i++) { uintptr_t ptr=0; if(count>=offsets[i]+8) memcpy(&ptr,result+offsets[i],8); p=result_string(p,ptr); }
     uintptr_t geometry=0,dict=0;
-    if(count>=0x68)memcpy(&geometry,result+0x60,8); /* 3.3.4: the nested-struct backing field moved
+    if(count>=PIN_DamageResult_geometry+8)memcpy(&geometry,result+PIN_DamageResult_geometry,8); /* 3.3.4: the nested-struct backing field moved
                                                     * +0x78 -> +0x60 (only one such field each build) */
-    if(count>=0xb8)memcpy(&dict,result+0xb0,8); /* 3.3.4: Dictionary<String,Single> moved +0xc8 -> +0xb0;
+    if(count>=PIN_DamageResult_stat_dict+8)memcpy(&dict,result+PIN_DamageResult_stat_dict,8); /* 3.3.4: Dictionary<String,Single> moved +0xc8 -> +0xb0;
                                                  * exactly one field of that type in each build */
     p=result_block(p,geometry,0x78);p=result_dictionary(p,dict);
     p=result_a8(p,result,count);
@@ -179,7 +185,7 @@ int damage_result_start(void) {
      * the converter shape-matched 0.997 over all 747 instructions (runner-up 0.212). Its first
      * 64 bytes are byte-identical to 3.3.3, so the fingerprint above needed no change -- the
      * same cross-check on the identification as last build. */
-    unsigned char *target=(unsigned char *)(module_base+0x19bf3530);
+    unsigned char *target=(unsigned char *)(module_base+PIN_ResultConverter_convert_RVA);
     if(memcmp(target,result_fingerprint,64)) return -3;
     unsigned char *stub=VirtualAlloc(NULL,26,MEM_COMMIT|MEM_RESERVE,PAGE_READWRITE);
     if(!stub) return -4;

@@ -64,12 +64,12 @@ const log = std.log.scoped(.statelog);
 extern "kernel32" fn GetModuleHandleA(?[*:0]const u8) callconv(.winapi) ?*anyopaque;
 extern "kernel32" fn GetTickCount64() callconv(.winapi) u64;
 
-// --- targets (CNBetaWin3.3.4, v7 dump) -------------------------------------------------
-// Re-derived 2026-09-25 (witnesses in sheet-webapp/local-data/client-update-334/): every
-// method shape-matched at 0.99-1.0 inside its structurally-matched class; property_set
-// disambiguated from its identical 54-instruction sibling by caller count (173 vs 9, the
-// same split as 3.3.3) and by the stun mixin calling only the chosen writer. All seven
-// prologues are byte-identical to 3.3.3.
+// --- targets and fields: src/pins.zig, by stable name ---------------------------------
+// Generated from tools/update/pins/<client>.json by `tools/update/rederive.py emit`; the re-derivation
+// (class match, shape match, property_set's caller-count tie-break, register-disciplined field
+// witnesses) is `rederive.py match`. Every value is still checked against the dump at install.
+
+const pins = @import("pins.zig");
 
 const Target = struct {
     class: []const u8,
@@ -80,105 +80,49 @@ const Target = struct {
     shape: detour.Shape,
 };
 
-const t_property_set: Target = .{
-    .class = "IHNAJAGFLDC",
-    .method = "GOPFMPMAFMG",
-    .params = 4,
-    .rva = 0x18D640A0,
-    // push r14; push rsi; push rdi; push rbx; sub rsp,0x88  (12 bytes, position independent)
-    .prologue = &.{ 0x41, 0x56, 0x56, 0x57, 0x53, 0x48, 0x81, 0xEC, 0x88, 0x00, 0x00, 0x00 },
-    .shape = .plain,
-};
-const t_property_notify: Target = .{
-    .class = "JEKJGCLPBMC",
-    .method = "HCNJJOANJKM",
-    .params = 3,
-    .rva = 0x19DB2600,
-    // eight pushes
-    .prologue = &.{ 0x41, 0x57, 0x41, 0x56, 0x41, 0x55, 0x41, 0x54, 0x56, 0x57, 0x55, 0x53 },
-    .shape = .plain,
-};
-const t_modifier_init: Target = .{
-    .class = "JIBFNGPOOJJ",
-    .method = "LHJAJGDKANN",
-    .params = 4,
-    .rva = 0x14F6EB30,
-    // eight pushes + sub rsp,0x108 -- 15 bytes, so the `sub` is relocated whole, not split
-    .prologue = &.{ 0x55, 0x41, 0x57, 0x41, 0x56, 0x41, 0x55, 0x41, 0x54, 0x56, 0x57, 0x53, 0x48, 0x81, 0xEC, 0x08, 0x01, 0x00, 0x00 },
-    .shape = .plain,
-};
-const t_modifier_attach: Target = .{
-    .class = "JIBFNGPOOJJ",
-    .method = "CIBFJCNMMFB",
-    .params = 0,
-    .rva = 0x14F70230,
-    // push rsi; push rdi; push rbx; sub rsp,0x20; mov rsi,rcx  then the class-init cmp
-    .prologue = &.{ 0x56, 0x57, 0x53, 0x48, 0x83, 0xEC, 0x20, 0x48, 0x89, 0xCE },
-    .shape = .cmp_rip,
-};
-const t_modifier_detach: Target = .{
-    .class = "JIBFNGPOOJJ",
-    .method = "MEGHDEFMFHB",
-    .params = 0,
-    .rva = 0x14F6D980,
-    // push rsi; sub rsp,0x20; mov rsi,rcx  then the class-init cmp
-    .prologue = &.{ 0x56, 0x48, 0x83, 0xEC, 0x20, 0x48, 0x89, 0xCE },
-    .shape = .cmp_rip,
-};
-const t_stun_enter: Target = .{
-    .class = "FLDOPGOJDOP",
-    .method = "KIKJBCJPEMN",
-    .params = 0,
-    .rva = 0x15F876B0,
-    // push r15/r14/r12/rsi/rdi/rbx; sub rsp,0x38
-    .prologue = &.{ 0x41, 0x57, 0x41, 0x56, 0x41, 0x54, 0x56, 0x57, 0x53, 0x48, 0x83, 0xEC, 0x38 },
-    .shape = .plain,
-};
-const t_stun_update: Target = .{
-    .class = "FLDOPGOJDOP",
-    .method = "LFKBMOMEFEL",
-    .params = 1,
-    .rva = 0x15F81460,
-    // push rsi; sub rsp,0x60; movaps [rsp+0x50],xmm8; movaps [rsp+0x40],xmm7
-    .prologue = &.{ 0x56, 0x48, 0x83, 0xEC, 0x60, 0x44, 0x0F, 0x29, 0x44, 0x24, 0x50, 0x0F, 0x29, 0x7C, 0x24, 0x40 },
-    .shape = .plain,
-};
+fn target(comptime C: type, comptime member: []const u8, comptime shape: detour.Shape) Target {
+    const class = C.class_name; // referenced first: string literals are laid out in first-use order
+    const m = @field(C, member);
+    return .{ .class = class, .method = m.name, .params = m.params, .rva = m.rva, .prologue = &@field(C, member ++ "_prologue"), .shape = shape };
+}
 
-// --- field offsets, all checked by name against the dump before anything is patched ----
+const t_property_set = target(pins.PropertyTable, "set", .plain);
+const t_property_notify = target(pins.PropertyNotifier, "notify", .plain);
+const t_modifier_init = target(pins.ModifierInstance, "init", .plain);
+const t_modifier_attach = target(pins.ModifierInstance, "attach", .cmp_rip);
+const t_modifier_detach = target(pins.ModifierInstance, "detach", .cmp_rip);
+const t_stun_enter = target(pins.StunMixin, "enter", .plain);
+const t_stun_update = target(pins.StunMixin, "update", .plain);
 
 const Field = struct { class: []const u8, name: []const u8, offset: usize };
 
-/// The modifier instance (3.3.4 offsets; every one code-witnessed, then named from the dump:
-/// owner/ability from the detach + initializer stores, caster from the initializer's ctx
-/// Entity copy, config from three witnesses incl. ToString, flags from the initializer's
-/// zero-store pair, slot from its -1 sentinel, stacks byte-identical in ToString).
-const m_owner: Field = .{ .class = "JIBFNGPOOJJ", .name = "EPEJLGDHNCG", .offset = 0x1d8 };
-const m_caster: Field = .{ .class = "JIBFNGPOOJJ", .name = "NNDHBCEMAJG", .offset = 0x200 };
-const m_ability: Field = .{ .class = "JIBFNGPOOJJ", .name = "IACOBBCEMNN", .offset = 0x1e0 };
-const m_config: Field = .{ .class = "JIBFNGPOOJJ", .name = "LLGALKCBMIM", .offset = 0x1f0 };
-const m_flags: Field = .{ .class = "JIBFNGPOOJJ", .name = "DONJJPGJDKH", .offset = 0x218 };
-const m_slot: Field = .{ .class = "JIBFNGPOOJJ", .name = "KFNOBOMPNLK", .offset = 0x21c };
-const m_stacks: Field = .{ .class = "JIBFNGPOOJJ", .name = "EEPIMNKHLMP", .offset = 0x224 };
+fn field(comptime C: type, comptime member: []const u8) Field {
+    return .{ .class = C.class_name, .name = @field(C, member).name, .offset = @field(C, member).offset };
+}
 
-/// The modifier's config asset (name/max-stacks from the 100% ToString witness, stacking from
-/// its 25-instruction getter, duration from the 10,155-instruction binary parser under the
-/// same `test r12d, 0x20000` presence bit as 3.3.3 -- duration and stacking swapped places).
-const c_name: Field = .{ .class = "DMJBGLLLJOI", .name = "ICPOJFEGKHK", .offset = 0x4d8 };
-const c_stacking: Field = .{ .class = "DMJBGLLLJOI", .name = "DCIFPGNNBNO", .offset = 0x988 };
-const c_duration: Field = .{ .class = "DMJBGLLLJOI", .name = "OIOBBLGOIGC", .offset = 0x998 };
-const c_max_stacks: Field = .{ .class = "DMJBGLLLJOI", .name = "LMIHDAMJFIM", .offset = 0x994 };
+/// The modifier instance.
+const m_owner = field(pins.ModifierInstance, "owner");
+const m_caster = field(pins.ModifierInstance, "caster");
+const m_ability = field(pins.ModifierInstance, "ability");
+const m_config = field(pins.ModifierInstance, "config");
+const m_flags = field(pins.ModifierInstance, "flags");
+const m_slot = field(pins.ModifierInstance, "slot");
+const m_stacks = field(pins.ModifierInstance, "stacks");
 
-/// The stun mixin (the same component the Daze probe reads). Witnesses: the 100%-aligned
-/// grace enter/update pairs for entered/stunned/config-value/entry/remaining, the daze
-/// handler's float subtract for cur_stun, and the entity wrapper's class match (its type
-/// NHLMGBOONKB -> CAJPNCGFJEG names exactly one field) for entity.
-const s_entity: Field = .{ .class = "FLDOPGOJDOP", .name = "DNJPIGGHPJP", .offset = 0x58 };
-const s_cur_at_entry: Field = .{ .class = "FLDOPGOJDOP", .name = "MDOAGNPPGCJ", .offset = 0xb4 };
-const s_entered: Field = .{ .class = "FLDOPGOJDOP", .name = "KMGNMAGIAJL", .offset = 0xf7 };
-const s_stunned: Field = .{ .class = "FLDOPGOJDOP", .name = "KBNPGMEDNCC", .offset = 0xc4 };
-const s_config_value: Field = .{ .class = "FLDOPGOJDOP", .name = "DNLJDMJAHIB", .offset = 0xc0 };
-const s_cur_stun: Field = .{ .class = "FLDOPGOJDOP", .name = "OKPGKCIPPOL", .offset = 0xe8 };
-const s_remaining: Field = .{ .class = "FLDOPGOJDOP", .name = "JFMAOEHJGKM", .offset = 0xb8 };
+/// The modifier's config asset.
+const c_name = field(pins.ModifierConfig, "name");
+const c_stacking = field(pins.ModifierConfig, "stacking");
+const c_duration = field(pins.ModifierConfig, "duration");
+const c_max_stacks = field(pins.ModifierConfig, "max_stacks");
+
+/// The stun mixin (the same component the Daze probe reads).
+const s_entity = field(pins.StunMixin, "entity");
+const s_cur_at_entry = field(pins.StunMixin, "cur_at_entry");
+const s_entered = field(pins.StunMixin, "entered");
+const s_stunned = field(pins.StunMixin, "stunned");
+const s_config_value = field(pins.StunMixin, "config_value");
+const s_cur_stun = field(pins.StunMixin, "cur_stun");
+const s_remaining = field(pins.StunMixin, "remaining");
 
 const all_fields = [_]Field{
     m_owner,  m_caster,      m_ability,  m_config,        m_flags,   m_slot,       m_stacks,

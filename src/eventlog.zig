@@ -29,24 +29,22 @@ const log = std.log.scoped(.eventlog);
 
 // --- the target ---------------------------------------------------------------
 
-/// CNBetaWin3.3.4, re-derived 2026-09-25: the drain shape-matched 0.997 (153 vs 154
-/// instructions) inside its structurally-matched class ODOHDPHKFIC (was DIDDGLDPGMD); the
-/// ONLY displacement change in the whole body is the queue field below. Witness in
-/// sheet-webapp/local-data/client-update-334/event_drain-diff.txt.
-const drain_rva: usize = 0x13C42F30;
+/// The drain, from src/pins.zig (AnimEventSystem.drain), re-derived by `tools/update/rederive.py`.
+const pins = @import("pins.zig");
+const drain_rva: usize = pins.AnimEventSystem.drain_rva;
 
-/// push rbp / r15 / r14 / rsi / rdi / rbx ; sub rsp, 0xA8 -- 15 bytes, position independent.
-/// thaumiel's trampoline is 12 bytes, which would cut `sub rsp, imm32` in half, so the whole
-/// 15-byte prologue is relocated and the stub jumps back to target+15.
-const expected_prologue = [_]u8{ 0x55, 0x41, 0x57, 0x41, 0x56, 0x56, 0x57, 0x53, 0x48, 0x81, 0xEC, 0xA8, 0x00, 0x00, 0x00 };
+/// push rbp / r15 / r14 / rsi / rdi / rbx ; sub rsp, 0xA8 on 3.3.4 -- 15 bytes, position
+/// independent. thaumiel's trampoline is 12 bytes, which would cut `sub rsp, imm32` in half, so the
+/// whole 15-byte prologue is relocated and the stub jumps back to target+15.
+const expected_prologue = pins.AnimEventSystem.drain_prologue;
 
-/// Client PE identity; validated against the archived 3.3.4 GameAssembly.
-const expected_timestamp: u32 = 0x6AB435F6;
-const expected_size_of_image: u32 = 0x21714000;
+/// Client PE identity.
+const expected_timestamp: u32 = pins.timestamp;
+const expected_size_of_image: u32 = pins.size_of_image;
 
-// The per-entity anim-event component, 3.3.4 v7 dump.
-const component_owner = 0x38; // inherited field the drain passes to every event's Execute; its `mov rdx,[r8+0x38]` read is byte-identical in 3.3.4
-const component_queue = 0x50; // List of 24-byte queue entries (3.3.3: 0x138); the drain's only changed displacement
+// The per-entity anim-event component (the drain's argument).
+const component_owner = pins.AnimEventComponent.owner.offset; // inherited field the drain passes to every event's Execute
+const component_queue = pins.AnimEventComponent.queue.offset; // List of 24-byte queue entries
 
 // System.Collections.Generic.List<T> and T[] layout as the drain itself reads them.
 const list_items = 0x10;

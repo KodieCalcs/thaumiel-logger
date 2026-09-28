@@ -1,0 +1,1377 @@
+{
+ "version": "CNBetaWin3.3.2",
+ "seeded_from": "committed sources (tools/update/seed_pins.py)",
+ "classes": {
+  "PropertyTable": {
+   "name": "FNNLNAIBANN",
+   "ns": ""
+  },
+  "PropertyNotifier": {
+   "name": "MGBLBALKPKM",
+   "ns": ""
+  },
+  "ModifierInstance": {
+   "name": "BALGGDCFODF",
+   "ns": ""
+  },
+  "ModifierConfig": {
+   "name": "GBCCPCMJCGE",
+   "ns": ""
+  },
+  "StunMixin": {
+   "name": "GILABPBBMJH",
+   "ns": ""
+  },
+  "EntityWrapper": {
+   "name": "FGENDNBPAMB",
+   "ns": ""
+  },
+  "TimeScaleManager": {
+   "name": "LOLPDHOFIHG",
+   "ns": ""
+  },
+  "AnimEventSystem": {
+   "name": "EGMKKHDDOGE",
+   "ns": ""
+  },
+  "AnimEventComponent": {
+   "name": "CEODKDLMABB",
+   "ns": ""
+  },
+  "DamageTextController": {
+   "name": "UIInLevelDamageTextContainerChildWindowController",
+   "ns": "MoleMole"
+  },
+  "ResultConverter": {
+   "name": "PLPNKFLOLON",
+   "ns": ""
+  },
+  "ResultFactory": {
+   "name": "GOOCOICILAJ",
+   "ns": ""
+  },
+  "DamageResult": {
+   "name": "AKHIBBLFBDH",
+   "ns": ""
+  },
+  "AnomalyGauge": {
+   "name": "PNNLDJHFOAO",
+   "ns": ""
+  },
+  "AnomalyHitEvent": {
+   "name": "HKMPLIFFNHO",
+   "ns": ""
+  },
+  "HitNames": {
+   "name": "MDJPKKMNNCB",
+   "ns": ""
+  },
+  "HitContext": {
+   "name": "PDOGBEADLIE",
+   "ns": ""
+  },
+  "AttackSnapshot": {
+   "name": "HNKLKHEIEOD",
+   "ns": ""
+  },
+  "AudioEffectEvent": {
+   "name": "LFMNGPGMJMD",
+   "ns": "",
+   "rule": "measured"
+  },
+  "AnimEventHandlerEvent": {
+   "name": "PGFCLHOPNKO",
+   "ns": "",
+   "rule": "measured"
+  }
+ },
+ "methods": {
+  "PropertyTable.set": {
+   "name": "DMIOODAONDK",
+   "params": 4,
+   "rva": "0x18106f70",
+   "prologue": "41565657534881ec88000000",
+   "instructions": 54,
+   "hook": "prologue",
+   "used_by": [
+    "src/statelog.zig:t_property_set"
+   ],
+   "disambiguate": {
+    "by": "callers",
+    "called_by": "StunMixin.property_caller"
+   }
+  },
+  "PropertyNotifier.notify": {
+   "name": "BGOHPIKJCFB",
+   "params": 3,
+   "rva": "0x17bd6f60",
+   "prologue": "415741564155415456575553",
+   "instructions": 130,
+   "hook": "prologue",
+   "used_by": [
+    "src/statelog.zig:t_property_notify"
+   ]
+  },
+  "ModifierInstance.init": {
+   "name": "AFNFONFKKBH",
+   "params": 4,
+   "rva": "0x146fb120",
+   "prologue": "5541574156415541545657534881ec08010000",
+   "instructions": 1101,
+   "hook": "prologue",
+   "used_by": [
+    "src/statelog.zig:t_modifier_init"
+   ],
+   "regs": {
+    "ModifierInstance": [
+     "rdi"
+    ]
+   }
+  },
+  "ModifierInstance.attach": {
+   "name": "JELANNGODEG",
+   "params": 0,
+   "rva": "0x146fc4f0",
+   "prologue": "5657534883ec204889ce",
+   "instructions": 131,
+   "hook": "prologue",
+   "used_by": [
+    "src/statelog.zig:t_modifier_attach"
+   ],
+   "regs": {
+    "ModifierInstance": [
+     "rsi"
+    ]
+   }
+  },
+  "ModifierInstance.detach": {
+   "name": "EJGEIOCDOML",
+   "params": 0,
+   "rva": "0x146fcba0",
+   "prologue": "564883ec204889ce",
+   "instructions": 43,
+   "hook": "prologue",
+   "used_by": [
+    "src/statelog.zig:t_modifier_detach"
+   ],
+   "regs": {
+    "ModifierInstance": [
+     "rsi"
+    ]
+   }
+  },
+  "ModifierInstance.to_string": {
+   "name": "ToString",
+   "params": 0,
+   "rva": "0x146f94e0",
+   "instructions": 265,
+   "regs": {
+    "ModifierInstance": [
+     "rdi"
+    ],
+    "ModifierConfig": [
+     {
+      "reg": "rax",
+      "from_field": "ModifierInstance.config"
+     }
+    ]
+   }
+  },
+  "ModifierConfig.parse_binary": {
+   "name": "KIGLIFKDNLP",
+   "params": 2,
+   "rva": "0x16ff5e10",
+   "instructions": 10155,
+   "regs": {
+    "ModifierConfig": [
+     "rsi"
+    ]
+   }
+  },
+  "ModifierConfig.stacking_getter": {
+   "name": "DNEPPMJEKPN",
+   "params": 0,
+   "rva": "0x17001f70",
+   "instructions": 25,
+   "regs": {
+    "ModifierConfig": [
+     "rsi"
+    ]
+   }
+  },
+  "StunMixin.enter": {
+   "name": "KFJONGLHNPM",
+   "params": 0,
+   "rva": "0x1a4fb4d0",
+   "prologue": "4157415641545657534883ec38",
+   "instructions": 157,
+   "hook": "prologue",
+   "used_by": [
+    "src/statelog.zig:t_stun_enter"
+   ],
+   "regs": {
+    "StunMixin": [
+     "rsi"
+    ]
+   }
+  },
+  "StunMixin.update": {
+   "name": "KDOLAAIANGF",
+   "params": 1,
+   "rva": "0x1a4f4de0",
+   "prologue": "564883ec60440f294424500f297c2440",
+   "instructions": 150,
+   "hook": "prologue",
+   "used_by": [
+    "src/statelog.zig:t_stun_update"
+   ],
+   "regs": {
+    "StunMixin": [
+     "rsi"
+    ]
+   }
+  },
+  "StunMixin.be_hit": {
+   "name": "JKAJPLNGPEK",
+   "params": 1,
+   "rva": "0x1a4f76a0",
+   "fingerprint": "4157415641554154565755534883ec580f297424404889d74889ce803daac3e4ea000f84f8060000803d33b199ea000f8509070000488b4e30e842b7250084c0",
+   "instructions": 666,
+   "hook": "fingerprint",
+   "used_by": [
+    "src/damage_daze.c:DAZE_RVA"
+   ],
+   "regs": {
+    "StunMixin": [
+     "rsi"
+    ],
+    "HitContext": [
+     "rdi"
+    ],
+    "DamageResult": [
+     {
+      "reg": "r14",
+      "from_field": "HitContext.result"
+     }
+    ]
+   }
+  },
+  "StunMixin.fields_witness": {
+   "name": "FBNHICKOJFP",
+   "params": 0,
+   "rva": "0x1a4f23e0",
+   "instructions": 291,
+   "regs": {
+    "StunMixin": [
+     "rsi"
+    ]
+   }
+  },
+  "StunMixin.property_caller": {
+   "name": "NCHNLKJNGLO",
+   "params": 5,
+   "rva": "0x1a4f1da0",
+   "instructions": 174
+  },
+  "TimeScaleManager.update": {
+   "name": "Update",
+   "params": 1,
+   "rva": "0x136c9610",
+   "prologue": "5657534883ec500f297c2440",
+   "instructions": 329,
+   "hook": "prologue",
+   "used_by": [
+    "src/timescalelog.zig:expected_update_rva"
+   ],
+   "regs": {
+    "TimeScaleManager": [
+     "rsi"
+    ]
+   }
+  },
+  "AnimEventSystem.drain": {
+   "name": "AOGPOONJNGI",
+   "params": 1,
+   "rva": "0x13ce2d40",
+   "prologue": "55415741565657534881eca8000000",
+   "instructions": 154,
+   "hook": "prologue",
+   "used_by": [
+    "src/eventlog.zig:drain_rva"
+   ],
+   "regs": {
+    "AnimEventComponent": [
+     "rsi",
+     {
+      "reg": "r8",
+      "from_operand": "qword ptr [rbp - 0x28]"
+     }
+    ]
+   }
+  },
+  "DamageTextController.query": {
+   "name": "KNBGCEACEFA",
+   "params": 16,
+   "rva": "0x14b12370",
+   "fingerprint": "4157415641554154565755534881ecb8010000440f29b424a0010000440f29ac2490010000440f29a42480010000440f299c2470010000440f29942460010000",
+   "instructions": 551,
+   "hook": "fingerprint",
+   "used_by": [
+    "src/damage_probe.c:string_target"
+   ]
+  },
+  "ResultConverter.convert": {
+   "name": "FFDOPOENLNO",
+   "params": 6,
+   "rva": "0x1ace5c70",
+   "fingerprint": "5541574156415541545657534881ec78010000488dac2480000000440f2995e0000000440f298dd0000000440f2985c00000000f29bdb00000000f29b5a00000",
+   "instructions": 745,
+   "hook": "fingerprint",
+   "used_by": [
+    "src/damage_result.c:target"
+   ],
+   "regs": {
+    "DamageResult": [
+     {
+      "reg": "r14",
+      "from_operand": "r9"
+     }
+    ]
+   }
+  },
+  "ResultFactory.create": {
+   "name": "KAFEKGEDAAI",
+   "params": 7,
+   "rva": "0x133c7bf0",
+   "fingerprint": "4157415641554154565755534881ecb8000000440f298c24a0000000440f298424900000000f29bc24800000000f297424704d89cd4489c7895424444889cb80",
+   "instructions": 1408,
+   "hook": "fingerprint",
+   "used_by": [
+    "src/damage_snapshot.c:SNAPSHOT_RVA"
+   ],
+   "regs": {
+    "DamageResult": [
+     "rbp"
+    ],
+    "AttackSnapshot": [
+     {
+      "reg": "rbx",
+      "from_operand": "rcx"
+     },
+     {
+      "reg": "rdi",
+      "from_operand": "qword ptr [rsp + 0x60]"
+     }
+    ]
+   }
+  },
+  "ResultFactory.energy_copy": {
+   "name": "IGDBFJAMGKB",
+   "params": 2,
+   "rva": "0x133c7910",
+   "instructions": 75,
+   "regs": {
+    "DamageResult": [
+     "rdi"
+    ]
+   }
+  },
+  "DamageResult.energy_reset": {
+   "name": "LODDOJGPEEM",
+   "params": 0,
+   "rva": "0x184a2bc0",
+   "instructions": 24,
+   "regs": {
+    "DamageResult": [
+     "rsi"
+    ]
+   }
+  },
+  "AnomalyGauge.be_hit": {
+   "name": "BAIEOPOHGNL",
+   "params": 1,
+   "rva": "0x19235b40",
+   "fingerprint": "41574156565755534883ec78440f294424600f297c24500f297424404889d74889ce803df41512ec000f849300000048c744242800000000803da031c2eb000f",
+   "instructions": 548,
+   "hook": "fingerprint",
+   "used_by": [
+    "src/damage_anomaly.c:ANOMALY_RVA"
+   ],
+   "regs": {
+    "AnomalyGauge": [
+     "rsi"
+    ],
+    "AnomalyHitEvent": [
+     "rdi"
+    ],
+    "HitContext": [
+     {
+      "reg": "rax",
+      "from_field": "AnomalyHitEvent.ctx"
+     }
+    ],
+    "DamageResult": [
+     {
+      "reg": "rbx",
+      "from_field": "HitContext.result"
+     }
+    ]
+   }
+  },
+  "AnomalyGauge.max_update": {
+   "name": "CHGNACOIJOD",
+   "params": 0,
+   "rva": "0x19235440",
+   "instructions": 24,
+   "regs": {
+    "AnomalyGauge": [
+     "rsi"
+    ]
+   }
+  }
+ },
+ "fields": {
+  "ModifierInstance.owner": {
+   "offset": "0x1d0",
+   "rule": "code",
+   "used_by": [
+    "src/statelog.zig:m_owner"
+   ],
+   "name": "LPAEAMJFEHM",
+   "type": "MoleMole.Battle.Entity"
+  },
+  "ModifierInstance.caster": {
+   "offset": "0x1e0",
+   "rule": "code",
+   "used_by": [
+    "src/statelog.zig:m_caster"
+   ],
+   "name": "CFDPPOKHPLH",
+   "type": "MoleMole.Battle.Entity"
+  },
+  "ModifierInstance.ability": {
+   "offset": "0x1e8",
+   "rule": "code",
+   "used_by": [
+    "src/statelog.zig:m_ability"
+   ],
+   "name": "PCEGOPBEBFG",
+   "type": "LEFFAGIAFOL"
+  },
+  "ModifierInstance.config": {
+   "offset": "0x1f8",
+   "rule": "code",
+   "used_by": [
+    "src/statelog.zig:m_config"
+   ],
+   "name": "ICICDBFGOFL",
+   "type": "GBCCPCMJCGE"
+  },
+  "ModifierInstance.flags": {
+   "offset": "0x218",
+   "rule": "code",
+   "used_by": [
+    "src/statelog.zig:m_flags"
+   ],
+   "name": "DHFCLGNIGLH",
+   "type": "IFHMBKDAMGK"
+  },
+  "ModifierInstance.slot": {
+   "offset": "0x220",
+   "rule": "code",
+   "used_by": [
+    "src/statelog.zig:m_slot"
+   ],
+   "name": "GMBAGPGLAKK",
+   "type": "System.Int32"
+  },
+  "ModifierInstance.stacks": {
+   "offset": "0x224",
+   "rule": "code",
+   "used_by": [
+    "src/statelog.zig:m_stacks"
+   ],
+   "name": "OPDMPEHFHEN",
+   "type": "System.Int32"
+  },
+  "ModifierConfig.name": {
+   "offset": "0x800",
+   "rule": "code",
+   "used_by": [
+    "src/statelog.zig:c_name"
+   ],
+   "name": "HEEAHMEHHIN",
+   "type": "System.String"
+  },
+  "ModifierConfig.stacking": {
+   "offset": "0x98c",
+   "rule": "code",
+   "used_by": [
+    "src/statelog.zig:c_stacking"
+   ],
+   "name": "MMPCLLELEGL",
+   "type": "MoleMole.Config.ModifierStacking"
+  },
+  "ModifierConfig.duration": {
+   "offset": "0x994",
+   "rule": "code",
+   "used_by": [
+    "src/statelog.zig:c_duration"
+   ],
+   "name": "IJAMJBOHGNG",
+   "type": "System.Single"
+  },
+  "ModifierConfig.max_stacks": {
+   "offset": "0x9a0",
+   "rule": "code",
+   "used_by": [
+    "src/statelog.zig:c_max_stacks"
+   ],
+   "name": "IJMGBIAFNPH",
+   "type": "System.Int32"
+  },
+  "StunMixin.entity": {
+   "offset": "0xa0",
+   "rule": "code",
+   "used_by": [
+    "src/statelog.zig:s_entity",
+    "src/damage_daze.c:DAZE_THIS_ENTITY"
+   ],
+   "name": "GHIAIICFNAL",
+   "type": "FGENDNBPAMB"
+  },
+  "StunMixin.cur_at_entry": {
+   "offset": "0xbc",
+   "rule": "code",
+   "used_by": [
+    "src/statelog.zig:s_cur_at_entry"
+   ],
+   "name": "IPMMOHNIJOP",
+   "type": "System.Single"
+  },
+  "StunMixin.entered": {
+   "offset": "0xca",
+   "rule": "code",
+   "used_by": [
+    "src/statelog.zig:s_entered"
+   ],
+   "name": "IDODHIIDDGL",
+   "type": "System.Boolean"
+  },
+  "StunMixin.stunned": {
+   "offset": "0xcb",
+   "rule": "code",
+   "used_by": [
+    "src/statelog.zig:s_stunned"
+   ],
+   "name": "BCNHLALLGEJ",
+   "type": "System.Boolean"
+  },
+  "StunMixin.config_value": {
+   "offset": "0xd0",
+   "rule": "code",
+   "used_by": [
+    "src/statelog.zig:s_config_value"
+   ],
+   "name": "ODONLKKEBKO",
+   "type": "System.Single"
+  },
+  "StunMixin.cur_stun": {
+   "offset": "0xd4",
+   "rule": "code",
+   "used_by": [
+    "src/statelog.zig:s_cur_stun",
+    "src/damage_daze.c:DAZE_THIS_BEFORE"
+   ],
+   "name": "NMIFFJKEOCA",
+   "type": "System.Single"
+  },
+  "StunMixin.remaining": {
+   "offset": "0xe0",
+   "rule": "code",
+   "used_by": [
+    "src/statelog.zig:s_remaining"
+   ],
+   "name": "KJIJBDGHNPG",
+   "type": "System.Single"
+  },
+  "StunMixin.daze_target": {
+   "offset": "0xb0",
+   "rule": "code",
+   "used_by": [
+    "src/damage_daze.c:DAZE_THIS_TARGET"
+   ],
+   "name": "OHFFBLDCCPC",
+   "type": "System.Single"
+  },
+  "TimeScaleManager.frame": {
+   "offset": "0x7c",
+   "rule": "code",
+   "used_by": [
+    "src/timescalelog.zig:f_frame"
+   ],
+   "name": "DOKALOIOMBP",
+   "type": "System.Int32"
+  },
+  "TimeScaleManager.raw": {
+   "offset": "0xbc",
+   "rule": "code",
+   "used_by": [
+    "src/timescalelog.zig:f_raw"
+   ],
+   "name": "LJBOANJAIIK",
+   "type": "System.Single"
+  },
+  "TimeScaleManager.mult": {
+   "offset": "0xc4",
+   "rule": "code",
+   "used_by": [
+    "src/timescalelog.zig:f_mult"
+   ],
+   "name": "<IHJEFDJLFDH>k__BackingField",
+   "type": "System.Single"
+  },
+  "TimeScaleManager.pause": {
+   "offset": "0xc8",
+   "rule": "code",
+   "used_by": [
+    "src/timescalelog.zig:f_pause"
+   ],
+   "name": "HFAMKPKOJJB",
+   "type": "System.Int32"
+  },
+  "TimeScaleManager.world": {
+   "offset": "0xd0",
+   "rule": "code",
+   "used_by": [
+    "src/timescalelog.zig:f_world"
+   ],
+   "name": "MEHMJPFBJON",
+   "type": "System.Single"
+  },
+  "TimeScaleManager.unscaled": {
+   "offset": "0xec",
+   "rule": "code",
+   "used_by": [
+    "src/timescalelog.zig:f_unscaled"
+   ],
+   "name": "IFJDCNKFMBJ",
+   "type": "System.Boolean"
+  },
+  "TimeScaleManager.scaled_dt": {
+   "offset": "0xf4",
+   "rule": "code",
+   "used_by": [
+    "src/timescalelog.zig:f_scaled_dt"
+   ],
+   "name": "LFNMEGKOBHJ",
+   "type": "System.Single"
+  },
+  "AnimEventComponent.owner": {
+   "offset": "0x38",
+   "rule": "code",
+   "used_by": [
+    "src/eventlog.zig:component_owner"
+   ],
+   "name": "<BOHLLBAKBIA>k__BackingField",
+   "type": "MoleMole.Battle.Entity"
+  },
+  "AnimEventComponent.queue": {
+   "offset": "0xa0",
+   "rule": "code",
+   "used_by": [
+    "src/eventlog.zig:component_queue"
+   ],
+   "name": "OMEDNMGJPKB",
+   "type": "System.Collections.Generic.List<AOGAEAMAHJG>"
+  },
+  "HitContext.result": {
+   "offset": "0x30",
+   "rule": "code",
+   "used_by": [
+    "src/damage_daze.c:DAZE_CTX_RESULT",
+    "src/damage_anomaly.c:ANOMALY_CTX_RESULT"
+   ],
+   "name": "<EDPMLJJIIBK>k__BackingField",
+   "type": "AKHIBBLFBDH"
+  },
+  "HitContext.attacker_id": {
+   "offset": "0x48",
+   "rule": "code",
+   "used_by": [
+    "src/damage_daze.c:DAZE_CTX_BYTES"
+   ],
+   "name": "EKJJEIMGKJN",
+   "type": "System.UInt32"
+  },
+  "AnomalyHitEvent.ctx": {
+   "offset": "0x20",
+   "rule": "code",
+   "used_by": [
+    "src/damage_anomaly.c:ANOMALY_EVT_CTX"
+   ],
+   "name": "DKJOHNAJPKD",
+   "type": "PDOGBEADLIE"
+  },
+  "AnomalyGauge.entity": {
+   "offset": "0x48",
+   "rule": "code",
+   "used_by": [
+    "src/damage_anomaly.c:ANOMALY_THIS_ENTITY"
+   ],
+   "name": "<NIPMGDEKKEJ>k__BackingField",
+   "type": "MoleMole.Battle.Entity"
+  },
+  "AnomalyGauge.cur": {
+   "offset": "0x6c",
+   "rule": "code",
+   "used_by": [
+    "src/damage_anomaly.c:ANOMALY_THIS_CUR"
+   ],
+   "name": "DAHILMELDEF",
+   "type": "System.Single"
+  },
+  "AnomalyGauge.f68": {
+   "offset": "0x68",
+   "rule": "code",
+   "used_by": [
+    "src/damage_anomaly.c:ANOMALY_THIS_F68"
+   ],
+   "name": "HGKMFBNAAGK",
+   "type": "System.Single"
+  },
+  "AnomalyGauge.element": {
+   "offset": "0x70",
+   "rule": "code",
+   "used_by": [
+    "src/damage_anomaly.c:ANOMALY_THIS_ELEMENT"
+   ],
+   "name": "GLLFECIKNAC",
+   "type": "MoleMole.Config.DamageElementType"
+  },
+  "AnomalyGauge.variant": {
+   "offset": "0x7c",
+   "rule": "code",
+   "used_by": [
+    "src/damage_anomaly.c:ANOMALY_THIS_VARIANT"
+   ],
+   "name": "EMPNOABLENJ",
+   "type": "MoleMole.Config.EVariantElement"
+  },
+  "AnomalyGauge.variant2": {
+   "offset": "0x84",
+   "rule": "code",
+   "used_by": [
+    "src/damage_anomaly.c:ANOMALY_THIS_VARIANT2"
+   ],
+   "name": "EPHGBMGOGGF",
+   "type": "MoleMole.Config.EVariantElement"
+  },
+  "AnomalyGauge.max": {
+   "offset": "0x8c",
+   "rule": "code",
+   "used_by": [
+    "src/damage_anomaly.c:ANOMALY_THIS_MAX"
+   ],
+   "name": "<HNIAJNBLPGK>k__BackingField",
+   "type": "System.Single"
+  },
+  "DamageResult.attacker_entity": {
+   "offset": "0x10",
+   "rule": "code",
+   "used_by": [
+    "tools/per-hit-log.mjs:LAYOUTS.attacker_entity"
+   ],
+   "name": "DMCEFDCPHKF",
+   "type": "MoleMole.EntityHandle"
+  },
+  "DamageResult.target_entity": {
+   "offset": "0x68",
+   "rule": "code",
+   "used_by": [
+    "tools/per-hit-log.mjs:LAYOUTS.target_entity"
+   ],
+   "name": "DKBILEDCNFI",
+   "type": "MoleMole.EntityHandle"
+  },
+  "DamageResult.damage": {
+   "offset": "0x200",
+   "rule": "code",
+   "used_by": [
+    "tools/per-hit-log.mjs:LAYOUTS.damage"
+   ],
+   "name": "<AEFFMIDLHMH>k__BackingField",
+   "type": "System.Single"
+  },
+  "DamageResult.crit": {
+   "offset": "0x214",
+   "rule": "code",
+   "used_by": [
+    "tools/per-hit-log.mjs:LAYOUTS.crit"
+   ],
+   "name": "DOEPCDKBFKF",
+   "type": "GHDCIFGCDIN"
+  },
+  "DamageResult.hit_split": {
+   "offset": "0x274",
+   "rule": "code",
+   "used_by": [
+    "tools/per-hit-log.mjs:LAYOUTS.hit_split"
+   ],
+   "name": "FNGOMAEHBKP",
+   "type": "System.Single"
+  },
+  "DamageResult.dmg_mv": {
+   "offset": "0x260",
+   "rule": "code",
+   "used_by": [
+    "tools/per-hit-log.mjs:LAYOUTS.dmg_mv"
+   ],
+   "name": "GIPPNFMBIEC",
+   "type": "System.Single"
+  },
+  "DamageResult.daze_mv": {
+   "offset": "0x144",
+   "rule": "code",
+   "used_by": [
+    "tools/per-hit-log.mjs:LAYOUTS.daze_mv",
+    "src/damage_daze.c:DAZE_RESULT_DAZE_MV",
+    "src/damage_anomaly.c:ANOMALY_RESULT_DAZE_MV",
+    "src/damage_snapshot.c:snapshot_header(join)"
+   ],
+   "name": "OMICNIJBCHB",
+   "type": "System.Single"
+  },
+  "DamageResult.energy": {
+   "offset": "0x100",
+   "rule": "code",
+   "used_by": [
+    "tools/per-hit-log.mjs:LAYOUTS.energy"
+   ],
+   "name": "MAKIMDBKPKM",
+   "type": "System.Single"
+  },
+  "DamageResult.decibels": {
+   "offset": "0x21c",
+   "rule": "code",
+   "used_by": [
+    "tools/per-hit-log.mjs:LAYOUTS.decibels"
+   ],
+   "name": "PIBLGMGABOG",
+   "type": "System.Single"
+  },
+  "DamageResult.daze": {
+   "offset": "0x18c",
+   "rule": "code",
+   "used_by": [
+    "tools/per-hit-log.mjs:LAYOUTS.daze"
+   ],
+   "name": "CCIOPGALPOG",
+   "type": "System.Single"
+  },
+  "DamageResult.daze_requested": {
+   "offset": "0x250",
+   "rule": "measured",
+   "used_by": [
+    "tools/per-hit-log.mjs:LAYOUTS.daze_requested"
+   ],
+   "name": "PEMPNOHKGPD",
+   "type": "System.Single"
+  },
+  "DamageResult.buildup_requested": {
+   "offset": "0xf8",
+   "rule": "code",
+   "used_by": [
+    "tools/per-hit-log.mjs:LAYOUTS.buildup_requested",
+    "src/damage_anomaly.c:ANOMALY_RESULT_REQUESTED"
+   ],
+   "name": "KLKEHBMFEOB",
+   "type": "System.Single"
+  },
+  "DamageResult.buildup_applied": {
+   "offset": "0x150",
+   "rule": "code",
+   "used_by": [
+    "tools/per-hit-log.mjs:LAYOUTS.buildup_applied",
+    "src/damage_anomaly.c:anomaly_header(applied)"
+   ],
+   "name": "KPKEEKPDEHK",
+   "type": "System.Single"
+  },
+  "DamageResult.atk": {
+   "offset": "0x23c",
+   "rule": "code",
+   "used_by": [
+    "tools/per-hit-log.mjs:LAYOUTS.atk",
+    "src/damage_snapshot.c:snapshot_header(join)"
+   ],
+   "name": "KKKHHKJJFKF",
+   "type": "System.Single"
+  },
+  "DamageResult.impact": {
+   "offset": "0x1ac",
+   "rule": "code",
+   "used_by": [
+    "tools/per-hit-log.mjs:LAYOUTS.impact",
+    "src/damage_daze.c:DAZE_RESULT_IMPACT"
+   ],
+   "name": "OEADIDCGEEO",
+   "type": "System.Single"
+  },
+  "DamageResult.anomaly_mastery": {
+   "offset": "0xfc",
+   "rule": "code",
+   "used_by": [
+    "tools/per-hit-log.mjs:LAYOUTS.anomaly_mastery"
+   ],
+   "name": "AEBLKFOPLGD",
+   "type": "System.Single"
+  },
+  "DamageResult.anomaly_proficiency": {
+   "offset": "0x254",
+   "rule": "code",
+   "used_by": [
+    "tools/per-hit-log.mjs:LAYOUTS.anomaly_proficiency"
+   ],
+   "name": "HOCBCBHJKFM",
+   "type": "System.Single"
+  },
+  "DamageResult.level": {
+   "offset": "0x1d4",
+   "rule": "code",
+   "used_by": [
+    "tools/per-hit-log.mjs:LAYOUTS.level"
+   ],
+   "name": "FCFGDNAIBAD",
+   "type": "System.Int32"
+  },
+  "DamageResult.target_state": {
+   "offset": "0x174",
+   "rule": "measured",
+   "used_by": [
+    "tools/per-hit-log.mjs:LAYOUTS.target_state"
+   ],
+   "name": "DAMLACAHHKE",
+   "type": "System.Single"
+  },
+  "DamageResult.dmg_mult": {
+   "offset": "0x15c",
+   "rule": "code",
+   "used_by": [
+    "tools/per-hit-log.mjs:LAYOUTS.dmg_mult"
+   ],
+   "name": "BMOCEBKFMDP",
+   "type": "System.Single"
+  },
+  "DamageResult.f11c": {
+   "offset": "0x284",
+   "rule": "code",
+   "used_by": [
+    "tools/per-hit-log.mjs:LAYOUTS.f11c"
+   ],
+   "name": "HBGONGBKOEB",
+   "type": "System.Single"
+  },
+  "DamageResult.f174": {
+   "offset": "0x138",
+   "rule": "code",
+   "used_by": [
+    "tools/per-hit-log.mjs:LAYOUTS.f174"
+   ],
+   "name": "BEBIIEGCBJB",
+   "type": "System.Single"
+  },
+  "DamageResult.f0f8": {
+   "offset": "0x19c",
+   "rule": "code",
+   "used_by": [
+    "tools/per-hit-log.mjs:LAYOUTS.f0f8"
+   ],
+   "name": "NPAHIAFANAP",
+   "type": "System.Single"
+  },
+  "DamageResult.display_skill_id": {
+   "offset": "0x194",
+   "rule": "code",
+   "used_by": [
+    "tools/per-hit-log.mjs:LAYOUTS.display_skill_id"
+   ],
+   "name": "OIBCJPPCPNA",
+   "type": "System.Int32"
+  },
+  "DamageResult.attenuation_curve": {
+   "offset": null,
+   "rule": "code",
+   "used_by": [
+    "tools/per-hit-log.mjs:LAYOUTS.attn_col"
+   ]
+  },
+  "DamageResult.geometry": {
+   "offset": "0x78",
+   "rule": "type_unique",
+   "used_by": [
+    "src/damage_result.c:geometry"
+   ],
+   "name": "<CPLNHILNMMC>k__BackingField",
+   "type": "AKHIBBLFBDH.NHCOJOAGJCC"
+  },
+  "DamageResult.stat_dict": {
+   "offset": "0x38",
+   "rule": "type_unique",
+   "used_by": [
+    "src/damage_result.c:dict"
+   ],
+   "name": "NKMFGELAPLK",
+   "type": "System.Collections.Generic.Dictionary<System.String,System.Single>"
+  },
+  "DamageResult.hit_names": {
+   "offset": "0x20",
+   "rule": "type_unique",
+   "used_by": [
+    "src/damage_result.c:result_a8"
+   ],
+   "name": "LOIEOCBKEHC",
+   "type": "MDJPKKMNNCB"
+  },
+  "DamageResult.attack_tags": {
+   "offset": "0xc0",
+   "rule": "type_unique",
+   "used_by": [
+    "src/damage_result.c:result_tags"
+   ],
+   "name": "PIJFBLOMBDP",
+   "type": "System.Collections.Generic.List<System.String>"
+  },
+  "AttackSnapshot.atk": {
+   "offset": "0x194",
+   "rule": "code",
+   "used_by": [
+    "tools/per-hit-log.mjs:LAYOUTS.snapshot_atk",
+    "src/damage_snapshot.c:snapshot_header(join)"
+   ],
+   "name": "CDCBOHGOKCB",
+   "type": "System.Single"
+  },
+  "AttackSnapshot.daze_mv": {
+   "offset": "0xf8",
+   "rule": "code",
+   "used_by": [
+    "src/damage_snapshot.c:snapshot_header(join)"
+   ],
+   "name": "OMICNIJBCHB",
+   "type": "System.Single"
+  }
+ },
+ "return_sites": {
+  "AnimHit.caller_return": {
+   "address": "0x1b4f0bd6",
+   "method_rva": "0x1b4f0aa0",
+   "class": "PGFCLHOPNKO",
+   "method": "FAOIMKBDEPB",
+   "params": 6,
+   "offset": "0x136",
+   "used_by": [
+    "sheet-webapp:tools/client-build-constants.mjs:animFrame"
+   ]
+  }
+ },
+ "sets": {
+  "DamageResult.strings": {
+   "type": "System.String",
+   "value": [
+    "0x28",
+    "0x58",
+    "0x88",
+    "0x90",
+    "0xb8",
+    "0xc8"
+   ],
+   "used_by": [
+    "src/damage_result.c:damage_result_record offsets[]"
+   ]
+  },
+  "HitNames.strings": {
+   "type": "System.String",
+   "value": [
+    "0x10",
+    "0x20",
+    "0x28"
+   ],
+   "used_by": [
+    "src/damage_result.c:result_a8 offsets[]"
+   ]
+  }
+ },
+ "measured": {
+  "DamageResult.effect_fields": {
+   "value": [
+    "0xa8",
+    "0x48",
+    "0x30"
+   ],
+   "used_by": [
+    "tools/attribution.mjs:EFFECT_OFFSETS"
+   ]
+  },
+  "HitNames.roles": {
+   "value": {
+    "ability": 1,
+    "attack_property": 2,
+    "other": 0
+   },
+   "used_by": [
+    "tools/per-hit-log.mjs:LAYOUTS.a8"
+   ]
+  }
+ },
+ "sizes": {
+  "DamageResult.dump_bytes": {
+   "value": "0x290",
+   "used_by": [
+    "src/damage_result.c:result[]"
+   ]
+  }
+ },
+ "runtime": {
+  "api_table": [
+   "0x908e10",
+   "0x908ed0",
+   "0x908ee0",
+   "0x908f50",
+   "0x908fc0",
+   "0x909030",
+   "0x909040",
+   "0x909050",
+   "0x909060",
+   "0x909090",
+   "0x9090a0",
+   "0x9090e0",
+   "0x9091b0",
+   "0x9091c0",
+   "0x9091d0",
+   "0x72d70",
+   "0x9091e0",
+   "0x909270",
+   "0x9092a0",
+   "0x9092b0",
+   "0x9092c0",
+   "0x9092d0",
+   "0x9092e0",
+   "0x9092f0",
+   "0x909330",
+   "0x909340",
+   "0x909350",
+   "0x909360",
+   "0x909370",
+   "0x909320",
+   "0x909380",
+   "0x9093a0",
+   "0x9093b0",
+   "0x909420",
+   "0x909430",
+   "0x909440",
+   "0x909450",
+   "0x89f20",
+   "0x90ae80",
+   "0x909480",
+   "0x9094c0",
+   "0x9094e0",
+   "0x909500",
+   "0x909510",
+   "0x909520",
+   "0x8a6ab0",
+   "0x909530",
+   "0x909540",
+   "0x909570",
+   "0x909580",
+   "0x909590",
+   "0x909650",
+   "0x909660",
+   "0x909700",
+   "0x909710",
+   "0x909720",
+   "0x909730",
+   "0x909750",
+   "0x909760",
+   "0x909770",
+   "0x909780",
+   "0x9097a0",
+   "0x909e50",
+   "0x9097c0",
+   "0x9097f0",
+   "0x909800",
+   "0x909820",
+   "0x909830",
+   "0x909840",
+   "0x9098a0",
+   "0x909960",
+   "0x909a50",
+   "0x909a70",
+   "0x909a60",
+   "0x909a90",
+   "0x909aa0",
+   "0x909ab0",
+   "0x909af0",
+   "0x909b30",
+   "0x909be0",
+   "0x909c10",
+   "0x909c80",
+   "0x909ca0",
+   "0x909cd0",
+   "0x909d70",
+   "0x909d20",
+   "0x909dc0",
+   "0x909df0",
+   "0x909dd0",
+   "0x909e10",
+   "0x909e20",
+   "0x909e00",
+   "0x909e30",
+   "0x909e40",
+   "0x90a010",
+   "0x2fb0",
+   "0x11a0",
+   "0x11a0",
+   "0x909ea0",
+   "0x909eb0",
+   "0x909ee0",
+   "0x909f90",
+   "0x909fb0",
+   "0x90a000",
+   "0x90a020",
+   "0x84b920",
+   "0x8b1df0",
+   "0x90a030",
+   "0x84b920",
+   "0x84b920",
+   "0x90a040",
+   "0x90a050",
+   "0x90a060",
+   "0x90a0d0",
+   "0x90a0e0",
+   "0x90a120",
+   "0x6bf0",
+   "0x90a110",
+   "0x90a150",
+   "0x8ab780",
+   "0x90a160",
+   "0x90a170",
+   "0x90a180",
+   "0x90a1d0",
+   "0x90a1e0",
+   "0x909720",
+   "0x90a2d0",
+   "0x90a320",
+   "0x90a330",
+   "0x89b430",
+   "0x90a390",
+   "0x90a3a0",
+   "0x90a3b0",
+   "0x90a3c0",
+   "0x90a3d0",
+   "0x90a3e0",
+   "0x90a3f0",
+   "0x90a400",
+   "0x90a440",
+   "0x90a410",
+   "0x90a520",
+   "0x90a5d0",
+   "0x11a0",
+   "0x2740",
+   "0x90a5e0",
+   "0x90a5f0",
+   "0x90a6a0",
+   "0x90a610",
+   "0x90a5f0",
+   "0x90a6b0",
+   "0x90a6c0",
+   "0x90a6d0",
+   "0x90a700",
+   "0x90a710",
+   "0x90a780",
+   "0x90a790",
+   "0x90a7a0",
+   "0x90a7b0",
+   "0x90a7c0",
+   "0x90a7f0",
+   "0x90aa70",
+   "0x90aa80",
+   "0x90aa90",
+   "0x90a930",
+   "0x90aab0",
+   "0x90aac0",
+   "0x90aad0",
+   "0x90aae0",
+   "0x90aaf0",
+   "0x90ab10",
+   "0x90ab20",
+   "0x2fb0",
+   "0x90ab50",
+   "0x90ab60",
+   "0x90ab70",
+   "0x90ab80",
+   "0x908df0",
+   "0x908e00",
+   "0x11a0",
+   "0x11a0",
+   "0x11a0",
+   "0x11a0",
+   "0x90ab90",
+   "0x11a0",
+   "0x90abb0",
+   "0x90ac90",
+   "0x90aca0",
+   "0x90ad30",
+   "0x90add0",
+   "0x90adc0",
+   "0x90ae70",
+   "0x11a0",
+   "0x11a0",
+   "0x2fb0"
+  ],
+  "api_checks": {
+   "63": "4883ec28488b05",
+   "65": "488b0d19f7d404",
+   "73": "48b89afb9584e170afae",
+   "75": "8b411825ffffff00",
+   "115": "488b51384885d2",
+   "152": "e98b780800",
+   "167": "8b41084835688e66"
+  },
+  "unity_table_offset": "0x1f9a6c8",
+  "size_of_image": "0x21396000",
+  "timestamp": "0x6aa31b73",
+  "used_by": [
+   "src/dumper-rvas.zon",
+   "src/dumper.zig:checks",
+   "src/dumper.zig:table_offset",
+   "src/dumper.zig:game_size",
+   "src/eventlog.zig:expected_timestamp/size_of_image",
+   "src/damage_probe.c:string probe PE check"
+  ],
+  "readiness": {
+   "main_thread_rva": "0x5659780",
+   "anchors": [
+    [
+     "0x966cec",
+     "e89fb20200488905882acf04"
+    ],
+    [
+     "0x969a50",
+     "4889c6488b8d800200008b4120894610c746140000000048897110"
+    ],
+    [
+     "0x969a88",
+     "488b7f10"
+    ],
+    [
+     "0x969aa6",
+     "48897770"
+    ]
+   ],
+   "used_by": [
+    "src/runtime_readiness.zig:main_thread_rva/anchors"
+   ]
+  }
+ }
+}

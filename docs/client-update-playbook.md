@@ -12,6 +12,44 @@ live in the sources and in README.md's version contract.
 auto-detects the install folder. Only the *live capture* is version-pinned. If you only need a new
 Agent's hit splits, frames and cancel windows, update freely and ignore everything below.
 
+## Updating with rederive.py (since 2026-09-28)
+
+Every client pin now lives in one manifest per build, `tools/update/pins/<client>.json`, keyed by
+**stable names** (`ModifierInstance.attach`, `DamageResult.crit`, ...). `tools/update/rederive.py emit`
+writes it into `src/pins.zig`, `src/pins.h` and `src/dumper-rvas.zon`, which every hook and probe
+reads. **Never hand-edit those three files**: change the manifest and emit again
+(`rederive.py check <client>` fails if they drift). The sections further down are the history of how
+each piece was found by hand; the tool now does all of it.
+
+Set `THAUMIEL_LOCAL_DATA` to the folder holding `client-binaries-<client>/` (archive GameAssembly.dll
+and UnityPlayer.dll there first) and `il2cpp-dump/`. Then, per update:
+
+1. **`py tools/update/rederive.py prepare <old> <new>`**, before launch 1. It finds Unity's API table
+   without anchors, pins a bootstrap table (only unique, block-consistent matches, plus a guess for
+   every slot the DLL calls, so each is either verified or reported), re-traces the readiness
+   anchors, and builds a launch-1 DLL. In that DLL only the dumper accepts the new client; every hook
+   keeps the old identity and refuses, as launch 1 always did.
+2. **Launch 1** (user): the dumper writes the new dump and `hitlog-startup.log`, then fails closed on
+   the table by design.
+3. **`py tools/update/rederive.py finish <old> <new> --report <hitlog-startup.log>`**. This applies the
+   report, re-reads and classifies the seven code checks, and matches every class, method, field and
+   return site. It writes `pins/<new>.json`, emits, builds, runs the gates (8 probe tests, detour,
+   readiness), adds the decoder's `LAYOUTS` entry and prints the sheet-webapp `BUILD_CONSTANTS` line.
+   **Read its STOP and REVIEW list.** A STOP is a pin the tool would not guess. If a module needs
+   it, the build fails: settle it in `pins/<new>.json` and run `emit` again.
+4. **Launch 2** (user): one battle with a Stun and an Ultimate (live-validation list below).
+5. **`py tools/update/rederive.py measure <new> <battle folder> --apply`**. This reads
+   `daze_requested`, the effect fields and the name-object roles off that capture and writes them
+   into the manifest, the `LAYOUTS` entry and `tools/attribution.mjs`.
+
+Replayed on both past updates from their archived binaries and launch reports. `finish 3.3.3 3.3.4`
+builds a DLL byte-identical to the committed 3.3.4 one (`tools/update/same_dll.py`: every section but
+`.buildid`), and so does `prepare`, then a simulated launch-1 report, then `finish`. On 3.3.2 -> 3.3.3
+it stops where that update needed a person: `modifier_init` at shape 0.546, which was settled by an
+argument-flow trace. Still manual: the two launches, anything the tool STOPs on, the sheet-webapp
+line, and the public line (`thaumiel-release`).
+The rederive commits' messages carry the design and the full replay record.
+
 ## What is pinned, and where
 
 | # | Where | Pin | Re-find cost |

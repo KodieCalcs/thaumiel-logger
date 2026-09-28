@@ -16,13 +16,10 @@
 //!    Anchors 3 and 4 are byte-identical, at the same +0x38/+0x56 offsets from anchor 2.
 const std = @import("std");
 
-pub const main_thread_rva: usize = 0x56dcbc0;
-pub const anchors = .{
-    .{ 0x98442c, "\xe8\x2f\xb0\x02\x00\x48\x89\x05\x88\x87\xd5\x04" },
-    .{ 0x987180, "\x48\x89\xc6\x48\x8b\x8d\x80\x02\x00\x00\x8b\x41\x20\x89\x46\x10\xc7\x46\x14\x00\x00\x00\x00\x48\x89\x71\x10" },
-    .{ 0x9871b8, "\x48\x8b\x7f\x10" },
-    .{ 0x9871d6, "\x48\x89\x77\x70" },
-};
+// From src/pins.zig: `tools/update/rederive.py table` re-traces them by the method above.
+const pins = @import("pins.zig");
+pub const main_thread_rva: usize = pins.main_thread_rva;
+pub const anchors = pins.readiness_anchors;
 
 pub fn validate(comptime read: anytype, base: usize) !void {
     inline for (anchors) |anchor| {

@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stddef.h>
+#include "pins.h" /* generated: tools/update/rederive.py emit */
 
 typedef struct {
     uint64_t gpr[7]; /* rcx rdx r8 r9 rax r10 r11 */
@@ -515,7 +516,8 @@ int damage_event_start(void) {
 }
 
 static int string_header_write(HANDLE h) {
-    int ok = put(h,"# schema=2 client=CNBetaWin3.3.4 target_rva=0x14ae0070 values=unclassified_UI_inputs p12=stack_slot_9_snapshot ret=stack_index:rva_shallowest_first\n");
+    int ok = put(h,"# schema=2 client=" PIN_CLIENT " target_rva=" PIN_STR(PIN_DamageTextController_query_RVA)
+        " values=unclassified_UI_inputs p12=stack_slot_9_snapshot ret=stack_index:rva_shallowest_first\n");
     ok &= put(h,"sequence\telapsed_ms\tthread\tskipped\tcaller\tcaller_rva\tstack_bytes\targ1_bytes");
     char column[32];
     for(int i=0;i<18;i++){snprintf(column,sizeof(column),"\targ%d",i);ok&=put(h,column);}
@@ -542,23 +544,14 @@ int damage_probe_start(void) {
     const IMAGE_DOS_HEADER *dos = (const IMAGE_DOS_HEADER *)module;
     const IMAGE_NT_HEADERS64 *pe = (const IMAGE_NT_HEADERS64 *)(module_base + dos->e_lfanew);
     if (dos->e_magic != IMAGE_DOS_SIGNATURE || pe->Signature != IMAGE_NT_SIGNATURE ||
-        pe->FileHeader.TimeDateStamp != 0x6ab435f6 || pe->OptionalHeader.SizeOfImage != 0x21714000) return -2;
+        pe->FileHeader.TimeDateStamp != PIN_TIMESTAMP || pe->OptionalHeader.SizeOfImage != PIN_SIZE_OF_IMAGE) return -2;
     load_exec_ranges();
-    /* CNBetaWin3.3.4: MoleMole.UIInLevelDamageTextContainerChildWindowController::OLELPLKJFNF/16
-     * (3.3.3: 0x149c6e90 ::LHABIBPPDPL/16). The class is NAMED, so it greps straight out of the new
-     * dump -- the cheap case. 3.3.4 has exactly ONE caller of the named QueryDamageTextInfo, this
-     * method, with the same two call sites as 3.3.3, and it shape-matches 1.0 over all 551
-     * instructions. The fingerprint below is byte-identical to 3.3.3.
-     *
-     * This probe is the PREREQUISITE for all four data probes -- they return -7 unless
-     * damage_probe_original is set -- so it must be re-pointed even though its own damage-text
-     * output is now only the historical discovery trail. */
-    unsigned char *target = (unsigned char *)(module_base+0x14ae0070);
-    static const unsigned char fingerprint[64] = {
-        0x41,0x57,0x41,0x56,0x41,0x55,0x41,0x54,0x56,0x57,0x55,0x53,0x48,0x81,0xec,0xb8,
-        0x01,0x00,0x00,0x44,0x0f,0x29,0xb4,0x24,0xa0,0x01,0x00,0x00,0x44,0x0f,0x29,0xac,
-        0x24,0x90,0x01,0x00,0x00,0x44,0x0f,0x29,0xa4,0x24,0x80,0x01,0x00,0x00,0x44,0x0f,
-        0x29,0x9c,0x24,0x70,0x01,0x00,0x00,0x44,0x0f,0x29,0x94,0x24,0x60,0x01,0x00,0x00};
+    /* DamageTextController.query (src/pins.h): a NAMED class, matched by shape inside it by
+     * `tools/update/rederive.py match`. This probe is the PREREQUISITE for all four data probes --
+     * they return -7 unless damage_probe_original is set -- so it must be re-pointed even though its
+     * own damage-text output is now only the historical discovery trail. */
+    unsigned char *target = (unsigned char *)(module_base+PIN_DamageTextController_query_RVA);
+    static const unsigned char fingerprint[64] = PIN_DamageTextController_query_FINGERPRINT;
     if (memcmp(target,fingerprint,sizeof(fingerprint))) return -3;
     unsigned char *stub = VirtualAlloc(NULL,26,MEM_COMMIT|MEM_RESERVE,PAGE_READWRITE);
     if (!stub) return -4;

@@ -47,9 +47,10 @@ int main(void) {
     char head[4096]; read_head(status, head, sizeof(head)); CHECK(strstr(head, "\trotate-test\t1\n"));
 
     /* Install the result probe: its file opens in battle-0 with the schema-5 header. */
-    unsigned char *image = VirtualAlloc(NULL, 0x21591000, MEM_RESERVE, PAGE_NOACCESS); CHECK(image);
-    CHECK(VirtualAlloc(image + 0x19bf3000, 4096, MEM_COMMIT, PAGE_READWRITE));
-    unsigned char *target = image + 0x19bf3530; memcpy(target, result_fingerprint, 64);
+    /* the converter's RVA from src/pins.h, so the test follows whatever client the build targets */
+    unsigned char *image = VirtualAlloc(NULL, PIN_SIZE_OF_IMAGE, MEM_RESERVE, PAGE_NOACCESS); CHECK(image);
+    CHECK(VirtualAlloc(image + (PIN_ResultConverter_convert_RVA & ~0xfffULL), 8192, MEM_COMMIT, PAGE_READWRITE));
+    unsigned char *target = image + PIN_ResultConverter_convert_RVA; memcpy(target, result_fingerprint, 64);
     module_base = (uintptr_t)image; damage_probe_original = 1; started = 1000;
     CHECK(damage_result_start() == 1);
     char f0[MAX_PATH]; CHECK(count_files(b0, "damage-result-", f0, sizeof(f0)) == 1);
