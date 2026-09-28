@@ -231,7 +231,7 @@ const HIT_FIELDS = {
   enemy_def: "the target's DEF at the hit, after debuffs on it; with no DEF debuff, read off the target's own hits (null if it never attacked; null for hits on the team)",
   enemy_def_reduction_pct:
     "DEF reduction from debuffs on the target (e.g. Nicole's), %. The attacker's own DEF reduction is not in it: that is the DefenceRatio in other_modifiers",
-  enemy_dmg_res_pct: "the target's DMG RES change from debuffs on it, %; negative = it takes more damage (e.g. -10)",
+  enemy_res_pct: "the target's All-Attribute RES change from debuffs on it, %; negative = lowered (e.g. Yuzuha M1: -10)",
   enemy_damage_taken_pct:
     "extra damage the target took from its side on this hit, %, measured: RES shred, DMG taken / vulnerability and the Stun multiplier together (e.g. Phoenix's vulnerability: 10). The hit's damage against its multiplier, ATK or Sheer Force, DMG bonus, crit, DEF, PEN, RES ignore and distance. Null on Anomaly procs and where an input is missing",
   enemy_daze_taken_pct:

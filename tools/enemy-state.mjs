@@ -4,7 +4,7 @@
 //
 //   import { enemyStats } from "./enemy-state.mjs";
 //   const at = enemyStats(dir, perHitRows);   // rows of per-hit-log.csv
-//   at(row) -> { enemy_def, enemy_def_reduction_pct, enemy_dmg_res_pct, enemy_daze_taken_pct,
+//   at(row) -> { enemy_def, enemy_def_reduction_pct, enemy_res_pct, enemy_daze_taken_pct,
 //                enemy_damage_taken_pct, enemy_debuffs, flat_pen, sheer_force, res_ignore_pct }
 //                ("" when not known)
 //
@@ -30,7 +30,7 @@
 // enemy_debuffs names the team's modifiers live on the target at the hit (Velina's RES shred,
 // Phoenix's core, a Disc set's Anomaly RES shred...). Most such debuffs change no stored stat: the
 // game applies them while the hit is computed, and their amounts are in no log, so the names (and
-// when they were on) are what is captured. DEF reduction and DMG RES are stored stats, read below.
+// when they were on) are what is captured. DEF reduction and All-Attribute RES are stored stats, read below.
 //
 // enemy_def when nothing has lowered it: the target's own hits carry its DEF (the result's DEF field is
 // the attacker's), so the nearest of those is used; a target that never attacked has none.
@@ -52,14 +52,15 @@
 //   core passive: -0.4 on, +0.4 off) and its second value is the target's DEF after it
 //   (952.8 -> 571.68, x 0.6). CNBetaWin3.3.4 type 562: 191 applies / 190 removes, one per
 //   attach / detach of NosUniqueDebuffModifier (Nicole's codename is Nostradamus).
-//   DMG RES: the second value is the target's total DMG RES change in 1/10000 (-1000 = -10%, the
-//   target takes more), the first the change. CNBetaWin3.3.4 type 574: its writes coincide with
-//   every attach / detach of DamageResistRatio_Talent02 (a Mindscape 2 debuff) in a Yuzuha battle.
+//   All-Attribute RES: the second value is the target's total All-Attribute RES change in 1/10000
+//   (-1000 = -10%), the first the change. CNBetaWin3.3.4 type 574: its writes coincide with every
+//   attach / detach of Yuzuha's DamageResistRatio_Talent02, which her ability data defines as
+//   Actor_AllDamageResist on the enemy, applied at talent index 1 (Mindscape 1).
 import fs from "node:fs";
 import path from "node:path";
 
 const DEF_REDUCTION_TYPE = { "CNBetaWin3.3.4": "562" };
-const DMG_RES_TYPE = { "CNBetaWin3.3.4": "574" };
+const ALL_RES_TYPE = { "CNBetaWin3.3.4": "574" };
 const HP_TYPE = "0";
 const MATCH_MS = 50;
 
@@ -250,7 +251,7 @@ export function dazeTakenPct(row) {
 }
 
 export function enemyStats(dir, perHitRows) {
-  const empty = { enemy_def: "", enemy_def_reduction_pct: "", enemy_dmg_res_pct: "", enemy_damage_taken_pct: "", enemy_debuffs: "", flat_pen: "", sheer_force: "" };
+  const empty = { enemy_def: "", enemy_def_reduction_pct: "", enemy_res_pct: "", enemy_damage_taken_pct: "", enemy_debuffs: "", flat_pen: "", sheer_force: "" };
   const ignorePct = (row) => { const v = resIgnore(row) * 100; return Math.abs(v) < 1e-9 ? "0" : v.toFixed(2); };
   const withDaze = (row, cols) => ({ ...cols, enemy_daze_taken_pct: dazeTakenPct(row), res_ignore_pct: ignorePct(row) });
   const state = readState(dir);
@@ -323,9 +324,9 @@ export function enemyStats(dir, perHitRows) {
       ? { enemy_def: last.def.toFixed(2), enemy_def_reduction_pct: pct(last.reduction) }
       : { enemy_def: baseDef.get(table).toFixed(2), enemy_def_reduction_pct: "0" };
   };
-  // DMG RES: the running total is the write's second value; each must equal the previous plus the
+  // All-Attribute RES: the running total is the write's second value; each must equal the previous plus the
   // change, else the table is not read right and its column stays empty.
-  const resType = DMG_RES_TYPE[client];
+  const resType = ALL_RES_TYPE[client];
   const res = new Map();
   for (const w of props) {
     if (!resType || w.type !== resType) continue;
@@ -445,7 +446,7 @@ export function enemyStats(dir, perHitRows) {
     const { def, stats } = cols.get(row) ?? { def: defAt(row), stats: attackerStats(row) };
     return withDaze(row, {
       ...def,
-      enemy_dmg_res_pct: resAt(row),
+      enemy_res_pct: resAt(row),
       enemy_damage_taken_pct: factorPct(row),
       enemy_debuffs: debuffText(row),
       flat_pen: stats.flatPen === null ? "" : String(stats.flatPen),

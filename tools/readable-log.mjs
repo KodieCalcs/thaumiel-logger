@@ -115,7 +115,7 @@ const t0 = rows.reduce((min, r) => Math.min(min, +r.elapsed_ms), Infinity);
 const pct = (v) => (v === "" ? "" : (+v * 100).toFixed(2));
 const mods = (r) => Object.fromEntries((r.modifiers || "").split(";").filter(Boolean).map((m) => m.split("=")));
 const cols = ["time_s", "attacker", "target", "skill_id", "ability", "client_name", "attack_tags", "hit_split", "damage", "daze", "anomaly_buildup", "crit", "during_stun",
-  "enemy_def", "enemy_def_reduction_pct", "enemy_dmg_res_pct", "enemy_damage_taken_pct", "enemy_daze_taken_pct", "enemy_debuffs",
+  "enemy_def", "enemy_def_reduction_pct", "enemy_res_pct", "enemy_damage_taken_pct", "enemy_daze_taken_pct", "enemy_debuffs",
   "damage_mv_pct", "daze_mv_pct", "distance_attenuation", "energy", "decibels", "atk", "impact", "anomaly_mastery", "anomaly_proficiency", "attacker_level",
   "dmg_bonus_pct", "crit_rate_pct", "crit_dmg_pct", "pen_ratio_pct", "flat_pen", "res_ignore_pct", "sheer_force", "other_modifiers"];
 // The target's side (debuffs on it, e.g. Nicole's DEF reduction), which the hit's own record leaves out.

@@ -29,7 +29,7 @@ Most stats come in two ids: the base value and a "battle" value (5xx) with buffs
 | 60 | Decibels max | 3000 |
 | 65 | Sheer Force | Yixuan 1098 = 0.3 x ATK 872 + 0.1 x HP 8373 (1098.9) |
 | 562 | DEF (battle) | enemy 952.8 -> 571.68 under Nicole's core debuff (x 0.6) |
-| 574 | DMG RES (battle, 1/10000) | enemy -1000 while `DamageResistRatio_Talent02` is on |
+| 574 | All-Attribute RES (battle, 1/10000) | enemy -1000 while Yuzuha's `DamageResistRatio_Talent02` is on; her ability data defines it as `Actor_AllDamageResist` (Mindscape 1) |
 
 Enemy base RES: the enemy table's other stats (18-24, 39-44, ...) all read 0 on the test boss,
 which is a modified no-resistance enemy, so which id is which Attribute's RES is not settled.
@@ -52,6 +52,7 @@ is exactly 1.000 on every unaffected hit of the two captures, 1.100 under Phoeni
 1.5 during a boss's Stun. It is the `enemy_damage_taken_pct` column (`tools/enemy-state.mjs`), which
 states the formula and its two safeguards.
 
-Findings from it so far: `Pheony_UniqueSkill_Vulnerable` +10% (both attackers); Yuzuha's M6
-`DamageResistRatio_Talent02` -10% DMG RES (574) = +10%; Velina's `ResistDown_Wind` showed no effect
-on her Wind hits against the test boss.
+Findings from it so far: `Pheony_UniqueSkill_Vulnerable` +10% (both attackers); Yuzuha's
+`DamageResistRatio_Talent02` (M1) -10% All-Attribute RES (574) = +10%. Velina's `ResistDown_Wind` / `_Fire` showed no effect
+on damage, as they should not: her ability data defines them as `Actor_AbnormalResistDelta_Wind` /
+`_Fire`, Anomaly BUILDUP RES (as is the Disc set's `AbnormalResistDelta_201`, Fire).
