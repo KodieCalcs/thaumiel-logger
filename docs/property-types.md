@@ -56,3 +56,16 @@ Findings from it so far: `Pheony_UniqueSkill_Vulnerable` +10% (both attackers); 
 `DamageResistRatio_Talent02` (M1) -10% All-Attribute RES (574) = +10%. Velina's `ResistDown_Wind` / `_Fire` showed no effect
 on damage, as they should not: her ability data defines them as `Actor_AbnormalResistDelta_Wind` /
 `_Fire`, Anomaly BUILDUP RES (as is the Disc set's `AbnormalResistDelta_201`, Fire).
+## Anomaly buildup RES (measured, not a column yet)
+
+Buildup-RES debuffs (`Actor_AbnormalResistDelta_<element>`: Velina's `WindRegion_ResistDown_*`, the
+Disc set's `AbnormalResistDeltaModifier_201`) are stored nowhere either: not in the enemy's property
+table, not in the per-element gauge object the anomaly probe dumps. Measured instead: a hit's
+requested buildup / (skill buildup x hit split x Anomaly Mastery / 100 x (1 + buildup bonus)), with
+the skill buildup from the hotfix skill table (sheet-webapp `tools/decode-skill-table.mjs`, field 15
+`JBJBKOPDKNH`), is exactly 0.0100 on every hit of Yixuan and Nicole (370 hits). Phoenix steps
+0.0100 -> 0.0120 under the Disc set (+20% Fire) -> 0.0134 with Velina's Fire-down too (+14%, additive),
+and Velina's Wind hits +14% under her Wind-down; each debuff affects only its own element.
+Not shipped because the attacker side is not complete: Velina reads 0.0200 and Yuzuha 0.0118 with
+no debuff on the target (character-specific buildup rules not in the formula), and a few Phoenix hits
+disagree with the debuff list. A column needs those rules, and the skill table shipped with the tools.
