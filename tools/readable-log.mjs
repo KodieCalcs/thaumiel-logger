@@ -4,7 +4,8 @@
 // `ability` is the in-game action from skill-display-names.json when this install has it (the
 // client's internal name stays in `client_name`); `daze` is the Daze the target's Stun gauge took
 // from the hit (per-hit-log.mjs `daze`, clamped at the gauge's maximum); a summon's zero-damage copy
-// of its Agent's hit is left out (display-names.mjs).
+// of its Agent's hit is left out (display-names.mjs). `during_stun` is the result's own stunned flag
+// where the client has one, else the Stun windows in state.tsv (see stunWindows).
 import fs from "node:fs";
 import path from "node:path";
 import { parseCsv } from "./log-csv.mjs";
@@ -29,6 +30,47 @@ const nameOf = (e) => entityName.get(e) || e || "";
 const rows = dropSummonCopies(logged, nameOf);
 const targets = new Map(); for (const r of rows) targets.set(r.target_entity, (targets.get(r.target_entity) || 0) + 1);
 const mainTarget = [...targets].sort((a, b) => b[1] - a[1])[0]?.[0];
+// The enemy's StunBuffModifier IS the Stun (statelog.zig writes its attach "mod+"/"modA" and detach
+// "modD"): a window runs from the first attach while none is live to the detach that leaves none.
+// A Reset (detach + attach on one frame) keeps it open. Per recipient pointer, which is not the
+// hit's target handle, so the windows are used only when exactly one enemy was Stunned (read as the
+// main target); otherwise, or without state.tsv, during_stun is left empty.
+function stunWindows() {
+  let text;
+  try {
+    text = fs.readFileSync(path.join(dir, "state.tsv"), "utf8");
+  } catch {
+    return null;
+  }
+  const lines = text.split(/\r?\n/).filter((l) => l && !l.startsWith("#"));
+  const head = (lines[0] ?? "").split("\t");
+  const [T, KIND, SELF, A, NAME] = ["elapsed_ms", "kind", "self", "a", "name"].map((n) => head.indexOf(n));
+  const live = new Map(); // enemy -> live instances
+  const windows = new Map(); // enemy -> [[start, end]]
+  for (const l of lines.slice(1)) {
+    const c = l.split("\t");
+    if (c[NAME] !== "StunBuffModifier") continue;
+    const enemy = c[A];
+    const set = live.get(enemy) ?? new Set();
+    const list = windows.get(enemy) ?? [];
+    live.set(enemy, set);
+    windows.set(enemy, list);
+    if (c[KIND] === "mod+" || c[KIND] === "modA") {
+      if (set.size === 0) list.push([+c[T], Infinity]);
+      set.add(c[SELF]);
+    } else if (c[KIND] === "modD" && set.delete(c[SELF]) && set.size === 0 && list.length) list[list.length - 1][1] = +c[T];
+  }
+  return windows;
+}
+const stunned = [...(stunWindows() ?? new Map()).values()].filter((w) => w.length);
+const mainStun = stunned.length === 1 ? stunned[0] : null;
+const duringStun = (r) => {
+  if (r.target_state !== "" && r.target_state !== undefined) return r.target_state === "3" ? "Yes" : "No";
+  if (!mainStun) return stunned.length === 0 && stunWindows() ? "No" : "";
+  if (r.target_entity !== mainTarget) return "No";
+  const t = +r.elapsed_ms;
+  return mainStun.some(([start, end]) => t >= start && t < end) ? "Yes" : "No";
+};
 const targetOf = (e) => (entityName.has(e) ? nameOf(e) : e === mainTarget ? "enemy (main)" : "enemy " + e.slice(-5));
 
 // Readable ability from the AttackProperty name: drop the codename, "AttackProperty", keep the rest.
@@ -50,7 +92,7 @@ for (const r of rows) {
     .map(([k, v]) => k.replace(/^Actor_/, "") + "=" + v).join("; ");
   const o = {
     time_s: ((+r.elapsed_ms - t0) / 1000).toFixed(3), attacker: att, target: targetOf(r.target_entity), skill_id: r.skill_id,
-    ability: actionName(r, att, names) ?? readable(r), client_name: readable(r), hit_split: r.hit_split, damage: r.damage_ceil, daze: r.daze === "" ? "" : (+r.daze).toFixed(2), crit: +r.crit ? "Yes" : "No", during_stun: r.target_state === "3" ? "Yes" : "No",
+    ability: actionName(r, att, names) ?? readable(r), client_name: readable(r), hit_split: r.hit_split, damage: r.damage_ceil, daze: r.daze === "" ? "" : (+r.daze).toFixed(2), crit: +r.crit ? "Yes" : "No", during_stun: duringStun(r),
     damage_mv_pct: pct(r.dmg_mv), daze_mv_pct: pct(r.daze_mv), energy: r.energy, decibels: r.decibels,
     atk: r.atk, impact: r.impact, anomaly_mastery: r.anomaly_mastery, anomaly_proficiency: r.anomaly_proficiency,
     dmg_bonus_pct: r.dmg_mult === "" ? "" : ((+r.dmg_mult - 1) * 100).toFixed(2),

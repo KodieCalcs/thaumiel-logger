@@ -47,7 +47,7 @@ fn readIdentity() ?Identity {
     };
 }
 
-/// Whether each battle will get its combat-log.xlsx and summary.json (capture.zig starts the
+/// Whether each battle will get its combat-log.xlsx and combat-log.json (capture.zig starts the
 /// summarizer when a battle ends).
 pub const Summaries = enum { on, no_tools, no_node };
 
@@ -109,7 +109,7 @@ pub fn statusText(buffer: []u8, ok: bool, id: ?Identity, summaries: Summaries) !
             \\A few seconds after a battle ends, its folder gets two files:
             \\  combat-log.xlsx  damage and Daze per character and skill, and every hit
             \\                   (opens in Excel / Google Sheets)
-            \\  summary.json     the same totals, for programs
+            \\  combat-log.json  every hit, for programs and AI tools
             \\Those are the files to share. The raw data next to them is hidden;
             \\it can contain account details, so don't share whole folders.
             \\

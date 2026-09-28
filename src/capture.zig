@@ -4,7 +4,7 @@
 //!
 //!   Combat Logs\2026-09-28\Battle 7\           one folder per SETTLED battle, named after the
 //!                                              server's endbattle_7.pb; only combat-log.xlsx and
-//!                                              summary.json are visible, the raw logs (hits.tsv,
+//!                                              combat-log.json are visible, the raw logs (hits.tsv,
 //!                                              events.tsv, damage-*.tsv, ...) are hidden in place
 //!   Combat Logs\.diagnostics\<launch>\         hidden: hitlog-startup.log, damage-probe-status.txt,
 //!                                              il2cpp-v7.*, lobby\ (launch -> first battle),
@@ -156,7 +156,7 @@ pub fn hide(path: [*:0]const u8) void {
 }
 
 /// Hide every file in `dir` (with its trailing backslash) except the summarizer's two outputs,
-/// so a player opening a battle folder sees combat-log.xlsx and summary.json. The raw logs stay
+/// so a player opening a battle folder sees combat-log.xlsx and combat-log.json. The raw logs stay
 /// where every reader expects them.
 fn hideRawFiles(dir: []const u8) void {
     var pattern: PathBuf = undefined;

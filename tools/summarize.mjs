@@ -1,4 +1,6 @@
-// Publishes settled battles and writes their two readable files, combat-log.xlsx and summary.json.
+// Publishes settled battles and writes their two readable files: combat-log.xlsx (a Breakdown tab of
+// damage and Daze per character and ability, and every hit) and combat-log.json (every hit, for
+// programs and AI tools to summarize themselves).
 //
 //   node summarize.mjs --pending "<Combat Logs>"   publish + summarize everything outstanding
 //   node summarize.mjs "<battle folder>"           summarize that battle (again)
@@ -108,7 +110,6 @@ function summarize(dir, allRows, check) {
   }
   const times = rows.map((r) => +r.time_s).filter(Number.isFinite);
   return {
-    about: "Combat logger summary. combat-log.xlsx next to this file has the same breakdown and every hit.",
     gameVersion: /client=(\S+)/.exec(header)?.[1] ?? null,
     battle: `${path.basename(path.dirname(dir))} ${path.basename(dir)}`,
     settlement: check?.settlement
@@ -215,6 +216,51 @@ function hitsSheet(csv) {
   };
 }
 
+/** What each hit field means, written into combat-log.json for whoever (or whatever) reads it. */
+const HIT_FIELDS = {
+  time_s: "seconds since the battle's first hit",
+  attacker: "who dealt the hit: an Agent, a Bangboo, or an enemy",
+  target: 'who took it; "enemy (main)" is the most-hit enemy',
+  skill_id: "the game's skill id",
+  ability: "the in-game name of the action",
+  client_name: "the game's internal name for the hit",
+  hit_split: "this hit's fraction of its action's total multiplier",
+  damage: "final damage, as the game shows it",
+  daze: "Daze the target's Stun gauge took from this hit (0 while it is Stunned)",
+  crit: "Yes or No",
+  during_stun: "Yes when the target was Stunned as the hit landed; null when that is not known",
+  damage_mv_pct: "the hit's damage multiplier, %",
+  daze_mv_pct: "the hit's Daze multiplier, %",
+  energy: "Energy the attacker gained from the hit",
+  decibels: "Decibels the team gained from the hit",
+  atk: "the attacker's ATK at the hit",
+  impact: "the attacker's Impact at the hit",
+  anomaly_mastery: "the attacker's Anomaly Mastery at the hit",
+  anomaly_proficiency: "the attacker's Anomaly Proficiency at the hit",
+  dmg_bonus_pct: "total DMG bonus on the hit, %",
+  crit_rate_pct: "the attacker's CRIT Rate at the hit, %",
+  crit_dmg_pct: "the attacker's CRIT DMG at the hit, %",
+  other_modifiers: "other modifiers active on the hit, name=value",
+};
+
+/** combat-log.json: the battle's details, then every hit as an object (numbers as numbers, empty
+ *  fields as null), one hit per line. */
+function hitsJson(summary, rows) {
+  const value = (v) => (v === "" ? null : /^-?\d+(\.\d+)?$/.test(v) && v.length < 16 ? Number(v) : v);
+  const head = {
+    about:
+      "Every hit of one battle, one object per hit in time order (the same rows as the Every hit tab of combat-log.xlsx). Totals are left to the reader: sum damage or daze by attacker and ability.",
+    gameVersion: summary.gameVersion,
+    battle: summary.battle,
+    settlement: summary.settlement,
+    durationSeconds: summary.durationSeconds,
+    hitCount: rows.length,
+    fields: HIT_FIELDS,
+  };
+  const lines = rows.map((r) => "    " + JSON.stringify(Object.fromEntries(Object.entries(r).map(([k, v]) => [k, value(v)]))));
+  return JSON.stringify(head, null, 2).replace(/\n}$/, `,\n  "hits": [\n${lines.join(",\n")}\n  ]\n}\n`);
+}
+
 function run(script, dir) {
   const r = spawnSync(process.execPath, [path.join(here, script), dir], { encoding: "utf8", windowsHide: true });
   if (r.status !== 0) throw new Error(`${script} failed:\n${r.stdout}\n${r.stderr}`);
@@ -225,8 +271,9 @@ function summarizeBattle(dir) {
   const work = fs.mkdtempSync(path.join(os.tmpdir(), "combat-logger-"));
   try {
     for (const name of fs.readdirSync(dir)) {
-      // Everything per-hit-log.mjs reads: the probes, hits.tsv (skill attribution) and the settlement.
-      if (/^(damage-.*\.tsv|hits\.tsv|endbattle_\d+\.pb)$/.test(name)) fs.copyFileSync(path.join(dir, name), path.join(work, name));
+      // Everything the readers use: the probes, hits.tsv (skill attribution), state.tsv (Stun
+      // windows) and the settlement.
+      if (/^(damage-.*\.tsv|hits\.tsv|state\.tsv|endbattle_\d+\.pb)$/.test(name)) fs.copyFileSync(path.join(dir, name), path.join(work, name));
     }
     run("per-hit-log.mjs", work);
     run("readable-log.mjs", work);
@@ -238,9 +285,9 @@ function summarizeBattle(dir) {
     const rows = parseCsv(csv);
     const summary = summarize(dir, rows, check);
     writeXlsx(path.join(dir, "combat-log.xlsx"), [breakdownSheet(summary, rows), hitsSheet(csv)]);
-    fs.writeFileSync(path.join(dir, "summary.json"), JSON.stringify(summary, null, 2) + "\n");
-    // Earlier versions wrote the hits as combat-log.csv; the workbook's "Every hit" sheet replaces it.
-    fs.rmSync(path.join(dir, "combat-log.csv"), { force: true });
+    fs.writeFileSync(path.join(dir, "combat-log.json"), hitsJson(summary, rows));
+    // Earlier versions wrote combat-log.csv and summary.json; the two files above replace them.
+    for (const old of ["combat-log.csv", "summary.json"]) fs.rmSync(path.join(dir, old), { force: true });
     return `${summary.hits} hits, ${summary.totalDamage} damage`;
   } finally {
     fs.rmSync(work, { recursive: true, force: true });
@@ -387,8 +434,8 @@ async function publishStaged(root) {
   }
 }
 
-/** Visible battle folders (<day>\<battle>) with hits and no summary.json or combat-log.xlsx yet
- *  (a folder from before the workbook existed is summarized again). */
+/** Visible battle folders (<day>\<battle>) with hits and without both combat-log.xlsx and
+ *  combat-log.json (a folder an earlier version summarized is summarized again). */
 function unsummarized(root) {
   const out = [];
   for (const day of fs.readdirSync(root, { withFileTypes: true })) {
@@ -397,7 +444,7 @@ function unsummarized(root) {
       if (!battle.isDirectory()) continue;
       const dir = path.join(root, day.name, battle.name);
       const result = resultFileOf(dir);
-      const done = fs.existsSync(path.join(dir, "summary.json")) && fs.existsSync(path.join(dir, "combat-log.xlsx"));
+      const done = fs.existsSync(path.join(dir, "combat-log.json")) && fs.existsSync(path.join(dir, "combat-log.xlsx"));
       if (result && hasHits(result) && !done) out.push(dir);
     }
   }

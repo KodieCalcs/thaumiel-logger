@@ -59,7 +59,7 @@ Combat Logs\
   2026-09-28\              one folder per day
     Battle 7\              one folder per settled battle: Battle 7 = the server's endbattle_7.pb
       combat-log.xlsx
-      summary.json
+      combat-log.json
 ```
 
 Only battles the server settles get a folder, named after the settlement file the server
@@ -69,9 +69,10 @@ its loadout are copied into the folder. A few seconds after a battle ends, its f
 | File | What's in it |
 |---|---|
 | `combat-log.xlsx` | A workbook with two tabs. **Breakdown**: damage and Daze per character and per ability, each with its share of the team's total and of the character's own. **Every hit**: one row per hit: time, character, skill (its in-game name, e.g. "Ultimate: Annihilating Windstorm"; the game's internal name is in `client_name`), damage, Daze, crit, Energy, the character's ATK / Impact / Anomaly stats at that moment, and active buffs. Opens in Excel or Google Sheets. |
-| `summary.json` | The same totals for programs: damage and Daze per character and per skill, battle length, hit count, crit rate, the game version, and how many skills match the server's settlement exactly. |
+| `combat-log.json` | Every hit, as data for programs and AI tools: the same rows as the Every hit tab (numbers as numbers), plus the game version, the battle length, how many skills match the server's settlement exactly, and what each field means. |
 
-Daze is what the enemy's Stun gauge actually took, so hits that land while it is Stunned count 0.
+Daze is what the enemy's Stun gauge actually took, so hits that land while it is Stunned count 0;
+`during_stun` says which hits those are.
 
 **Share those two files, not whole folders.** Each battle folder also holds the raw data the two
 files are made from. It's hidden, because it can contain account details (File Explorer: View >

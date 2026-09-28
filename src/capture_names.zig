@@ -5,7 +5,7 @@
 //!     logger status.txt                       logger_client.zig
 //!     2026-09-28\                             one folder per day
 //!       Battle 7\                             settled battles only, named after the server's
-//!         combat-log.xlsx, summary.json       endbattle_7.pb; the summarizer's output; raw logs,
+//!         combat-log.xlsx, combat-log.json    endbattle_7.pb; the summarizer's output; raw logs,
 //!                                             the settlement and its loadout are hidden
 //!     .diagnostics\2026-09-28 14.03.26\       hidden, one per launch: startup log, probe status,
 //!                                             dump, lobby\, battle <k>\ (a battle in progress, or
@@ -18,7 +18,7 @@ pub const diagnostics_dir = root_dir ++ "\\.diagnostics";
 pub const tools_dir = root_dir ++ "\\.tools";
 pub const status_file = root_dir ++ "\\logger status.txt";
 /// The two files a player reads; everything else in a battle folder is hidden.
-pub const visible_outputs = [_][]const u8{ "combat-log.xlsx", "summary.json" };
+pub const visible_outputs = [_][]const u8{ "combat-log.xlsx", "combat-log.json" };
 
 /// kernel32 SYSTEMTIME, as filled by GetLocalTime.
 pub const SystemTime = extern struct { year: u16, month: u16, day_of_week: u16, day: u16, hour: u16, minute: u16, second: u16, ms: u16 };
@@ -77,7 +77,7 @@ test "battle numbers are read back from folder names, and nothing else is" {
 
 test "only the two summary files stay visible" {
     try std.testing.expect(isVisibleOutput("combat-log.xlsx"));
-    try std.testing.expect(isVisibleOutput("summary.json"));
+    try std.testing.expect(isVisibleOutput("combat-log.json"));
     try std.testing.expect(!isVisibleOutput("hits.tsv"));
     try std.testing.expect(!isVisibleOutput("per-hit-log.csv"));
 }

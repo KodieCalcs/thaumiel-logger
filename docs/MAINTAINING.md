@@ -63,7 +63,7 @@ things specific to this build:
 
 Then `zig build test`, install on the game machine (`packaging\install.ps1 -GameFolder <dir>`),
 and check in game: `Combat Logs\logger status.txt` says ON and "Summaries: ON", and a battle
-that settles produces `Combat Logs\<day>\Battle N\` (N = the server's `endbattle_N.pb`) with `combat-log.xlsx` and `summary.json` a few
+that settles produces `Combat Logs\<day>\Battle N\` (N = the server's `endbattle_N.pb`) with `combat-log.xlsx` and `combat-log.json` a few
 seconds after it ends. Push to `main`; players get it with `update.cmd` (or the new release zip).
 
 ## What a player's game folder gets

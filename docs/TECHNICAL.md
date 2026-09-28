@@ -66,7 +66,7 @@ Combat Logs\                               beside the launcher (names: src/captu
   READ ME.txt                              the player explanation (packaging/READ ME.txt)
   2026-09-28\                              one folder per day (local time)
     Battle 7\                              SETTLED battles, named after the server's endbattle_7.pb
-      combat-log.xlsx, summary.json        tools/summarize.mjs (workbook: tools/xlsx.mjs), run by the DLL when the battle ends
+      combat-log.xlsx, combat-log.json     tools/summarize.mjs (workbook: tools/xlsx.mjs), run by the DLL when the battle ends
       hits.tsv events.tsv state.tsv timescale.tsv damage-*-<stamp>-<pid>.tsv    HIDDEN (attribute)
   .diagnostics\                            hidden
     <launch date time>\                    hitlog-startup.log, damage-probe-status.txt, il2cpp-v7.*
@@ -98,8 +98,8 @@ the game folder) for the settlement the battlestats Remielle wrote while the bat
 Found: the battle moves to `Combat Logs\<day>\Battle <n>\` (`Battle <n> (2)` if a server restart
 reused the number that day), the settlement and `endbattle_<n>_loadout.json` are copied in
 (hidden), and it is summarized from a temporary copy of the raw files, so the readers'
-intermediate files never land in the battle folder and `summary.json` carries the settlement
-cross-check. Not found: `no-settlement.txt`, and it stays in diagnostics. With no server folder
+intermediate files never land in the battle folder; `combat-log.json` and the workbook's
+Breakdown tab carry the settlement cross-check. Not found: `no-settlement.txt`, and it stays in diagnostics. With no server folder
 configured every battle with a hit is published, numbered through the day. The server's counter
 is in memory, so a server restart starts again at `endbattle_1` and overwrites the old file;
 matching by time and copying the file in at once is what keeps each battle's settlement. A battle
