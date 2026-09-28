@@ -1,6 +1,6 @@
 // node tools/test-display-names.mjs — display-names.mjs, the readable log's in-game naming.
 import assert from 'node:assert/strict';
-import { loadDisplayNames, entityNames, actionName, dropSummonCopies } from './display-names.mjs';
+import { loadDisplayNames, entityNames, actionName, anomalyName, dropSummonCopies } from './display-names.mjs';
 
 const names = {
   skills: { '1631013': ['Severian', 'Ultimate: Annihilating Windstorm'], '1571013': ['Norma', 'Special Attack: Target Practice'], '5402201': ['Ultra Jake', 'Active Skill: Ultra Firepower Suppression'] },
@@ -31,6 +31,22 @@ const norma = [hit('0xN', 1000, 15381), hit('0xW', 1000, 0), hit('0xN', 2000, 15
 const kept = dropSummonCopies(norma, () => 'Norma');
 assert.deepEqual(kept.map((r) => `${r.attacker_entity}@${r.elapsed_ms}`), ['0xN@1000', '0xN@2000', '0xW@2000', '0xW@3000']);
 
+// Anomaly rows are named from the game's tags (tag sets as logged on the first tagged battle).
+const tagged = (tags, mv = '0.5') => ({ attack_tags: tags, dmg_mv: mv });
+assert.equal(anomalyName(tagged('Buff|Burn'), 'Phoenix', names), 'Burn');
+assert.equal(anomalyName(tagged('Buff|Erosion', '0.625'), 'Nangong Yu', names), 'Corruption');
+assert.equal(anomalyName(tagged('Buff|Disorder', '5'), 'Nangong Yu', names), 'Disorder'); // 500 %: Shatter's base, still a Disorder
+assert.equal(anomalyName(tagged('Buff|Strike', '7.13'), 'Yuzuha', names), 'Assault');
+assert.equal(anomalyName(tagged('Buff|Catalysis', '22.75'), 'Velina', names), 'Vortex');
+assert.equal(anomalyName(tagged('Buff|Chaos', '0.625'), 'Yanagi', names), 'Corruption (Chaos)');
+assert.equal(anomalyName(tagged('Buff|Burn|Pheony_TriggerBuffAttack_Brust|ExtraElementAbnormalAttack|Abloom', '4.45'), 'Phoenix', names), 'Abloom (Brust, Burn)');
+assert.equal(anomalyName(tagged('Buff|Erosion|Pheony_TriggerBuffAttack_SwitchIn_Ex|ExtraElementAbnormalAttack|Abloom', '5.97'), 'Phoenix', names), 'Abloom (SwitchIn Ex, Corruption)');
+assert.equal(anomalyName(tagged('Buff|Burn|NangongYu_TriggerBuffAttack|ExtraElementAbnormalAttack|Abloom', '9'), 'Nangong Yu', { codenames: { nangongyu: 'Nangong Yu' } }), 'Abloom (900 %, Burn)');
+assert.equal(anomalyName(tagged('Buff|Burn|Pheony_TriggerBuffAttack_Brust|ExtraElementAbnormalAttack|Abloom', '4.45'), 'Nangong Yu', names), "Abloom (Phoenix's Brust, Burn)");
+assert.equal(anomalyName(tagged('Buff|Something'), 'Rina', names), 'Anomaly (Something)');
+assert.equal(anomalyName(tagged('AttackNormal|Normal'), 'Rina', names), null);
+assert.equal(anomalyName(tagged(''), 'Rina', names), null); // a log from before tags
+
 // The shipped table, when present, has only names.
 const shipped = loadDisplayNames();
 if (shipped) {
@@ -38,4 +54,4 @@ if (shipped) {
   assert.deepEqual(shipped.skills['1631013'], ['Severian', 'Ultimate: Annihilating Windstorm']);
   assert.ok(Object.values(shipped.skills).every((v) => Array.isArray(v) && v.length === 2 && v.every((s) => typeof s === 'string')));
 }
-console.log('display-names: in-game names, Core Passive owner, entity naming and summon copies pass.');
+console.log('display-names: in-game names, Core Passive owner, Anomaly names from tags, entity naming and summon copies pass.');

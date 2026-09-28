@@ -46,6 +46,30 @@ export function actionName(r, attacker, names) {
   return owner === attacker ? core : `${owner}'s ${core}`;
 }
 
+/** An Anomaly instance's name from the game's own tags (per-hit-log `attack_tags`): "Buff" + the
+ * Anomaly, and for an Abloom also its trigger `<Codename>_TriggerBuffAttack[_part]` and "Abloom".
+ * The client pairs each Attribute's Anomaly with a variant (Burn/Ignite, Electric/Overload,
+ * Erosion/Chaos, Frozen/Frostbite); Catalysis is Vortex. A variant keeps its tag in the name. An
+ * Abloom reads "Abloom (<trigger part or multiplier>, <Anomaly>)", with the trigger's owner in front
+ * when that is another Agent. Null for a row without tags (logs from before 2026-09-28). The same
+ * names as sheet-webapp's run export. */
+const ANOMALY_TAGS = {
+  Burn: "Burn", Ignite: "Burn (Ignite)", Electric: "Shock", Overload: "Shock (Overload)", Erosion: "Corruption", Chaos: "Corruption (Chaos)",
+  Frozen: "Shatter", Frostbite: "Shatter", Frost: "Shatter (Frost)", Strike: "Assault", Wind: "Windswept", Catalysis: "Vortex",
+  Disorder: "Disorder", Luminize: "Luminize",
+};
+export function anomalyName(r, attacker, names) {
+  const tags = (r.attack_tags || "").split("|");
+  if (tags[0] !== "Buff" || !tags[1]) return null;
+  const anomaly = ANOMALY_TAGS[tags[1]] ?? `Anomaly (${tags[1]})`;
+  if (!tags.includes("Abloom")) return anomaly;
+  const m = (tags.find((t) => /_TriggerBuffAttack(_|$)/.test(t)) ?? "").match(/^(.+?)_TriggerBuffAttack(?:_(.+))?$/);
+  const owner = m ? names?.codenames?.[m[1].toLowerCase()] ?? m[1] : attacker;
+  const mv = r.dmg_mv === "" || r.dmg_mv == null ? "" : `${Number((+r.dmg_mv * 100).toFixed(4))} %`;
+  const part = m?.[2]?.replace(/_/g, " ") ?? mv;
+  return `Abloom (${owner !== attacker ? `${owner}'s ` : ""}${[part, anomaly].filter(Boolean).join(", ")})`;
+}
+
 /** A summon's hit is logged twice: once by the summon entity with 0 damage and once by its Agent's
  * entity with the damage. Per Agent name, the entity with the most damage is the Agent's; a
  * zero-damage row from another entity of the same name is dropped when the Agent's entity has the
