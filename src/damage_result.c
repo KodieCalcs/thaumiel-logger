@@ -174,8 +174,10 @@ static char *result_float_list(char *p, const unsigned char *result, SIZE_T coun
     }
     *p=0; return p;
 }
+extern void statelog_on_hit(void); /* statelog.zig: read every tracked table's stats at this hit */
 void damage_result_record(const ProbeRegisters *r, const uint64_t *entry_stack) {
     DWORD error=GetLastError();
+    statelog_on_hit(); /* before the result lock: it takes its own, and only reads */
     if (result_output==INVALID_HANDLE_VALUE) { SetLastError(error); return; }
     if (!TryAcquireSRWLockExclusive(&result_lock)) { InterlockedIncrement(&result_skipped); SetLastError(error); return; }
     uint64_t stack[7]; snapshot((uintptr_t)entry_stack,stack,sizeof(stack));

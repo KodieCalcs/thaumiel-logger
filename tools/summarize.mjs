@@ -234,6 +234,8 @@ const HIT_FIELDS = {
   enemy_res_pct: "the target's All-Attribute RES change from debuffs on it, %; negative = lowered (e.g. Yuzuha M1: -10)",
   enemy_damage_taken_pct:
     "extra damage the target took from its side on this hit, %, measured: RES shred, DMG taken / vulnerability and the Stun multiplier together (e.g. Phoenix's vulnerability: 10). The hit's damage against its multiplier, ATK or Sheer Force, DMG bonus, crit, DEF, PEN, RES ignore and distance. Null on Anomaly procs and where an input is missing",
+  enemy_buildup_taken_pct:
+    "extra Anomaly buildup the target took from its side on this hit, %, measured: buildup RES debuffs such as Velina's Wind-down (14) or a Disc set's (20). The hit's buildup against its skill's buildup, hit split, in-battle Anomaly Mastery and buildup bonus. Null where an input is missing",
   enemy_daze_taken_pct:
     "extra Daze the target took from this hit because of its side (e.g. Assault: 7.5), %, measured: the hit's Daze against its Daze multiplier, the attacker's Impact (with flat bonuses) and Daze bonus, and distance. Empty on Anomaly procs and hits with no Daze",
   enemy_debuffs:
@@ -245,8 +247,8 @@ const HIT_FIELDS = {
   decibels: "Decibels the team gained from the hit",
   atk: "the attacker's ATK at the hit",
   impact: "the attacker's Impact at the hit",
-  anomaly_mastery: "the attacker's Anomaly Mastery at the hit",
-  anomaly_proficiency: "the attacker's Anomaly Proficiency at the hit",
+  anomaly_mastery: "the attacker's in-battle Anomaly Mastery at the hit (the base value on captures without per-hit stat reads; an Anomaly proc's own snapshot)",
+  anomaly_proficiency: "the attacker's in-battle Anomaly Proficiency at the hit (as anomaly_mastery)",
   attacker_level: "the attacker's level (the DEF multiplier's level factor and the Anomaly level multiplier come from it)",
   dmg_bonus_pct: "total DMG bonus on the hit, %",
   crit_rate_pct: "the attacker's CRIT Rate at the hit, %",

@@ -114,7 +114,7 @@ foreach ($f in 'summarize.mjs', 'per-hit-log.mjs', 'attribution.mjs', 'attack-pr
     Copy-Item (Join-Path $repo "tools\$f") $tools -Force
 }
 # Tables the readers use when present (per-hit-log.mjs / display-names.mjs check for each).
-foreach ($f in 'attack-property-client-skills.json', 'skill-display-names.json') {
+foreach ($f in 'attack-property-client-skills.json', 'skill-display-names.json', 'skill-buildup.json') {
     $p = Join-Path $repo "tools\$f"
     if (Test-Path $p) { Copy-Item $p $tools -Force }
 }

@@ -256,7 +256,7 @@ export fn statelog_property_get(table: u64, value: u64, kind: u32, key: u64, cal
     const t = GetTickCount64();
 
     AcquireSRWLockExclusive(&slots_lock);
-    var slot = slotFor(table, kind, k);
+    const slot = slotFor(table, kind, k);
     if (same(slot, table, kind, k) and t -% slot.checked < READ_EVERY_MS) {
         ReleaseSRWLockExclusive(&slots_lock);
         return;
@@ -272,14 +272,21 @@ export fn statelog_property_get(table: u64, value: u64, kind: u32, key: u64, cal
     const scale = scaleOf(kind);
     if (scale == 0) return;
     const v = decode(value) / @as(f64, scale);
+    if (kind == TRACK_MARKER) trackTable(table);
+    recordValue(table, kind, k, key, v, caller);
+}
 
+/// Write a `get` row if (table, kind, key) now holds a value other than the last one written.
+fn recordValue(table: u64, kind: u32, k: u64, key: u64, v: f64, caller: u64) void {
     AcquireSRWLockExclusive(&slots_lock);
-    slot = slotFor(table, kind, k);
+    const slot = slotFor(table, kind, k);
     var changed = true;
     if (same(slot, table, kind, k)) {
         changed = !(slot.logged and slot.value == v);
         slot.logged = true;
         slot.value = v;
+    } else {
+        slot.* = .{ .table = table, .key = k, .kind = kind, .used = true, .logged = true, .checked = GetTickCount64(), .value = v };
     }
     ReleaseSRWLockExclusive(&slots_lock);
     if (!changed) return;
@@ -288,11 +295,64 @@ export fn statelog_property_get(table: u64, value: u64, kind: u32, key: u64, cal
     file.emit("{d}\tget\t0x{X}\t\t\t\t\t{d}\t\t{d}\t\t{s}\t0x{X}\n", .{ now(), table, kind, v, name, rva(caller) });
 }
 
+// --- per-hit stat reads ----------------------------------------------------------------
+// The game reads a stat only when it needs it, so the read log above has in-battle Anomaly Mastery
+// (579) for some characters and not others. On every damage result (damage_result.c calls
+// statelog_on_hit) the logger therefore reads these stats itself, through the original lookup,
+// on every table that has shown a flat PEN (22) read -- the characters and the enemy -- and writes
+// the ones that changed. Bases that matter to the formulas, and the whole 5xx in-battle range
+// (docs/property-types.md: 560 ATK, 562 DEF, 563 CRIT, 565 CRIT DMG, 567 PEN Ratio, 568 PEN,
+// 577 AP, 579 AM, 574 All-Attribute RES, ...). HP, Energy and Decibels are left to the write log.
+
+const TRACK_MARKER: u32 = 22;
+const TRACKED_BASES = [_]u32{ 13, 21, 22, 46, 50, 65 };
+const TRACKED_BATTLE_FIRST: u32 = 550;
+const TRACKED_BATTLE_LAST: u32 = 599;
+const MAX_TRACKED = 16;
+var tracked: [MAX_TRACKED]u64 = [_]u64{0} ** MAX_TRACKED;
+var tracked_count: usize = 0;
+
+fn trackTable(table: u64) void {
+    AcquireSRWLockExclusive(&slots_lock);
+    defer ReleaseSRWLockExclusive(&slots_lock);
+    for (tracked[0..tracked_count]) |t| if (t == table) return;
+    if (tracked_count < MAX_TRACKED) {
+        tracked[tracked_count] = table;
+        tracked_count += 1;
+    }
+}
+
+fn readOne(get: *const fn (u64, u64, u32, u64, u64) callconv(.c) u64, decode: *const fn (u64) callconv(.c) f64, table: u64, kind: u32) void {
+    var value: [0x40]u8 align(16) = [_]u8{0} ** 0x40;
+    if (get(table, @intFromPtr(&value), kind, 0, 0) & 0xff == 0) return;
+    const scale = scaleOf(kind);
+    if (scale == 0) return;
+    recordValue(table, kind, 0, 0, decode(@intFromPtr(&value)) / @as(f64, scale), 0);
+}
+
+export fn statelog_on_hit() callconv(.c) void {
+    if (!capture.in_battle or file.out == null) return;
+    const decode = decode_value orelse return;
+    if (state_hook_original_property_get == 0) return;
+    const get: *const fn (u64, u64, u32, u64, u64) callconv(.c) u64 = @ptrFromInt(state_hook_original_property_get);
+    var tables: [MAX_TRACKED]u64 = undefined;
+    AcquireSRWLockExclusive(&slots_lock);
+    const n = tracked_count;
+    @memcpy(tables[0..n], tracked[0..n]);
+    ReleaseSRWLockExclusive(&slots_lock);
+    for (tables[0..n]) |table| {
+        for (TRACKED_BASES) |kind| readOne(get, decode, table, kind);
+        var kind = TRACKED_BATTLE_FIRST;
+        while (kind <= TRACKED_BATTLE_LAST) : (kind += 1) readOne(get, decode, table, kind);
+    }
+}
+
 /// A new battle starts with an empty cache, so every stat's first read in it is written.
 fn clearPropertyReads() void {
     AcquireSRWLockExclusive(&slots_lock);
     defer ReleaseSRWLockExclusive(&slots_lock);
     @memset(&slots, .{});
+    tracked_count = 0; // tables are per battle (entities are recreated)
 }
 
 export fn statelog_modifier_init(self: u64, ability: u64, owner: u64, config: u64, extra: u64, caller: u64) callconv(.c) void {

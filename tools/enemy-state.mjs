@@ -236,6 +236,49 @@ function attackerTables(props, series, perHitRows) {
   return out;
 }
 
+/** Skill id -> Anomaly buildup (skill-buildup.json, written by sheet-webapp tools/export-skill-buildup.mjs
+ *  from the client's AvatarSkillTemplateTb). Optional: without it there is no buildup factor. */
+const SKILL_BUILDUP = (() => {
+  try {
+    return JSON.parse(fs.readFileSync(new URL("./skill-buildup.json", import.meta.url), "utf8")).buildup;
+  } catch {
+    return null;
+  }
+})();
+
+/** A factor per row -> "% over 1" per row, with the consistency check: the target's side is the same
+ *  for every hit landing at the same moment, so an ability whose factor sits off the same attacker's
+ *  other hits within a second (median ratio beyond 3%, 3+ hits) follows a rule of its own -- Cissia's
+ *  Corrode Bone curse reads a steady x2.317 for damage -- and is left blank rather than shown as a
+ *  target-side effect. */
+function consistentPct(factor) {
+  const groupOf = (row) => `${String(row.attacker_entity).toLowerCase()}|${row.attack_property_name || row.ability_name || row.skill_id}`;
+  const byAttacker = new Map();
+  for (const [row, f] of factor) {
+    const a = String(row.attacker_entity).toLowerCase();
+    const list = byAttacker.get(a) ?? [];
+    list.push({ t: +row.elapsed_ms, f, g: groupOf(row) });
+    byAttacker.set(a, list);
+  }
+  const median = (xs) => { const v = [...xs].sort((x, y) => x - y); return v[Math.floor(v.length / 2)]; };
+  const ratios = new Map();
+  for (const [row, f] of factor) {
+    const g = groupOf(row);
+    const near = (byAttacker.get(String(row.attacker_entity).toLowerCase()) ?? []).filter((x) => x.g !== g && Math.abs(x.t - +row.elapsed_ms) <= 1000).map((x) => x.f);
+    if (!near.length) continue;
+    const list = ratios.get(g) ?? [];
+    list.push(f / median(near));
+    ratios.set(g, list);
+  }
+  const special = new Set([...ratios].filter(([, r]) => r.length >= 3 && Math.abs(median(r) - 1) > 0.03).map(([g]) => g));
+  return (row) => {
+    const f = factor.get(row);
+    if (f === undefined || special.has(groupOf(row))) return "";
+    const v = (f - 1) * 100;
+    return Math.abs(v) < 0.2 ? "0" : v.toFixed(1);
+  };
+}
+
 /** The target's share of a hit's Daze, % over what the attacker's side accounts for (see the header). */
 export function dazeTakenPct(row) {
   if (row.skill_id === "anomaly" || !(+row.daze_mv > 0) || !(+row.daze_requested > 0) || !(+row.impact > 0)) return "";
@@ -251,7 +294,7 @@ export function dazeTakenPct(row) {
 }
 
 export function enemyStats(dir, perHitRows) {
-  const empty = { enemy_def: "", enemy_def_reduction_pct: "", enemy_res_pct: "", enemy_damage_taken_pct: "", enemy_debuffs: "", flat_pen: "", sheer_force: "" };
+  const empty = { enemy_def: "", enemy_def_reduction_pct: "", enemy_res_pct: "", enemy_damage_taken_pct: "", enemy_buildup_taken_pct: "", enemy_debuffs: "", flat_pen: "", sheer_force: "", battle_am: "", battle_ap: "" };
   const ignorePct = (row) => { const v = resIgnore(row) * 100; return Math.abs(v) < 1e-9 ? "0" : v.toFixed(2); };
   const withDaze = (row, cols) => ({ ...cols, enemy_daze_taken_pct: dazeTakenPct(row), res_ignore_pct: ignorePct(row) });
   const state = readState(dir);
@@ -383,7 +426,11 @@ export function enemyStats(dir, perHitRows) {
     const sheer = table ? statAt(table, "65", t) : null;
     // `measured`: the stats came from the game's own reads, not the loadout -- the damage factor
     // needs that (a loadout knows no PEN from buffs).
-    return { flatPen: pen ?? (statSeries.size === 0 ? fromLoadout.get(avatarOf.get(a)) ?? null : null), sheer: sheer ?? null, measured: pen !== null || sheer !== null };
+    // In-battle Anomaly Mastery / Proficiency (579 / 577): the result's own fields are the BASE values
+    // on direct hits (docs/property-types.md).
+    const am = table ? statAt(table, "579", t) : null;
+    const ap = table ? statAt(table, "577", t) : null;
+    return { flatPen: pen ?? (statSeries.size === 0 ? fromLoadout.get(avatarOf.get(a)) ?? null : null), sheer: sheer ?? null, measured: pen !== null || sheer !== null, am, ap };
   };
   const factorOf = (row, def, reductionPct, stats) => {
     if (!stats.measured || row.skill_id === "anomaly" || !(+row.dmg_mv > 0) || !(+row.damage_unrounded > 0) || !(+row.dmg_mult > 0)) return "";
@@ -408,46 +455,37 @@ export function enemyStats(dir, perHitRows) {
   // at the same moment, so an ability whose factor sits off the same attacker's other hits within a
   // second (median ratio beyond 3%, 3+ hits) follows a rule of its own -- Cissia's Corrode Bone
   // curse reads a steady x2.317 -- and is left blank rather than shown as a target-side effect.
+  // Buildup: requested = skill buildup x hit split x in-battle AM / 100 x (1 + buildup bonus) / 100
+  // (skill-buildup.json, from the client skill table); what is left is the target's buildup RES side.
+  const buildupOf = (row, stats) => {
+    const base = SKILL_BUILDUP?.[row.skill_id];
+    if (!base || !(stats.am > 0) || !(+row.buildup_requested > 0) || !(+row.hit_split > 0)) return null;
+    const bonus = Object.entries(mods(row)).filter(([k]) => /^Actor_AddedElementAccumulationRatio/.test(k)).reduce((sum, [, v]) => sum + +v, 0);
+    return +row.buildup_requested / ((base * +row.hit_split * (stats.am / 100) * (1 + bonus)) / 100);
+  };
   const cols = new Map();
   const factor = new Map();
+  const buildupFactor = new Map();
   for (const row of perHitRows) {
     const def = defAt(row);
     const stats = attackerStats(row);
     cols.set(row, { def, stats });
     const f = factorOf(row, def.enemy_def, def.enemy_def_reduction_pct, stats);
     if (f !== null && f !== "") factor.set(row, f);
+    const b = buildupOf(row, stats);
+    if (b !== null) buildupFactor.set(row, b);
   }
-  const groupOf = (row) => `${String(row.attacker_entity).toLowerCase()}|${row.attack_property_name || row.ability_name || row.skill_id}`;
-  const byAttacker = new Map();
-  for (const [row, f] of factor) {
-    const a = String(row.attacker_entity).toLowerCase();
-    const list = byAttacker.get(a) ?? [];
-    list.push({ t: +row.elapsed_ms, f, g: groupOf(row) });
-    byAttacker.set(a, list);
-  }
-  const median = (xs) => { const v = [...xs].sort((x, y) => x - y); return v[Math.floor(v.length / 2)]; };
-  const ratios = new Map();
-  for (const [row, f] of factor) {
-    const g = groupOf(row);
-    const near = (byAttacker.get(String(row.attacker_entity).toLowerCase()) ?? []).filter((x) => x.g !== g && Math.abs(x.t - +row.elapsed_ms) <= 1000).map((x) => x.f);
-    if (!near.length) continue;
-    const list = ratios.get(g) ?? [];
-    list.push(f / median(near));
-    ratios.set(g, list);
-  }
-  const special = new Set([...ratios].filter(([, r]) => r.length >= 3 && Math.abs(median(r) - 1) > 0.03).map(([g]) => g));
-  const factorPct = (row) => {
-    const f = factor.get(row);
-    if (f === undefined || special.has(groupOf(row))) return "";
-    const v = (f - 1) * 100;
-    return Math.abs(v) < 0.2 ? "0" : v.toFixed(1);
-  };
+  const damagePct = consistentPct(factor);
+  const buildupPct = consistentPct(buildupFactor);
   return (row) => {
     const { def, stats } = cols.get(row) ?? { def: defAt(row), stats: attackerStats(row) };
     return withDaze(row, {
       ...def,
       enemy_res_pct: resAt(row),
-      enemy_damage_taken_pct: factorPct(row),
+      enemy_damage_taken_pct: damagePct(row),
+      enemy_buildup_taken_pct: buildupPct(row),
+      battle_am: stats.am === null ? "" : String(+stats.am.toFixed(2)),
+      battle_ap: stats.ap === null ? "" : String(+stats.ap.toFixed(2)),
       enemy_debuffs: debuffText(row),
       flat_pen: stats.flatPen === null ? "" : String(stats.flatPen),
       sheer_force: stats.sheer === null ? "" : String(stats.sheer),

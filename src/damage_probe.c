@@ -143,7 +143,7 @@ static int looks_like_return(uintptr_t a) {
  * on. No frame pointers are assumed: every word is tested. Bounded, read-only, OS-mediated. */
 #define SCAN_WORDS 512
 #define RAW_WORDS 384   /* 3 KB of raw stack per damage event, for the offline unwind */
-#include "damage_result.c" /* 3.3.3 join-check refresh: rebuild included probes */ /* result probe schema 5 (lean a8 strings, + attack tag list 2026-09-28); NOTE: zig's cache does not track this include -- touch this line to force a rebuild after editing it */
+#include "damage_result.c" /* 3.3.3 join-check refresh: rebuild included probes */ /* result probe schema 5 (lean a8 strings, + attack tag list, + stat dictionaries and per-hit stat reads 2026-09-28); NOTE: zig's cache does not track this include -- touch this line to force a rebuild after editing it */
 #include "damage_snapshot.c" /* hit-result factory / attacker snapshot probe schema 1; same cache caveat */
 #include "damage_daze.c" /* stun-component be-hit handler / Daze gauge probe schema 1; same cache caveat (header verified 2026-09-18) */
 #include "damage_anomaly.c" /* per-element anomaly gauge receive / Anomaly Buildup gauge probe schema 1; same cache caveat */
