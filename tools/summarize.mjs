@@ -249,15 +249,24 @@ function summarizeBattle(dir) {
 
 // --- publishing ---------------------------------------------------------------------------------
 
-/** The server's logs folder, from .tools\server-logs.txt (relative to the game folder), or null. */
+/** The server's logs folder: from .tools\server-logs.txt (relative to the game folder; written by
+ *  install.cmd), else a folder beside the game folder with gamesv\ in it (how install.cmd finds
+ *  it, for players who copied the release zip in instead), else null. */
 function serverLogsDir(root) {
+  const gameDir = path.dirname(root);
   try {
     const configured = fs.readFileSync(path.join(root, ".tools", "server-logs.txt"), "utf8").replace(/^﻿/, "").trim();
-    const dir = path.resolve(path.dirname(root), configured);
-    return fs.statSync(dir).isDirectory() ? dir : null;
-  } catch {
-    return null;
-  }
+    const dir = path.resolve(gameDir, configured);
+    if (fs.statSync(dir).isDirectory()) return dir;
+  } catch {}
+  try {
+    const parent = path.dirname(gameDir);
+    for (const d of fs.readdirSync(parent, { withFileTypes: true })) {
+      if (!d.isDirectory() || !fs.existsSync(path.join(parent, d.name, "gamesv"))) continue;
+      return path.join(parent, d.name, "logs"); // may not exist until the server's first settlement
+    }
+  } catch {}
+  return null;
 }
 
 /** Battles the DLL has finished with (battle.txt written) and nobody has judged yet. */
@@ -293,7 +302,13 @@ function stagedBattles(root) {
 /** The settlement the server wrote while this battle ran (the latest, if somehow several). */
 function findSettlement(battle, logsDir) {
   let best = null;
-  for (const name of fs.readdirSync(logsDir)) {
+  let names = [];
+  try {
+    names = fs.readdirSync(logsDir);
+  } catch {
+    return null; // no settlement written yet
+  }
+  for (const name of names) {
     const m = /^endbattle_(\d+)\.pb$/.exec(name);
     if (!m) continue;
     const file = path.join(logsDir, name);
@@ -347,7 +362,7 @@ function publishWithoutServer(root, battle) {
 /** Judge every staged battle: publish it, leave it for later, or mark it never settled. */
 async function publishStaged(root) {
   const logsDir = serverLogsDir(root);
-  if (!logsDir) note("no server logs folder configured (.tools\\server-logs.txt); publishing every battle with a hit");
+  if (!logsDir) note("no server logs folder found (.tools\\server-logs.txt, or a server folder beside the game folder); publishing every battle with a hit");
   for (const battle of stagedBattles(root)) {
     try {
       if (!logsDir) {

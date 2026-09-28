@@ -4,7 +4,7 @@
 the [Remielle](https://git.xeondev.com/remielle/remielle) private server. This fork is the same
 patch with a **combat logger** built in. It records every hit in your battles (damage, crits,
 Daze, Anomaly buildup, and the stats each hit used), and after each battle it writes a
-spreadsheet of every hit plus a summary you can read or share.
+spreadsheet you can read or share: damage and Daze per character and ability, and every hit.
 
 It replaces normal thaumiel. You don't need both.
 
@@ -33,6 +33,8 @@ Start the game with `remielle.exe`, as usual.
 
 **Don't want to build?** Download the zip from [Releases](../../releases/latest) and copy
 everything in it into your game folder instead. To update, download the new zip and copy it in again.
+The logger finds your server by itself if its folder (the one with `gamesv` in it) is next to the
+game folder; if it's somewhere else, use `install.cmd` instead, which asks for it.
 
 ## Update
 
