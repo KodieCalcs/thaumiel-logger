@@ -1,4 +1,5 @@
-# Assembles the player-facing release folder and zip from a finished build.
+# Assembles the player zip from a finished build: the same files install.ps1 puts in a game
+# folder, installed into dist\<name>\ and zipped.
 #   powershell -File packaging\make-release.ps1 [-Out dist]
 # Run from the repository root after `zig build -Doptimize=ReleaseFast`. Used by
 # .github/workflows/release.yml and works the same locally.
@@ -16,19 +17,13 @@ $loggerOn = $loggerClient -eq $patchClient
 $name = "thaumiel-logger-$patchClient"
 $dir = Join-Path $root "$Out\$name"
 if (Test-Path $dir) { Remove-Item -Recurse -Force $dir }
-New-Item -ItemType Directory -Force "$dir\logger-tools" | Out-Null
-
-Copy-Item "$root\zig-out\bin\remielle.exe", "$root\zig-out\bin\thaumiel.dll" $dir
-Copy-Item "$root\packaging\Make shareable log.cmd", "$root\packaging\READ ME FIRST.txt", "$root\packaging\damage-probe-enable.txt", "$root\packaging\dumper-disable.txt" $dir
-Copy-Item "$root\LICENSE" $dir
-# share.mjs and everything the two readers it runs import.
-foreach ($f in 'share.mjs', 'per-hit-log.mjs', 'attribution.mjs', 'attack-property-skill-map.json', 'readable-log.mjs', 'log-csv.mjs', 'codename-labels.mjs', 'codenames.json') {
-    Copy-Item "$root\tools\$f" "$dir\logger-tools\"
-}
+& "$PSScriptRoot\install.ps1" -GameFolder $dir -SkipBuild -Staging
 
 $zip = Join-Path $root "$Out\$name.zip"
 if (Test-Path $zip) { Remove-Item -Force $zip }
-Compress-Archive -Path $dir -DestinationPath $zip
+# Compress-Archive skips hidden files and folders (.tools), so zip with .NET directly.
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+[IO.Compression.ZipFile]::CreateFromDirectory($dir, $zip, [IO.Compression.CompressionLevel]::Optimal, $false)
 
 # Read by the workflow (release title and notes).
 $info = [ordered]@{ name = $name; zip = $zip; patchClient = $patchClient; loggerClient = $loggerClient; loggerOn = $loggerOn }

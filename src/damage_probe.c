@@ -1,6 +1,6 @@
 /* Experimental damage-text INPUT probe, CNBetaWin3.3.0 only.
  * No field is called damage/crit/owner until a capture establishes its meaning.
- * Enabled only by damage-probe-enable.txt beside the launcher (working directory).
+ * On unless damage-probe-disable.txt is beside the launcher (working directory).
  * Installed during existing startup patching, before combat threads use this UI.
  */
 #include <windows.h>
@@ -532,7 +532,9 @@ static int string_header_write(HANDLE h) {
 /* 0 disabled, 1 installed, negative = refused/failed. No partial installation on a
  * fingerprint mismatch. A timestamp AND 64-byte code fingerprint gate this exact build. */
 int damage_probe_start(void) {
-    if (GetFileAttributesA("damage-probe-enable.txt") == INVALID_FILE_ATTRIBUTES) return 0;
+    /* On by default since 2026-09-28 (the public build); damage-probe-disable.txt beside the
+     * launcher turns it off. The old damage-probe-enable.txt is no longer needed. */
+    if (GetFileAttributesA("damage-probe-disable.txt") != INVALID_FILE_ATTRIBUTES) return 0;
     if (damage_probe_original) return -6;
     HMODULE module = GetModuleHandleA("GameAssembly.dll");
     if (!module) return -1;

@@ -46,8 +46,10 @@ the result all along (`per-hit-log.csv` columns `daze` / `daze_requested`, forme
 `buildup_est`; see `docs/damage-probe-howto.md`, "Per-hit Daze"). The stun-widget hook that was
 tried earlier is recorded there as a ruled-out lead.
 
-All damage probes are **opt-in**: they do nothing unless `damage-probe-enable.txt` exists in the
-launch directory. The hit log always runs; the dumper runs unless `dumper-disable.txt` exists.
+The damage probes are **on by default** (since 2026-09-28; they were opt-in before) and
+`damage-probe-disable.txt` in the launch directory turns them off. The hit log always runs. The
+il2cpp dump is **opt-in**: it is written only when `dumper-enable.txt` exists in the launch
+directory (the name lookups the hooks need run either way).
 Each probe writes its install status to `damage-probe-status.txt` (`string numeric event enqueue
 result snapshot daze anomaly`): 0 disabled, 1 installed, 2 installed but protection restoration failed (stop the
 test); -1 missing module, -2 wrong PE identity, -3 wrong code fingerprint, -4 allocation/protection
@@ -57,36 +59,41 @@ installed. Everything after `string` is only attempted when `string` is 1.
 ## Capture layout
 
 ```text
-Combat Logs\2026-09-20 14.43.26\          one per launch: local date and time (" (2)" if two share a second)
-  hitlog-startup.log                       every hitlog/eventlog/capture/dumper log line
-  damage-probe-status.txt                  probe install statuses (appended)
-  il2cpp-v7.tsv, il2cpp-v7.log             the dump, when enabled (no dumper-disable.txt)
-  Before first battle\                     launch -> first battle (lobby; header-only files, usually)
-  Battle 1 - 14.45.02\                     the first battle, from its awake to the next one's
-    hits.tsv  events.tsv  state.tsv  timescale.tsv  damage-*-<stamp>-<pid>.tsv
-    Share\combat-log.csv, summary.json     written by tools/share.mjs ("Make shareable log.cmd")
-  Battle 2 - 14.49.40\ ...
-logger-status.txt                          beside the launcher: logger ON/OFF for this client, in plain words
+Combat Logs\                               beside the launcher (names: src/capture_names.zig)
+  logger status.txt                        logger ON/OFF for this client, summaries on/off, in plain words
+  READ ME.txt                              the player explanation (packaging/READ ME.txt)
+  2026-09-28\                              one folder per day (local time)
+    Battle 3 - 14.05\                      battles numbered through the day, across launches
+      combat-log.csv, summary.json         tools/summarize.mjs, run by the DLL when the battle ends
+      hits.tsv events.tsv state.tsv timescale.tsv damage-*-<stamp>-<pid>.tsv    HIDDEN (attribute)
+  .diagnostics\                            hidden
+    <launch date time>\                    hitlog-startup.log, damage-probe-status.txt, il2cpp-v7.*
+      lobby\                               launch -> first battle (lobby; header-only files, usually)
+    summarize.log                          one line per summarized battle
+  .tools\                                  hidden: summarize.mjs, the readers, node\node.exe, LICENSE
 ```
 
-Captures made before 2026-09-28 use `captures\<UTC stamp>-<pid>\battle-<n>\`; every reader takes a
-battle folder by path and does not care which naming it has.
+The raw files are hidden rather than moved so every reader keeps taking a battle folder by path
+(hidden files read normally). Captures made before 2026-09-28 use
+`captures\<UTC stamp>-<pid>\battle-<n>\`; the readers do not care which.
 
 `src/capture.zig` hooks `MoleMole.BattleStatsSubsystem::OnAwake` and `::OnDestroy` — the per-game
 subsystem (a `GameSubsystemBase`, created with the level and destroyed with it) that collects the
 settlement report. Both are resolved by name through the il2cpp metadata like the hit hooks. On
-awake every log rotates into the next battle folder and the shared `elapsed_ms` origin resets, so
-every file in a folder reads as time since that battle awoke (the first hit lands ~1.7 s in). On
-destroy everything is flushed; rows after it (result screen, lobby) stay in the folder, so a folder
-is "the battle plus what followed it until the next one loaded". A retry without a settlement just
-leaves an extra folder. If the hook does not install (logged as `capture` in `hitlog-startup.log`),
-everything stays in `Before first battle`.
+awake every log rotates into a new battle folder, the shared `elapsed_ms` origin resets (so every
+file in a folder reads as time since that battle awoke; the first hit lands ~1.7 s in), and the new
+files are marked hidden. On destroy everything is flushed, any late files are hidden, and
+`Combat Logs\.tools\summarize.mjs --pending` starts in the background (bundled `node.exe`, else
+`node` on PATH; no window, below-normal priority). It summarizes every battle folder that has hits
+and no `summary.json` yet, one run at a time (`.tools\summarize.lock`), reading a temporary copy of
+the raw files so the readers' intermediate files never land in the battle folder. Rows after
+destroy (result screen, lobby) stay in the battle's folder. If the hooks do not install (logged as
+`capture` in `hitlog-startup.log`), everything stays in the diagnostics `lobby\` folder.
 
-To archive a battle: copy its battle folder as the capture directory, drop the server's
-`endbattle_<N>.pb` + loadout into it (match by time: the folder's name is its awake, the `.pb`
-mtime is the settlement), and run the readers on it as they are — no trimming:
-`node tools/per-hit-log.mjs <dir>`, then `node tools/readable-log.mjs <dir>` or
-`node tools/share.mjs <dir>`.
+To archive a battle: copy its battle folder (hidden files included) as the capture directory, drop
+the server's `endbattle_<N>.pb` + loadout into it (match by time), and run the readers on it as
+they are: `node tools/per-hit-log.mjs <dir>`, `node tools/readable-log.mjs <dir>`, or
+`node tools/summarize.mjs <dir>`.
 
 ## Version contract — one client build
 
@@ -175,27 +182,15 @@ archived at `local-data/tools/damage-probe/build-20260918-daze/`. Since the capt
 
 ## Deploying a test build to a game machine (maintainers)
 
-The client runs on a separate machine reached over SMB; the game holds `thaumiel.dll` open, so the
-DLL is never replaced directly. Instead:
+`packaging\install.ps1 -GameFolder <client dir> [-SkipBuild]` (what `install.cmd` runs) works on
+a network path too: it refuses while the game has `thaumiel.dll` open, copies the build, and
+installs the tools and Node into `Combat Logs\.tools\`. Verify with the DLL's SHA256 over the share
+if in doubt. After a fight, `Combat Logs\.diagnostics\<launch>\damage-probe-status.txt` shows the
+probe statuses and the battle folder is the capture directory.
 
-1. Build; record the DLL SHA256; put it in `tools/Install-DamageProbe.ps1`'s checksum line.
-2. Copy to the client directory (beside `remielle.exe`, the folder the game runs from):
-   `zig-out/bin/thaumiel.dll` **as `damage-probe-ready.dll`**, `tools/Install-DamageProbe.ps1`,
-   `tools/START DAMAGE TEST.cmd`. Keep the previously staged DLL beside it renamed with its short
-   hash (`damage-probe-ready-<tag>-<8 hex>.dll`) so a bad build can be swapped back.
-3. Verify the staged copy's SHA256 over the share matches, and (first time on a client) that its
-   `GameAssembly.dll` header and the 64 bytes at each target match the fingerprints.
-4. The player closes the game and double-clicks `START DAMAGE TEST.cmd`. The installer takes an
-   exclusive handle on `thaumiel.dll`, backs it up into `damage-probe-backup-<timestamp>/`, writes
-   the staged DLL in place, verifies the checksum, creates `damage-probe-enable.txt`, and launches
-   `remielle.exe` from that directory. On a write error it restores the old bytes.
-5. After the fight (through the settlement screen): check the session's
-   `damage-probe-status.txt`, then copy the battle's `Combat Logs\<launch>\Battle <n> - <time>\` folder as the
-   capture directory, add the server's `endbattle_*.pb` and the loadout, and run
-   `node tools/per-hit-log.mjs <dir>` ("Capture layout" above). Nothing is overwritten by the next launch.
-
-Never run the installer while the game is running, and never replace the DLL a running game has
-loaded.
+The older staging routine (`damage-probe-ready.dll` + `tools/Install-DamageProbe.ps1` +
+`tools/START DAMAGE TEST.cmd`) still works but overwrites `thaumiel.dll` with whatever DLL was
+staged beside it, and leaves a backup folder per run; prefer `install.ps1`.
 
 ## Bring your own client and il2cpp dump
 

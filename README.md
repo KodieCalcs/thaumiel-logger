@@ -2,91 +2,88 @@
 
 [thaumiel](https://git.xeondev.com/remielle/thaumiel) is the Zenless Zone Zero client patch for
 the [Remielle](https://git.xeondev.com/remielle/remielle) private server. This fork is the same
-patch with a **combat logger** built in: it records every hit in your battles (damage, crits,
-Daze, Anomaly buildup, and the stats each hit used) and turns a battle into a spreadsheet you can
-read or share.
+patch with a **combat logger** built in. It records every hit in your battles (damage, crits,
+Daze, Anomaly buildup, and the stats each hit used), and after each battle it writes a
+spreadsheet of every hit plus a summary you can read or share.
 
 It replaces normal thaumiel. You don't need both.
 
 > You need to already be set up to play on a Remielle server. This project doesn't cover setting
 > up the server or getting the game client.
 
-## Download and install
+## Install
 
-1. Go to **[Releases](../../releases/latest)** and download the `.zip` file.
-2. Close the game. Unzip the file and copy **everything inside** into your game folder (where
-   you put `remielle.exe` and `thaumiel.dll` before). Replace the old files when asked.
-3. Start the game with `remielle.exe`, as usual.
+The same way as thaumiel: keep this repository in its own folder and install from it.
 
-To check that it's working, open **`logger-status.txt`** in your game folder after the game starts:
+```text
+git clone https://github.com/KodieCalcs/thaumiel-logger.git
+```
 
-| It says | Meaning |
-|---|---|
-| `Combat logger: ON` | Everything is working. |
-| `Combat logger: OFF` | Your game version is newer than the logger. The game still works normally; only logging is paused. See [Updates](#updates). |
+Then double-click **`install.cmd`** in that folder. The first time, it:
+
+1. asks you to pick your game folder (the one with `GameAssembly.dll` in it) and remembers it;
+2. downloads Zig (to build) and Node.js (for the summaries) into the repository's `.cache`
+   folder. Nothing is installed on your system;
+3. builds, and copies `remielle.exe` and `thaumiel.dll` into your game folder, plus a
+   `Combat Logs` folder.
+
+Start the game with `remielle.exe`, as usual.
+
+**Don't want to build?** Download the zip from [Releases](../../releases/latest) and copy
+everything in it into your game folder instead. To update, download the new zip and copy it in again.
+
+## Update
+
+Double-click **`update.cmd`**. It runs `git pull` and then `install.cmd`. (If you prefer to type:
+`git pull`, then `install.cmd`.) Close the game first.
+
+When the game updates, the client patch (so the game can connect) and the combat logger (so it can
+find the numbers in the new version) are updated separately:
+
+1. **As soon as upstream thaumiel supports a new game version**, it's merged here automatically,
+   so `update.cmd` gets you playing again right away. The logger switches itself off on a version
+   it doesn't know yet, and the game is unaffected.
+2. **When the logger has been updated** for that version, run `update.cmd` again and it's back on.
 
 ## Your battles
 
-Each battle gets its own folder:
+Everything the logger writes goes in one folder in your game folder:
 
 ```text
-Game folder\
-  Combat Logs\
-    2026-09-28 14.03.26\          one folder each time you start the game (date and time)
-      Battle 1 - 14.05.12\        one folder per battle (the time it started)
-      Battle 2 - 14.09.40\
-      Before first battle\        menus and lobby before your first battle (usually empty)
+Combat Logs\
+  logger status.txt        is the logger ON for your game version?
+  2026-09-28\              one folder per day
+    Battle 1 - 14.05\      one folder per battle (number and start time)
+      combat-log.csv
+      summary.json
 ```
 
-The files inside a battle folder are raw data for tools to read. To get files you can read
-yourself or share, see the next section.
-
-## Sharing a battle
-
-Double-click **`Make shareable log.cmd`** in your game folder. It lists your recent battles. Press
-Enter for the newest, or type a number. You can also drag a `Battle N` folder onto the file.
-
-It creates a **`Share`** folder inside that battle and opens it. The folder has two files:
+A few seconds after a battle ends, its folder gets:
 
 | File | What's in it |
 |---|---|
 | `combat-log.csv` | Every hit, one row each: time, character, skill, damage, crit, Daze, Energy, the character's ATK / Impact / Anomaly stats at that moment, and active buffs. Opens in Excel or Google Sheets. |
 | `summary.json` | Damage per character and per skill, battle length, hit count, crit rate, and the game version. |
 
-**Send those two files, not the whole battle folder.** The raw files can contain account
-identifiers; the `Share` files don't.
+**Share those two files, not whole folders.** Each battle folder also holds the raw data the two
+files are made from. It's hidden, because it can contain account details (File Explorer: View >
+Show > Hidden items to see it).
 
-The first time you run it, it may ask you to install **Node.js**, a free program that runs the log
-reader. Get the "LTS" version from [nodejs.org](https://nodejs.org), install it with the default
-options, then double-click the `.cmd` again.
-
-## Updates
-
-When the game updates, two things need updating: the client patch (so the game can connect at
-all) and the combat logger (so it can find the numbers in the new version). The patch usually
-comes out first, so this project handles the two separately:
-
-1. **As soon as upstream thaumiel supports a new game version**, a release for it appears here
-   automatically, marked **"game patch only (logger off until updated)"**. Install it the same
-   way and keep playing. The logger switches itself off on that version, and the game is
-   unaffected.
-2. **When the logger has been updated** for that version, a new release appears with the logger
-   on. Install that one the same way.
-
-In both cases you only ever need this one download. Your old `Combat Logs` are never touched by an
-update.
+`logger status.txt` says **ON** or **OFF**. OFF means your game version is newer than the logger;
+the game still works, and the next update turns it back on.
 
 ## Troubleshooting
 
 | Problem | Try this |
 |---|---|
-| `logger-status.txt` doesn't appear | The game wasn't started through `remielle.exe` from this download, or the files went into the wrong folder. |
-| "No battles with damage data were found" | Make sure `damage-probe-enable.txt` is in the game folder, the status file says ON, and you finished a battle after starting the game with `remielle.exe`. |
-| A battle folder exists but has almost nothing in it | That is usually `Before first battle`. Battles appear as `Battle 1`, `Battle 2`, … |
-| Something else | Open an issue and attach `logger-status.txt` and the `hitlog-startup.log` from that launch's folder (not the battle files). |
+| No `Combat Logs\logger status.txt` after starting the game | The game wasn't started with this `remielle.exe`, or it went into the wrong folder. Run `install.cmd` again. |
+| Battle folders but no `combat-log.csv` | Check the "Summaries" line in `logger status.txt`. Running `install.cmd` again fixes a missing tool or Node.js. |
+| `install.cmd` says the game is running | Close the game, then run it again. |
+| Wrong game folder | Delete `install-config.txt` in this folder and run `install.cmd` again. |
+| Something else | Open an issue and attach `logger status.txt` and `Combat Logs\.diagnostics\summarize.log` (not the battle files). |
 
-**Turning logging off:** delete `damage-probe-enable.txt`. Leave `dumper-disable.txt` where it is;
-it stops a large developer-only file from being written on every launch.
+**Turning damage logging off:** put an empty file named `damage-probe-disable.txt` next to
+`remielle.exe`. Delete it to turn logging back on.
 
 ## For developers
 
@@ -97,8 +94,9 @@ it stops a large developer-only file from being written on every launch.
 - [docs/client-update-playbook.md](docs/client-update-playbook.md): moving the logger to a new
   game version, step by step.
 
-Build: [Zig 0.16.0](https://ziglang.org/download/), then
-`zig build -Doptimize=ReleaseFast` (output in `zig-out/bin/`) and `zig build test`.
+Build by hand: [Zig 0.16.0](https://ziglang.org/download/), `zig build -Doptimize=ReleaseFast`
+(output in `zig-out/bin/`), `zig build test`. Builds target baseline x86-64, so they run on any
+64-bit CPU, not just the one that built them.
 
 ## License
 

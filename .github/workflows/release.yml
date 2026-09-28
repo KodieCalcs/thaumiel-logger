@@ -78,8 +78,10 @@ jobs:
           $notes = @"
           $status
 
-          **Install:** download ``$($info.name).zip`` below, unzip it, and copy everything inside into your game folder (replace ``remielle.exe`` and ``thaumiel.dll``). ``READ ME FIRST.txt`` in the zip explains the rest.
+          **Install from source (recommended):** ``git pull`` then ``install.cmd``, or just ``update.cmd``. See the README.
 
-          After starting the game, ``logger-status.txt`` in the game folder says whether the logger is on.
+          **Or download:** get ``$($info.name).zip`` below, close the game, and copy everything inside into your game folder (replace ``remielle.exe`` and ``thaumiel.dll``).
+
+          After starting the game, ``Combat Logs\logger status.txt`` says whether the logger is on; each battle's ``combat-log.csv`` and ``summary.json`` appear in ``Combat Logs`` a few seconds after it ends.
           "@
           gh release create $tag "$($info.zip)" --title $title --notes $notes --latest

@@ -1,0 +1,28 @@
+Combat Logs
+===========
+
+This folder is where the combat logger (thaumiel + combat logger) saves your battles.
+
+  logger status.txt        whether the logger is ON for your game version
+  2026-09-28\              one folder per day
+    Battle 1 - 14.05\      one folder per battle (number and start time)
+      combat-log.csv       every hit: time, character, skill, damage, crit, Daze,
+                           Energy, stats at that moment, active buffs. Opens in
+                           Excel or Google Sheets.
+      summary.json         damage per character and per skill, battle length,
+                           hit count, crit rate, game version.
+
+The two files appear a few seconds after a battle ends. They are the ones to share.
+
+Each battle folder also holds the raw data the two files are made from. It is hidden,
+because it can contain account details: share the two files, not whole folders.
+(To see it anyway: in File Explorer, View > Show > Hidden items.)
+
+If "logger status.txt" says the logger is OFF, your game version is newer than the
+logger. The game still works normally; install the update when one is out.
+
+Turning damage logging off: put an empty file named damage-probe-disable.txt next to
+remielle.exe. Delete it to turn logging back on.
+
+License: GNU Affero General Public License v3 (Combat Logs\.tools\LICENSE). Source code:
+see the page you downloaded this from.

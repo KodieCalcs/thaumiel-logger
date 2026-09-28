@@ -12,7 +12,7 @@ How this fork stays current with upstream thaumiel, and what to do when the game
 `src/logger_client.zig` is the switch between them. At startup, after upstream's patches are
 applied, `dynlib.zig` compares the running `GameAssembly.dll` (PE timestamp + SizeOfImage) with the
 build the logger targets. On a mismatch, no logger module starts: no hooks, no threads, no
-`Combat Logs` folder. Only `logger-status.txt` is written, saying the logger is off and where to
+battle folders. Only `Combat Logs\logger status.txt` is written, saying the logger is off and how to
 get an update. That makes a build with a newer upstream patch and an older logger safe to ship.
 
 ## What happens automatically
@@ -51,28 +51,32 @@ The push triggers `release.yml`.
 
 ## Moving the logger to a new client version
 
-Follow [client-update-playbook.md](client-update-playbook.md). It covers re-finding every pin. Then:
+Follow [client-update-playbook.md](client-update-playbook.md). It covers re-finding every pin. Two
+things specific to this build:
 
-1. Set `client_name`, `client_timestamp` and `client_size_of_image` in `src/logger_client.zig` to
-   the new build (the same values the per-module pins use).
-2. `zig build test`, then build and test in game: `logger-status.txt` should say ON, and a battle
-   should produce a `Battle 1 - …` folder that `node tools/share.mjs --latest` turns into a `Share`
-   folder.
-3. Push to `main`. `release.yml` publishes a "game patch + combat logger" release, and players
-   install it over the patch-only one.
+- **Set the gate first.** Put the new build's `client_name`, `client_timestamp` and
+  `client_size_of_image` (read from the new `GameAssembly.dll`'s PE header offline) into
+  `src/logger_client.zig` before the first test launch: on an unknown client the gate starts no
+  logger module at all, including the dumper the playbook's first run relies on.
+- **The dump is opt-in.** Create `dumper-enable.txt` beside the launcher for the launches that
+  should write `il2cpp-v7.tsv` (into `Combat Logs\.diagnostics\<launch>\`).
 
-## Release contents
+Then `zig build test`, install on the game machine (`packaging\install.ps1 -GameFolder <dir>`),
+and check in game: `Combat Logs\logger status.txt` says ON and "Summaries: ON", and a battle
+produces `Combat Logs\<day>\Battle N - <time>\` with `combat-log.csv` and `summary.json` a few
+seconds after it ends. Push to `main`; players get it with `update.cmd` (or the new release zip).
 
-`packaging/make-release.ps1` builds `dist/thaumiel-logger-<client>/` and its zip:
+## What a player's game folder gets
+
+`packaging/install.ps1` (run by `install.cmd`, `update.cmd`, and `make-release.ps1` for the zip):
 
 ```text
 remielle.exe, thaumiel.dll          the build
-Make shareable log.cmd              runs logger-tools\share.mjs (asks for Node.js if missing)
-logger-tools\                       share.mjs and every reader file it needs
-damage-probe-enable.txt             turns the damage probes on (they are opt-in in the DLL)
-dumper-disable.txt                  skips the ~50 MB il2cpp dump on every launch
-READ ME FIRST.txt                   the player instructions
-LICENSE
+Combat Logs\READ ME.txt             the player explanation
+Combat Logs\.tools\                 hidden: summarize.mjs, the readers it runs, LICENSE,
+                                    node\node.exe + its LICENSE (current Node LTS, fetched once
+                                    into the repository's .cache\)
 ```
 
-If `share.mjs` or a reader gains an import, add the file to the list in `make-release.ps1`.
+It also removes the files the first public build (2026-09-28) put beside the launcher. If
+`summarize.mjs` or a reader gains an import, add the file to the list in `install.ps1`.

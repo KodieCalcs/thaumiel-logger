@@ -14,3 +14,6 @@ local-data/
 *.dmp
 # Release packaging output (packaging/make-release.ps1).
 dist/
+# install.cmd: downloaded Zig/Node and the saved game-folder path.
+.cache/
+install-config.txt

@@ -21,13 +21,15 @@ pub const client_name = "CNBetaWin3.3.4";
 pub const client_timestamp: u32 = 0x6AB435F6;
 pub const client_size_of_image: u32 = 0x21714000;
 
-/// Written next to the launcher on every start, so a player can see whether logging is on.
-const status_file = "logger-status.txt";
+const names = @import("capture_names.zig");
 
 extern "kernel32" fn GetModuleHandleA(?[*:0]const u8) callconv(.winapi) ?*anyopaque;
 extern "kernel32" fn CreateFileA([*:0]const u8, u32, u32, ?*anyopaque, u32, u32, ?w.HANDLE) callconv(.winapi) w.HANDLE;
 extern "kernel32" fn WriteFile(w.HANDLE, [*]const u8, u32, *u32, ?*anyopaque) callconv(.winapi) w.BOOL;
 extern "kernel32" fn CloseHandle(w.HANDLE) callconv(.winapi) w.BOOL;
+extern "kernel32" fn CreateDirectoryA([*:0]const u8, ?*anyopaque) callconv(.winapi) w.BOOL;
+extern "kernel32" fn GetFileAttributesA([*:0]const u8) callconv(.winapi) u32;
+extern "kernel32" fn SearchPathA(?[*:0]const u8, [*:0]const u8, ?[*:0]const u8, u32, ?[*]u8, ?*?[*]u8) callconv(.winapi) u32;
 
 pub const Identity = struct { timestamp: u32, size_of_image: u32 };
 
@@ -45,37 +47,65 @@ fn readIdentity() ?Identity {
     };
 }
 
+/// Whether each battle will get its combat-log.csv and summary.json (capture.zig starts the
+/// summarizer when a battle ends).
+pub const Summaries = enum { on, no_tools, no_node };
+
+fn summariesState() Summaries {
+    const missing: u32 = 0xFFFFFFFF;
+    if (GetFileAttributesA(names.tools_dir ++ "\\summarize.mjs") == missing) return .no_tools;
+    if (GetFileAttributesA(names.tools_dir ++ "\\node\\node.exe") != missing) return .on;
+    if (SearchPathA(null, "node.exe", null, 0, null, null) != 0) return .on;
+    return .no_node;
+}
+
 /// True when the running client is the one the logger was built for. Always writes
-/// logger-status.txt explaining the outcome in plain words.
+/// `Combat Logs\logger status.txt` explaining the outcome in plain words.
 pub fn supported() bool {
     const id = readIdentity();
     const ok = if (id) |i| matches(i) else false;
-    var buffer: [2048]u8 = undefined;
-    const text = statusText(&buffer, ok, id) catch return ok;
+    var buffer: [4096]u8 = undefined;
+    const text = statusText(&buffer, ok, id, if (ok) summariesState() else .on) catch return ok;
+    _ = CreateDirectoryA(names.root_dir, null);
     writeStatus(text);
     return ok;
 }
 
-pub fn statusText(buffer: []u8, ok: bool, id: ?Identity) ![]const u8 {
+pub fn statusText(buffer: []u8, ok: bool, id: ?Identity, summaries: Summaries) ![]const u8 {
     const found = id orelse Identity{ .timestamp = 0, .size_of_image = 0 };
-    if (ok) return std.fmt.bufPrint(buffer,
-        \\Combat logger: ON
-        \\Game version: {s} (supported)
-        \\
-        \\Your battles are saved in the "Combat Logs" folder next to this file,
-        \\one folder per game launch and one "Battle N" folder per battle.
-        \\To make a shareable copy of a battle, double-click "Make shareable log.cmd".
-        \\
-    , .{client_name});
+    if (ok) {
+        const summaries_line = switch (summaries) {
+            .on => "ON",
+            .no_tools => "OFF - the logger's tools are missing from Combat Logs\\.tools.\n  Install again (install.cmd, or copy the release zip in again).",
+            .no_node => "OFF - Node.js was not found.\n  Install again (install.cmd, or copy the release zip in again), which includes it.",
+        };
+        return std.fmt.bufPrint(buffer,
+            \\Combat logger: ON
+            \\Game version: {s} (supported)
+            \\Summaries: {s}
+            \\
+            \\Your battles are saved in this folder, one folder per day:
+            \\  2026-09-28\Battle 1 - 14.05\
+            \\  2026-09-28\Battle 2 - 14.09\
+            \\
+            \\A few seconds after a battle ends, its folder gets two files:
+            \\  combat-log.csv   every hit (opens in Excel / Google Sheets)
+            \\  summary.json     damage per character and skill
+            \\Those are the files to share. The raw data next to them is hidden;
+            \\it can contain account details, so don't share whole folders.
+            \\
+        , .{ client_name, summaries_line });
+    }
     return std.fmt.bufPrint(buffer,
         \\Combat logger: OFF
         \\
         \\This game version is not the one this logger was made for ({s}),
         \\so the logger switched itself off. The game itself works normally.
         \\
-        \\When a logger update for this game version is released, download it from
-        \\  {s}
-        \\and replace remielle.exe and thaumiel.dll with the new ones.
+        \\To get the logger back once it is updated for this game version:
+        \\  - installed from the source code: run "git pull", then install.cmd
+        \\  - installed from a download: get the newest one from
+        \\      {s}
         \\
         \\(details for bug reports: GameAssembly timestamp 0x{X}, size 0x{X};
         \\ expected 0x{X}, size 0x{X})
@@ -85,7 +115,7 @@ pub fn statusText(buffer: []u8, ok: bool, id: ?Identity) ![]const u8 {
 
 fn writeStatus(text: []const u8) void {
     // GENERIC_WRITE, share read, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL.
-    const handle = CreateFileA(status_file, 0x40000000, 1, null, 2, 0x80, null);
+    const handle = CreateFileA(names.status_file, 0x40000000, 1, null, 2, 0x80, null);
     if (handle == w.INVALID_HANDLE_VALUE) return;
     defer _ = CloseHandle(handle);
     // Notepad-friendly line endings.
@@ -108,12 +138,17 @@ test "only the pinned client build is supported" {
 }
 
 test "status text names the outcome and, when off, where to get an update" {
-    var buffer: [2048]u8 = undefined;
-    const on = try statusText(&buffer, true, .{ .timestamp = client_timestamp, .size_of_image = client_size_of_image });
+    var buffer: [4096]u8 = undefined;
+    const on = try statusText(&buffer, true, .{ .timestamp = client_timestamp, .size_of_image = client_size_of_image }, .on);
     try std.testing.expect(std.mem.startsWith(u8, on, "Combat logger: ON"));
-    var buffer2: [2048]u8 = undefined;
-    const off = try statusText(&buffer2, false, .{ .timestamp = 0x12345678, .size_of_image = 0x1000 });
+    try std.testing.expect(std.mem.indexOf(u8, on, "Summaries: ON") != null);
+    var buffer2: [4096]u8 = undefined;
+    const no_node = try statusText(&buffer2, true, .{ .timestamp = client_timestamp, .size_of_image = client_size_of_image }, .no_node);
+    try std.testing.expect(std.mem.indexOf(u8, no_node, "Node.js was not found") != null);
+    var buffer3: [4096]u8 = undefined;
+    const off = try statusText(&buffer3, false, .{ .timestamp = 0x12345678, .size_of_image = 0x1000 }, .on);
     try std.testing.expect(std.mem.startsWith(u8, off, "Combat logger: OFF"));
     try std.testing.expect(std.mem.indexOf(u8, off, build_options.releases_url) != null);
+    try std.testing.expect(std.mem.indexOf(u8, off, "git pull") != null);
     try std.testing.expect(std.mem.indexOf(u8, off, "0x12345678") != null);
 }

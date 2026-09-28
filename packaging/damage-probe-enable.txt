@@ -1,1 +1,0 @@
-This file turns on the damage logging. Delete it to turn logging off (the game still works).

@@ -472,8 +472,10 @@ fn threadMain(_: ?*anyopaque) callconv(.winapi) u32 {
     @import("capture.zig").installFromWorker();
     @import("timescalelog.zig").installFromWorker();
     @import("statelog.zig").installFromWorker();
-    if (GetFileAttributesA("dumper-disable.txt") != 0xffffffff) {
-        log.info("v7 disabled by dumper-disable.txt", .{});
+    // The ~50 MB dump is only for re-finding pins after a client update, so since 2026-09-28 it
+    // is opt-in: dumper-enable.txt beside the launcher. The lookups above run either way.
+    if (GetFileAttributesA("dumper-enable.txt") == 0xffffffff) {
+        log.info("v7 dump skipped (create dumper-enable.txt beside the launcher to write it)", .{});
         return 0;
     }
     var path: capture.PathBuf = undefined;
