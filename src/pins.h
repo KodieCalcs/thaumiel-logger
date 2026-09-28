@@ -12,6 +12,10 @@
 #define PIN_PropertyTable_CLASS "IHNAJAGFLDC"
 #define PIN_PropertyTable_set_RVA 0x18d640a0
 #define PIN_PropertyTable_set_METHOD "GOPFMPMAFMG"
+#define PIN_PropertyTable_get_RVA 0x18d5e840
+#define PIN_PropertyTable_get_METHOD "GEHFLAPAAJJ"
+#define PIN_PropertyTable_get_double_RVA 0x18d63e60
+#define PIN_PropertyTable_get_double_METHOD "OHEECDKONIF"
 #define PIN_PropertyNotifier_CLASS "JEKJGCLPBMC"
 #define PIN_PropertyNotifier_notify_RVA 0x19db2600
 #define PIN_PropertyNotifier_notify_METHOD "HCNJJOANJKM"
@@ -119,6 +123,9 @@
 #define PIN_DamageResult_stat_dict 0xb0
 #define PIN_DamageResult_hit_names 0x80
 #define PIN_DamageResult_attack_tags 0x48
+#define PIN_DamageResult_float_list 0xc8
+#define PIN_DamageResult_team_props 0xd0
+#define PIN_DamageResult_base_props 0xe0
 #define PIN_AnomalyGauge_CLASS "HEECCHMMMHJ"
 #define PIN_AnomalyGauge_be_hit_RVA 0x167e0190
 #define PIN_AnomalyGauge_be_hit_METHOD "PLILBLPMLGE"

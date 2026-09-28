@@ -31,6 +31,7 @@ extern void statelog_modifier_init(uint64_t self, uint64_t ability, uint64_t own
 extern void statelog_modifier_event(uint64_t self, uint32_t kind, uint64_t caller);
 extern void statelog_stun_enter(uint64_t self, uint64_t caller);
 extern void statelog_stun_update(uint64_t self, float dt);
+extern void statelog_property_get(uint64_t table, uint64_t value, uint32_t type, uint64_t key, uint64_t caller);
 
 #define DETOUR __attribute__((noinline))
 
@@ -41,6 +42,7 @@ uint64_t state_hook_original_modifier_attach = 0;
 uint64_t state_hook_original_modifier_detach = 0;
 uint64_t state_hook_original_stun_enter = 0;
 uint64_t state_hook_original_stun_update = 0;
+uint64_t state_hook_original_property_get = 0;
 
 typedef double (*fn_property_set)(uint64_t, uint32_t, uint64_t, uint32_t, double, uint64_t);
 typedef void (*fn_property_notify)(uint64_t, uint32_t, uint64_t, double, uint64_t);
@@ -97,6 +99,22 @@ DETOUR uint64_t state_hook_stun_enter(uint64_t self, uint64_t method) {
     fn_this original = (fn_this)state_hook_original_stun_enter;
     if (!original) return 0;
     return original(self, method);
+}
+
+// POST-call: IHNAJAGFLDC::GEHFLAPAAJJ(ref value, type, key) -> bool, the property table's raw
+// lookup (3.3.0 GEIEAAJJJDC::HNIBECLNDNL). On true the 0x40-byte encoded value has been written
+// through `value`; statelog decodes it with the game's own decoder. The bool is in al, so rax is
+// returned unchanged.
+typedef uint64_t (*fn_property_get)(uint64_t, uint64_t, uint32_t, uint64_t, uint64_t);
+
+DETOUR uint64_t state_hook_property_get(uint64_t table, uint64_t value, uint32_t type, uint64_t key,
+                                        uint64_t method) {
+    uint64_t caller = (uint64_t)__builtin_return_address(0);
+    fn_property_get original = (fn_property_get)state_hook_original_property_get;
+    uint64_t r = 0;
+    if (original) r = original(table, value, type, key, method);
+    if ((uint8_t)r) statelog_property_get(table, value, type, key, caller);
+    return r;
 }
 
 // `float dt` in xmm1, rdx unused, MethodInfo in r8 (as timescale_hook_update); r9 carried along.

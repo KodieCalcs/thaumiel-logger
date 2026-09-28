@@ -101,6 +101,36 @@
     "called_by": "StunMixin.property_caller"
    }
   },
+  "PropertyTable.get": {
+   "name": "GEHFLAPAAJJ",
+   "params": 3,
+   "rva": "0x18d5e840",
+   "prologue": "41565657534883ec284c89cb",
+   "instructions": 95,
+   "hook": "prologue",
+   "used_by": [
+    "src/statelog.zig:t_property_get"
+   ],
+   "disambiguate": {
+    "by": "shape",
+    "matched": "3.3.0 GEIEAAJJJDC::HNIBECLNDNL 0x19105110, 95/95 mnemonics"
+   }
+  },
+  "PropertyTable.get_double": {
+   "name": "OHEECDKONIF",
+   "params": 2,
+   "rva": "0x18d63e60",
+   "prologue": "5657534883ec70660f297424",
+   "instructions": 37,
+   "hook": "witness",
+   "used_by": [
+    "src/statelog.zig:t_property_get_double (its calls name the value decoder and the per-type scale)"
+   ],
+   "disambiguate": {
+    "by": "signature",
+    "note": "Double(BaseProperty, String) calling get, then decode(&value) / scale(type)"
+   }
+  },
   "PropertyNotifier.notify": {
    "name": "HCNJJOANJKM",
    "params": 3,
@@ -893,6 +923,33 @@
    ],
    "name": "IBODEHKOMOD",
    "type": "System.Collections.Generic.List<System.String>"
+  },
+  "DamageResult.float_list": {
+   "offset": "0xc8",
+   "rule": "type_unique",
+   "used_by": [
+    "src/damage_result.c:result_float_list"
+   ],
+   "name": "FFHKOLGEDCH",
+   "type": "System.Collections.Generic.List<System.Single>"
+  },
+  "DamageResult.team_props": {
+   "offset": "0xd0",
+   "rule": "type_unique",
+   "used_by": [
+    "src/damage_result.c:result_int_dictionary"
+   ],
+   "name": "KOGNGKMMENA",
+   "type": "System.Collections.Generic.Dictionary<MoleMole.Config.TeamProperty,System.Single>"
+  },
+  "DamageResult.base_props": {
+   "offset": "0xe0",
+   "rule": "type_unique",
+   "used_by": [
+    "src/damage_result.c:result_int_dictionary"
+   ],
+   "name": "KMMFALDDJFJ",
+   "type": "System.Collections.Generic.Dictionary<MoleMole.Config.BaseProperty,System.Single>"
   },
   "AttackSnapshot.atk": {
    "offset": "0x188",

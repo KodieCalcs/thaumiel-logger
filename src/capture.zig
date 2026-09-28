@@ -116,6 +116,8 @@ pub var started: u64 = 0;
 pub var battle: u32 = 0;
 /// hitlog.hits and the wall clock (Unix ms) at the current battle's awake.
 var hits_at_awake: u64 = 0;
+/// Between a battle's awake and its destroy (statelog's property reads log only then).
+pub var in_battle: bool = false;
 var awake_unix_ms: u64 = 0;
 
 fn unixMs() u64 {
@@ -273,6 +275,7 @@ export fn capture_battle_awake(self: u64) callconv(.c) void {
     hits_at_awake = hitlog.hits;
     awake_unix_ms = unixMs();
     rotateAll();
+    in_battle = true;
     log.info("battle {d} awake (subsystem 0x{X}) {d} ms after battle {d} began; logging to {s}", .{ battle, self, elapsed, previous, battle_dir[0..battle_len] });
 }
 
@@ -282,6 +285,7 @@ export fn capture_battle_awake(self: u64) callconv(.c) void {
 export fn capture_battle_destroy(self: u64) callconv(.c) void {
     const ended = GetTickCount64();
     const destroy_ms = unixMs();
+    in_battle = false;
     if (battle == 0) { // destroy without an awake: nothing to publish, just make it durable
         hitlog.flushAll();
         eventlog.flushAll();

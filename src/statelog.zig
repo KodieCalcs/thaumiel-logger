@@ -196,6 +196,105 @@ export fn statelog_property_notify(entity: u64, kind: u32, key: u64, value: f64,
     file.emit("{d}\tnotify\t0x{X}\t\t\t\t\t{d}\t\t{d}\t\t{s}\t0x{X}\n", .{ now(), entity, kind, value, name, rva(caller) });
 }
 
+// --- property reads ----------------------------------------------------------------
+// IHNAJAGFLDC::GEHFLAPAAJJ, the property table's raw lookup (3.3.0 GEIEAAJJJDC::HNIBECLNDNL,
+// shape-identical), runs for every stat anything reads -- thousands a frame. During a battle each
+// (table, type, key) is decoded at most once per READ_EVERY_MS, and a `get` row is written only when
+// its value differs from the last one written for it. That is a timeline of every entity's STORED
+// stats as the game reads them -- the target's RES and Stun values, the attacker's flat PEN and
+// Sheer Force -- which the write log never shows: base stats are set before the capture opens.
+// Type 10 is the only one keyed by its string (the lookup ignores the key otherwise).
+// Row: elapsed_ms, "get", table, -, -, -, -, type, -, value, -, key (type 10 only), caller.
+
+const t_property_get = target(pins.PropertyTable, "get", .plain);
+const t_property_get_double = target(pins.PropertyTable, "get_double", .plain);
+
+/// OHEECDKONIF(type, key) is lookup(&v, type, key), then decode(&v) / scale(type). Its three direct
+/// calls sit at these offsets on 3.3.4; install checks each is a `call` and that the first lands
+/// on the lookup before trusting the other two.
+const get_double_calls = [3]usize{ 0x43, 0x55, 0x5f };
+var decode_value: ?*const fn (u64) callconv(.c) f64 = null;
+var type_scale: ?*const fn (u32) callconv(.c) f32 = null;
+var scales: [4096]f32 = [_]f32{0} ** 4096; // 0 = not looked up yet
+
+const READ_EVERY_MS = 50;
+const Slot = struct { table: u64 = 0, key: u64 = 0, kind: u32 = 0, used: bool = false, logged: bool = false, checked: u64 = 0, value: f64 = 0 };
+const SLOTS = 1 << 15;
+var slots: [SLOTS]Slot = [_]Slot{.{}} ** SLOTS;
+var slots_lock: usize = 0;
+extern "kernel32" fn AcquireSRWLockExclusive(*usize) callconv(.winapi) void;
+extern "kernel32" fn ReleaseSRWLockExclusive(*usize) callconv(.winapi) void;
+
+fn same(s: *const Slot, table: u64, kind: u32, key: u64) bool {
+    return s.used and s.table == table and s.kind == kind and s.key == key;
+}
+
+fn slotFor(table: u64, kind: u32, key: u64) *Slot {
+    var h: u64 = (table *% 0x9E3779B97F4A7C15) ^ (@as(u64, kind) *% 0xC2B2AE3D27D4EB4F) ^ key;
+    h ^= h >> 29;
+    const first: usize = @intCast(h & (SLOTS - 1));
+    for (0..8) |probe| {
+        const s = &slots[(first + probe) & (SLOTS - 1)];
+        if (!s.used or same(s, table, kind, key)) return s;
+    }
+    return &slots[first]; // eight collisions: reuse the first (a value may then be written twice)
+}
+
+fn scaleOf(kind: u32) f32 {
+    const f = type_scale orelse return 0;
+    if (kind < scales.len) {
+        if (scales[kind] == 0) scales[kind] = f(kind);
+        return scales[kind];
+    }
+    return f(kind);
+}
+
+export fn statelog_property_get(table: u64, value: u64, kind: u32, key: u64, caller: u64) callconv(.c) void {
+    if (!capture.in_battle or file.out == null) return;
+    const decode = decode_value orelse return;
+    const k = if (kind == 10) key else 0;
+    const t = GetTickCount64();
+
+    AcquireSRWLockExclusive(&slots_lock);
+    var slot = slotFor(table, kind, k);
+    if (same(slot, table, kind, k) and t -% slot.checked < READ_EVERY_MS) {
+        ReleaseSRWLockExclusive(&slots_lock);
+        return;
+    }
+    if (same(slot, table, kind, k)) {
+        slot.checked = t;
+    } else {
+        slot.* = .{ .table = table, .key = k, .kind = kind, .used = true, .checked = t };
+    }
+    ReleaseSRWLockExclusive(&slots_lock);
+
+    // The game's own decoder and scale, outside the lock: they may read properties themselves.
+    const scale = scaleOf(kind);
+    if (scale == 0) return;
+    const v = decode(value) / @as(f64, scale);
+
+    AcquireSRWLockExclusive(&slots_lock);
+    slot = slotFor(table, kind, k);
+    var changed = true;
+    if (same(slot, table, kind, k)) {
+        changed = !(slot.logged and slot.value == v);
+        slot.logged = true;
+        slot.value = v;
+    }
+    ReleaseSRWLockExclusive(&slots_lock);
+    if (!changed) return;
+    var buf: [256]u8 = undefined;
+    const name = if (kind == 10) readString(key, &buf) else "";
+    file.emit("{d}\tget\t0x{X}\t\t\t\t\t{d}\t\t{d}\t\t{s}\t0x{X}\n", .{ now(), table, kind, v, name, rva(caller) });
+}
+
+/// A new battle starts with an empty cache, so every stat's first read in it is written.
+fn clearPropertyReads() void {
+    AcquireSRWLockExclusive(&slots_lock);
+    defer ReleaseSRWLockExclusive(&slots_lock);
+    @memset(&slots, .{});
+}
+
 export fn statelog_modifier_init(self: u64, ability: u64, owner: u64, config: u64, extra: u64, caller: u64) callconv(.c) void {
     if (file.out == null) return;
     // The instance has already copied these into its own fields (the trace in the module
@@ -398,6 +497,38 @@ pub fn installFromWorker() void {
     }
     installed = true;
     log.info("state log installed: buff lifecycle, property writes and Stun windows to state.tsv", .{});
+    installPropertyReads(base, &syscall);
+}
+
+extern var state_hook_original_property_get: u64;
+extern fn state_hook_property_get() callconv(.c) void;
+
+/// The read log is optional: any check failing here leaves it off and everything above untouched.
+fn installPropertyReads(base: usize, syscall: *nt.Syscall) void {
+    const get = resolveOne(base, t_property_get) catch return;
+    const get_double = resolveOne(base, t_property_get_double) catch return;
+    var callee: [3]usize = undefined;
+    for (get_double_calls, 0..) |off, i| {
+        const code: [*]const u8 = @ptrFromInt(get_double + off);
+        if (code[0] != 0xE8) {
+            log.err("property reads: no call at {s}+0x{X} -- not hooking", .{ t_property_get_double.method, off });
+            return;
+        }
+        const rel = std.mem.readInt(i32, code[1..5], .little);
+        callee[i] = @intCast(@as(i64, @intCast(get_double + off + 5)) + rel);
+    }
+    if (callee[0] != get) {
+        log.err("property reads: {s}'s first call is 0x{X}, not the lookup 0x{X} -- not hooking", .{ t_property_get_double.method, callee[0] - base, get - base });
+        return;
+    }
+    decode_value = @ptrFromInt(callee[1]);
+    type_scale = @ptrFromInt(callee[2]);
+    _ = detour.install(syscall, get, .{ .prologue = t_property_get.prologue, .shape = t_property_get.shape }, &state_hook_original_property_get, state_hook_property_get) catch |err| {
+        decode_value = null;
+        log.err("property reads hook {s}::{s} failed: {t}", .{ t_property_get.class, t_property_get.method, err });
+        return;
+    };
+    log.info("hooked {s}::{s} at 0x{X}: property reads (decoder 0x{X}, scale 0x{X}) to state.tsv", .{ t_property_get.class, t_property_get.method, get, callee[1] - base, callee[2] - base });
 }
 
 // --- lifecycle --------------------------------------------------------------------
@@ -407,6 +538,7 @@ pub fn start() void {
 }
 
 pub fn rotate() void {
+    clearPropertyReads();
     last_self = 0;
     last_stunned = 0;
     seen_update = false;

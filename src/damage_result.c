@@ -28,7 +28,8 @@ static const char *result_header =
     "\ta8s" PIN_HitNames_strings_0_X "_length\ta8s" PIN_HitNames_strings_0_X "_bytes\ta8s" PIN_HitNames_strings_0_X "_hex"
     "\ta8s" PIN_HitNames_strings_1_X "_length\ta8s" PIN_HitNames_strings_1_X "_bytes\ta8s" PIN_HitNames_strings_1_X "_hex"
     "\ta8s" PIN_HitNames_strings_2_X "_length\ta8s" PIN_HitNames_strings_2_X "_bytes\ta8s" PIN_HitNames_strings_2_X "_hex"
-    "\ttags_ptr\ttags_bytes\ttags_hex\ttags_size\ttags_capacity\ttags\n";
+    "\ttags_ptr\ttags_bytes\ttags_hex\ttags_size\ttags_capacity\ttags"
+    "\tfloat_list\tteam_props\tbase_props\n";
 
 static char *result_hex(char *p, const unsigned char *bytes, SIZE_T n) {
     static const char hex[] = "0123456789abcdef";
@@ -138,6 +139,41 @@ static char *result_tags(char *p, const unsigned char *result, SIZE_T count) {
     }
     *p=0; return p;
 }
+/* 3.3.4: the result's two stat-keyed dictionaries, Dictionary<TeamProperty,Single> (+0xd0) and
+ * Dictionary<BaseProperty,Single> (+0xe0), and its List<Single> (+0xc8), each the only field of
+ * its type (pins: DamageResult.team_props / base_props / float_list). Not dumped before
+ * 2026-09-28; expected to hold the target-side per-hit terms (RES shred, DMG taken...) that the
+ * string-keyed +0xb0 dictionary lacks -- what each key means is settled from a capture, by value.
+ * Dictionary<int-enum,float>: entries +0x18, array capacity +0x18, payload +0x20, stride 16
+ * (hash 0, next 4, key 8, value 12). One TSV cell: key=value|..., active entries only. */
+#define PROPS_MAX 128
+static char *result_int_dictionary(char *p, const unsigned char *result, SIZE_T count, unsigned offset) {
+    uintptr_t dict=0, array=0; uint64_t capacity=0; unsigned char entries[PROPS_MAX*16]; SIZE_T bytes=0;
+    *p++='\t';
+    if(count>=offset+8) memcpy(&dict,result+offset,8);
+    if(dict && snapshot(dict+0x18,&array,8)==8 && array && snapshot(array+0x18,&capacity,8)==8 && capacity<=1048576) {
+        SIZE_T slots=capacity>PROPS_MAX?PROPS_MAX:(SIZE_T)capacity;
+        if(slots) bytes=snapshot(array+0x20,entries,slots*16);
+    }
+    for(SIZE_T i=0;i<bytes/16;i++) {
+        int32_t hash,key; float value;
+        memcpy(&hash,entries+i*16,4); memcpy(&key,entries+i*16+8,4); memcpy(&value,entries+i*16+12,4);
+        if(hash<0) continue;
+        p+=sprintf(p,"%d=%.9g|",key,(double)value);
+    }
+    *p=0; return p;
+}
+static char *result_float_list(char *p, const unsigned char *result, SIZE_T count) {
+    uintptr_t list=0, items=0; int32_t size=0; uint64_t capacity=0; float values[PROPS_MAX];
+    *p++='\t';
+    if(count>=PIN_DamageResult_float_list+8) memcpy(&list,result+PIN_DamageResult_float_list,8);
+    if(list && snapshot(list+0x10,&items,8)==8 && snapshot(list+0x18,&size,4)==4 && items
+       && snapshot(items+0x18,&capacity,8)==8 && size>0 && (uint64_t)size<=capacity) {
+        SIZE_T n=snapshot(items+0x20,values,(size>PROPS_MAX?PROPS_MAX:(SIZE_T)size)*4)/4;
+        for(SIZE_T i=0;i<n;i++) p+=sprintf(p,"%.9g|",(double)values[i]);
+    }
+    *p=0; return p;
+}
 void damage_result_record(const ProbeRegisters *r, const uint64_t *entry_stack) {
     DWORD error=GetLastError();
     if (result_output==INVALID_HANDLE_VALUE) { SetLastError(error); return; }
@@ -171,6 +207,9 @@ void damage_result_record(const ProbeRegisters *r, const uint64_t *entry_stack) 
     p=result_block(p,geometry,0x78);p=result_dictionary(p,dict);
     p=result_a8(p,result,count);
     p=result_tags(p,result,count);
+    p=result_float_list(p,result,count);
+    p=result_int_dictionary(p,result,count,PIN_DamageResult_team_props);
+    p=result_int_dictionary(p,result,count,PIN_DamageResult_base_props);
     *p++='\n'; DWORD written=0;
     if(!WriteFile(result_output,line,(DWORD)(p-line),&written,NULL)||written!=(DWORD)(p-line)) InterlockedIncrement(&result_skipped);
     ReleaseSRWLockExclusive(&result_lock); SetLastError(error);

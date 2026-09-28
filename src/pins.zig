@@ -34,6 +34,12 @@ pub const PropertyTable = struct {
     pub const set = Method{ .name = "GOPFMPMAFMG", .params = 4, .rva = 0x18D640A0 };
     pub const set_rva: usize = 0x18D640A0;
     pub const set_prologue = [_]u8{ 0x41, 0x56, 0x56, 0x57, 0x53, 0x48, 0x81, 0xEC, 0x88, 0x00, 0x00, 0x00 };
+    pub const get = Method{ .name = "GEHFLAPAAJJ", .params = 3, .rva = 0x18D5E840 };
+    pub const get_rva: usize = 0x18D5E840;
+    pub const get_prologue = [_]u8{ 0x41, 0x56, 0x56, 0x57, 0x53, 0x48, 0x83, 0xEC, 0x28, 0x4C, 0x89, 0xCB };
+    pub const get_double = Method{ .name = "OHEECDKONIF", .params = 2, .rva = 0x18D63E60 };
+    pub const get_double_rva: usize = 0x18D63E60;
+    pub const get_double_prologue = [_]u8{ 0x56, 0x57, 0x53, 0x48, 0x83, 0xEC, 0x70, 0x66, 0x0F, 0x29, 0x74, 0x24 };
 };
 
 pub const PropertyNotifier = struct {
@@ -182,6 +188,9 @@ pub const DamageResult = struct {
     pub const stat_dict = Field{ .name = "DNEBJEPOKIL", .offset = 0xb0 };
     pub const hit_names = Field{ .name = "HEONIJOOEIL", .offset = 0x80 };
     pub const attack_tags = Field{ .name = "IBODEHKOMOD", .offset = 0x48 };
+    pub const float_list = Field{ .name = "FFHKOLGEDCH", .offset = 0xc8 };
+    pub const team_props = Field{ .name = "KOGNGKMMENA", .offset = 0xd0 };
+    pub const base_props = Field{ .name = "KMMFALDDJFJ", .offset = 0xe0 };
 };
 
 pub const AnomalyGauge = struct {

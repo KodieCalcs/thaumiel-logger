@@ -166,7 +166,7 @@ const F = (b, o) => (o == null ? "" : b.readFloatLE(o)), I = (b, o) => (o == nul
       Q = (b, o) => (o == null ? "" : "0x" + b.readBigUInt64LE(o).toString(16));
 const cols = ["seq", "elapsed_ms", "thread", "attacker_entity", "target_entity", "ability_name", "attack_property_name", "skill_id", "skill_id_source",
   "hit_split", "damage_unrounded", "damage_ceil", "crit", "dmg_mv", "daze_mv", "energy", "decibels", "daze", "daze_requested", "buildup_requested", "buildup_applied",
-  "atk", "impact", "anomaly_mastery", "anomaly_proficiency", "level", "target_state", "dmg_mult", "attenuation_curve", "attenuation", "f11c", "f174", "f0f8", "display_skill_id", "a8_str18", "attack_tags", "modifiers"];
+  "atk", "impact", "anomaly_mastery", "anomaly_proficiency", "level", "target_state", "dmg_mult", "attenuation_curve", "attenuation", "f11c", "f174", "f0f8", "display_skill_id", "a8_str18", "attack_tags", "modifiers", "base_props", "team_props", "float_list"];
 // attenuation_curve: the result's fifth string slot (3.3.2 +0xb8, 3.3.0 +0xa0; probe column sa0), e.g.
 // DistanceAttenuation_Lisa / DistanceAttenuation_Curve_01, empty on anomaly ticks and field hits.
 // The stun component's applier multiplies the hit's Daze by that curve evaluated on the
@@ -209,6 +209,9 @@ for (const r of res.rows) {
     // Reading an int 3 as a float yields 4.2e-45, which silently fails the `!== 3` stun test below.
     level: I(b, L.level), target_state: L.target_state_int ? I(b, L.target_state) : Fo(b, L.target_state), dmg_mult: p6(F(b, L.dmg_mult)), f11c: F(b, L.f11c), f174: p6(F(b, L.f174)), f0f8: p6(F(b, L.f0f8)),
     display_skill_id: I(b, L.display_skill_id), a8_str18: s18, attack_tags: attackTags(r), modifiers: modifiers(r),
+    // The result's stat-keyed dictionaries and float list (damage_result.c, dumped since 2026-09-28): raw
+    // "type=value|" cells until each type is identified from a capture; empty on older captures.
+    base_props: (r.base_props ?? "").replace(/\|$/, ""), team_props: (r.team_props ?? "").replace(/\|$/, ""), float_list: (r.float_list ?? "").replace(/\|$/, ""),
   });
 }
 const csvCell = (v) => (v === undefined || v === null ? "" : /[",\n]/.test(String(v)) ? '"' + String(v).replace(/"/g, '""') + '"' : String(v));
