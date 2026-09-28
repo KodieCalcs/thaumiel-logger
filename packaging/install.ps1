@@ -113,6 +113,11 @@ New-Item -ItemType Directory -Force (Join-Path $tools 'node') | Out-Null
 foreach ($f in 'summarize.mjs', 'per-hit-log.mjs', 'attribution.mjs', 'attack-property-skill-map.json', 'readable-log.mjs', 'log-csv.mjs', 'codename-labels.mjs', 'codenames.json') {
     Copy-Item (Join-Path $repo "tools\$f") $tools -Force
 }
+# Tables the readers use when present (per-hit-log.mjs checks for each).
+foreach ($f in 'attack-property-client-skills.json') {
+    $p = Join-Path $repo "tools\$f"
+    if (Test-Path $p) { Copy-Item $p $tools -Force }
+}
 Copy-Item (Join-Path $nodeDir '*') (Join-Path $tools 'node') -Force
 Copy-Item (Join-Path $repo 'LICENSE') $tools -Force
 Copy-Item (Join-Path $repo 'packaging\READ ME.txt') $logs -Force
