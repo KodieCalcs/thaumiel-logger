@@ -232,6 +232,8 @@ const HIT_FIELDS = {
   enemy_def_reduction_pct:
     "DEF reduction from debuffs on the target (e.g. Nicole's), %. The attacker's own DEF reduction is not in it: that is the DefenceRatio in other_modifiers",
   enemy_dmg_res_pct: "the target's DMG RES change from debuffs on it, %; negative = it takes more damage (e.g. -10)",
+  enemy_damage_taken_pct:
+    "extra damage the target took from its side on this hit, %, measured: RES shred, DMG taken / vulnerability and the Stun multiplier together (e.g. Phoenix's vulnerability: 10). The hit's damage against its multiplier, ATK or Sheer Force, DMG bonus, crit, DEF, PEN, RES ignore and distance. Null on Anomaly procs and where an input is missing",
   enemy_daze_taken_pct:
     "extra Daze the target took from this hit because of its side (e.g. Assault: 7.5), %, measured: the hit's Daze against its Daze multiplier, the attacker's Impact (with flat bonuses) and Daze bonus, and distance. Empty on Anomaly procs and hits with no Daze",
   enemy_debuffs:
@@ -249,7 +251,10 @@ const HIT_FIELDS = {
   dmg_bonus_pct: "total DMG bonus on the hit, %",
   crit_rate_pct: "the attacker's CRIT Rate at the hit, %",
   crit_dmg_pct: "the attacker's CRIT DMG at the hit, %",
-  pen_ratio_pct: "the attacker's PEN Ratio at the hit, %. Flat PEN is not in the log: the build's flat PEN is in the loadout file",
+  pen_ratio_pct: "the attacker's PEN Ratio at the hit, %",
+  flat_pen: "the attacker's flat PEN at the hit (its stat table; on captures before 2026-09-28 the loadout's disc substats)",
+  res_ignore_pct: "RES ignore on the hit from the attacker's side, %",
+  sheer_force: "the attacker's Sheer Force (Rupture characters; null for others)",
   other_modifiers: "other modifiers active on the hit, name=value",
 };
 
@@ -283,7 +288,7 @@ function summarizeBattle(dir) {
     for (const name of fs.readdirSync(dir)) {
       // Everything the readers use: the probes, hits.tsv (skill attribution), state.tsv (Stun
       // windows) and the settlement.
-      if (/^(damage-.*\.tsv|hits\.tsv|state\.tsv|endbattle_\d+\.pb)$/.test(name)) fs.copyFileSync(path.join(dir, name), path.join(work, name));
+      if (/^(damage-.*\.tsv|hits\.tsv|state\.tsv|endbattle_\d+\.pb|endbattle_\d+_loadout\.json)$/.test(name)) fs.copyFileSync(path.join(dir, name), path.join(work, name));
     }
     run("per-hit-log.mjs", work);
     run("readable-log.mjs", work);

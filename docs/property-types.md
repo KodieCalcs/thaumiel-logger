@@ -44,6 +44,14 @@ empty on every hit and `Dictionary<TeamProperty,Single>` (+0xd0) only ever holds
 act while the hit is computed. Their effect can be MEASURED: damage / (MV x ATK x DMG multiplier x
 crit x DEF multiplier x distance) is a constant per attacker outside the debuff and steps by the
 debuff's factor inside it. First reading (Phoenix + Velina capture): +10% on both attackers' hits
-while `Pheony_UniqueSkill_Vulnerable` is on (Phoenix 1.187 -> 1.305, Velina 1.037 -> 1.141). The
-constant is not 1 yet: flat PEN and the Stun multiplier are not in that formula, so it is not a
-column until it is.
+while `Pheony_UniqueSkill_Vulnerable` is on (Phoenix 1.187 -> 1.305, Velina 1.037 -> 1.141).
+
+With flat PEN (22 / 568), RES ignore (the hit's `*DamageResist` modifiers) and, for Sheer damage,
+Sheer Force (65) and the Sheer DMG bonus (`Actor_AddedSkipDefDamageRatio`) in the formula, the factor
+is exactly 1.000 on every unaffected hit of the two captures, 1.100 under Phoenix's vulnerability, and
+1.5 during a boss's Stun. It is the `enemy_damage_taken_pct` column (`tools/enemy-state.mjs`), which
+states the formula and its two safeguards.
+
+Findings from it so far: `Pheony_UniqueSkill_Vulnerable` +10% (both attackers); Yuzuha's M6
+`DamageResistRatio_Talent02` -10% DMG RES (574) = +10%; Velina's `ResistDown_Wind` showed no effect
+on her Wind hits against the test boss.

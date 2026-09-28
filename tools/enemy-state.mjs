@@ -5,7 +5,27 @@
 //   import { enemyStats } from "./enemy-state.mjs";
 //   const at = enemyStats(dir, perHitRows);   // rows of per-hit-log.csv
 //   at(row) -> { enemy_def, enemy_def_reduction_pct, enemy_dmg_res_pct, enemy_daze_taken_pct,
-//                enemy_debuffs }   ("" when not known)
+//                enemy_damage_taken_pct, enemy_debuffs, flat_pen, sheer_force, res_ignore_pct }
+//                ("" when not known)
+//
+// enemy_damage_taken_pct is measured like the Daze one: a hit's unrounded damage divided by what the
+// attacker's side accounts for --
+//   standard: MV x ATK x DMG multiplier x crit x DEF multiplier x distance x (1 + RES ignore)
+//             DEF multiplier = 794 / (794 + max(DEF x (1 - DEF reduction - DEF ignore)
+//                              x (1 - PEN Ratio) - flat PEN, 0))   (level 60; wiki "Damage")
+//   Sheer:    MV x Sheer Force x DMG multiplier x (1 + Sheer DMG bonus) x crit x distance
+//             x (1 + RES ignore)   (no DEF; Sheer DMG bonus = Actor_AddedSkipDefDamageRatio)
+// is exactly 1.000 on every hit with no enemy-side effect in two 2026-09-28 captures (Phoenix,
+// Velina, Nicole, Yixuan, a Bangboo), and 1.100 on every hit under Phoenix's
+// Pheony_UniqueSkill_Vulnerable. What is left is the target's side all together: RES shred, DMG
+// taken, and the Stun multiplier while it is Stunned. Blank on Anomaly procs (their own formula)
+// and when an input is missing. Flat PEN and Sheer Force come from the attacker's property table
+// (docs/property-types.md: 568 / 22, 65), paired with the attacker by its Energy writes, else a
+// unique ATK match; without the stat-read log, flat PEN falls back to the loadout's disc substats
+// for the flat_pen column only -- the factor needs the game's own reads (a loadout knows no PEN from
+// buffs), so captures before 2026-09-28 get no factor. An ability whose factor sits off the same
+// attacker's other hits within a second (median beyond 3%) follows a rule of its own (Cissia's
+// Corrode Bone curse: a steady x2.317) and gets none either.
 //
 // enemy_debuffs names the team's modifiers live on the target at the hit (Velina's RES shred,
 // Phoenix's core, a Disc set's Anomaly RES shred...). Most such debuffs change no stored stat: the
@@ -65,14 +85,16 @@ function readState(dir) {
   const head = (lines[0] ?? "").split("\t");
   const [T, KIND, SELF, A, B, TYPE, F0, F1, NAME] = ["elapsed_ms", "kind", "self", "a", "b", "i0", "f0", "f1", "name"].map((n) => head.indexOf(n));
   const props = [];
+  const gets = [];
   const mods = [];
   for (const l of lines.slice(1)) {
     const c = l.split("\t");
     if (c[KIND] === "prop") props.push({ t: +c[T], table: c[SELF], type: c[TYPE], change: +c[F0], after: +c[F1] });
+    else if (c[KIND] === "get") gets.push({ t: +c[T], table: c[SELF], type: c[TYPE], value: +c[F0] });
     else if ((c[KIND] === "mod+" || c[KIND] === "modA" || c[KIND] === "modD") && c[NAME])
       mods.push({ t: +c[T], kind: c[KIND], self: c[SELF], on: c[A].toLowerCase(), caster: (c[B] || "").toLowerCase(), name: c[NAME] });
   }
-  return { props, mods };
+  return { props, mods, gets };
 }
 
 // Not debuffs in the sense a reader means: the Stun itself (during_stun has it) and the engine's
@@ -152,6 +174,67 @@ function tableTargets(props, hits) {
   return new Map([...tableOf].map(([target, { table }]) => [target, table]));
 }
 
+const LEVEL_FACTOR = 794; // attacker level 60 (wiki "Damage"); rows at other levels get no factor
+const mods = (row) => Object.fromEntries((row.modifiers || "").split(";").filter(Boolean).map((kv) => kv.split("=")));
+
+/** RES ignore on the hit, from the attacker's own <Attribute>DamageResist / AllDamageResist modifiers
+ *  (negative = the target's RES is lowered for this hit). */
+export function resIgnore(row) {
+  return Object.entries(mods(row)).filter(([k]) => /DamageResist$/.test(k)).reduce((sum, [, v]) => sum - +v, 0);
+}
+
+/** Flat PEN per avatar id from the loadout's disc substats (9 per roll: base x rolls). */
+function loadoutFlatPen(dir) {
+  const out = new Map();
+  try {
+    const f = fs.readdirSync(dir).find((n) => /^endbattle_\d+_loadout\.json$/.test(n));
+    if (!f) return out;
+    for (const a of JSON.parse(fs.readFileSync(path.join(dir, f), "utf8")).avatars ?? []) {
+      let pen = 0;
+      for (const disc of a.drive_discs ?? []) (disc.properties ?? []).forEach((p, i) => { if (i > 0 && p.key === 23203) pen += p.base_value * p.add_value; });
+      out.set(a.avatar_id, pen);
+    }
+  } catch {}
+  return out;
+}
+
+/** attacker entity -> its property table: Energy (type 7) writes equal to a hit's Energy within 50 ms,
+ *  else the one table whose ATK (560 / 2) equals the hits' ATK. */
+function attackerTables(props, series, perHitRows) {
+  const out = new Map();
+  const energy = perHitRows.filter((h) => +h.energy > 0).map((h) => ({ t: +h.elapsed_ms, e: +h.energy, a: String(h.attacker_entity).toLowerCase() })).sort((x, y) => x.t - y.t);
+  const votes = new Map();
+  for (const w of props) {
+    if (w.type !== "7" || !(w.change > 0)) continue;
+    for (const h of energy) {
+      if (h.t < w.t - MATCH_MS) continue;
+      if (h.t > w.t + MATCH_MS) break;
+      if (Math.abs(h.e - w.change) > 1e-3) continue;
+      const v = votes.get(h.a) ?? new Map();
+      v.set(w.table, (v.get(w.table) || 0) + 1);
+      votes.set(h.a, v);
+    }
+  }
+  for (const [a, v] of votes) out.set(a, [...v].sort((x, y) => y[1] - x[1])[0][0]);
+  const byAtk = new Map();
+  for (const [table, types] of series) {
+    if (!types.has("22") && !types.has("65")) continue; // a character's own table
+    for (const type of ["560", "2"]) for (const [, v] of types.get(type) ?? []) {
+      const k = v.toFixed(1);
+      const set = byAtk.get(k) ?? new Set();
+      set.add(table);
+      byAtk.set(k, set);
+    }
+  }
+  for (const h of perHitRows) {
+    const a = String(h.attacker_entity).toLowerCase();
+    if (out.has(a)) continue;
+    const cands = byAtk.get((+h.atk).toFixed(1));
+    if (cands?.size === 1) out.set(a, [...cands][0]);
+  }
+  return out;
+}
+
 /** The target's share of a hit's Daze, % over what the attacker's side accounts for (see the header). */
 export function dazeTakenPct(row) {
   if (row.skill_id === "anomaly" || !(+row.daze_mv > 0) || !(+row.daze_requested > 0) || !(+row.impact > 0)) return "";
@@ -167,13 +250,14 @@ export function dazeTakenPct(row) {
 }
 
 export function enemyStats(dir, perHitRows) {
-  const empty = { enemy_def: "", enemy_def_reduction_pct: "", enemy_dmg_res_pct: "", enemy_debuffs: "" };
-  const withDaze = (row, cols) => ({ ...cols, enemy_daze_taken_pct: dazeTakenPct(row) });
+  const empty = { enemy_def: "", enemy_def_reduction_pct: "", enemy_dmg_res_pct: "", enemy_damage_taken_pct: "", enemy_debuffs: "", flat_pen: "", sheer_force: "" };
+  const ignorePct = (row) => { const v = resIgnore(row) * 100; return Math.abs(v) < 1e-9 ? "0" : v.toFixed(2); };
+  const withDaze = (row, cols) => ({ ...cols, enemy_daze_taken_pct: dazeTakenPct(row), res_ignore_pct: ignorePct(row) });
   const state = readState(dir);
   if (!state) return (row) => withDaze(row, empty);
-  const { props, mods } = state;
+  const { props, mods: modRows, gets } = state;
   const attackers = new Set(perHitRows.map((r) => String(r.attacker_entity).toLowerCase()));
-  const debuffs = debuffsOn(mods, attackers);
+  const debuffs = debuffsOn(modRows, attackers);
   const debuffText = (row) => debuffs(String(row.target_entity).toLowerCase(), +row.elapsed_ms).join("; ");
   const client = clientOf(dir);
   const type = DEF_REDUCTION_TYPE[client];
@@ -262,5 +346,110 @@ export function enemyStats(dir, perHitRows) {
     }
     return Math.abs(total) < 1e-6 ? "0" : (total / 100).toFixed(2);
   };
-  return (row) => withDaze(row, { ...defAt(row), enemy_dmg_res_pct: resAt(row), enemy_debuffs: debuffText(row) });
+  // The attacker's own stats (stat-read log), per table and type, in time order.
+  const statSeries = new Map();
+  for (const g of gets) {
+    const types = statSeries.get(g.table) ?? new Map();
+    const list = types.get(g.type) ?? [];
+    list.push([g.t, g.value]);
+    types.set(g.type, list);
+    statSeries.set(g.table, types);
+  }
+  const statAt = (table, type, t) => {
+    const list = statSeries.get(table)?.get(type);
+    if (!list) return null;
+    let v = list[0][1];
+    for (const [at, x] of list) {
+      if (at > t) break;
+      v = x;
+    }
+    return v;
+  };
+  const ownTable = attackerTables(props, statSeries, perHitRows);
+  // Without the stat-read log (captures before 2026-09-28): the loadout's flat PEN, by the avatar id
+  // the attacker's skill ids start with.
+  const fromLoadout = loadoutFlatPen(dir);
+  const avatarOf = new Map();
+  for (const r of perHitRows) {
+    const id = /^(\d{4})\d{3}$/.exec(String(r.skill_id))?.[1];
+    if (id) avatarOf.set(String(r.attacker_entity).toLowerCase(), +id);
+  }
+  const attackerStats = (row) => {
+    const a = String(row.attacker_entity).toLowerCase();
+    const table = ownTable.get(a);
+    const t = +row.elapsed_ms;
+    const pen = table ? (statAt(table, "568", t) ?? statAt(table, "22", t)) : null;
+    const sheer = table ? statAt(table, "65", t) : null;
+    // `measured`: the stats came from the game's own reads, not the loadout -- the damage factor
+    // needs that (a loadout knows no PEN from buffs).
+    return { flatPen: pen ?? (statSeries.size === 0 ? fromLoadout.get(avatarOf.get(a)) ?? null : null), sheer: sheer ?? null, measured: pen !== null || sheer !== null };
+  };
+  const factorOf = (row, def, reductionPct, stats) => {
+    if (!stats.measured || row.skill_id === "anomaly" || !(+row.dmg_mv > 0) || !(+row.damage_unrounded > 0) || !(+row.dmg_mult > 0)) return "";
+    const m = mods(row);
+    const crit = +row.crit ? 1 + +(m.Actor_CriticalDamageRatioDelta || 0) : 1;
+    const distance = row.attenuation === "" || row.attenuation === undefined ? 1 : +row.attenuation;
+    const ignore = 1 + resIgnore(row);
+    let expected;
+    if (stats.sheer > 0) {
+      expected = +row.dmg_mv * stats.sheer * +row.dmg_mult * (1 + +(m.Actor_AddedSkipDefDamageRatio || 0)) * crit * distance * ignore;
+    } else {
+      if (stats.flatPen === null || def === "" || +row.level !== 60) return null;
+      const reduction = (+reductionPct || 0) / 100;
+      const base = +def / (1 - reduction);
+      const defIgnore = -(+(m.Actor_DefenceRatio || 0));
+      const effective = Math.max(base * (1 - reduction - defIgnore) * (1 - (+row.f174 || 0)) - stats.flatPen, 0);
+      expected = +row.dmg_mv * +row.atk * +row.dmg_mult * crit * (LEVEL_FACTOR / (LEVEL_FACTOR + effective)) * distance * ignore;
+    }
+    return expected > 0 ? +row.damage_unrounded / expected : null;
+  };
+  // Every row once, then the consistency check: the target's side is the same for every hit landing
+  // at the same moment, so an ability whose factor sits off the same attacker's other hits within a
+  // second (median ratio beyond 3%, 3+ hits) follows a rule of its own -- Cissia's Corrode Bone
+  // curse reads a steady x2.317 -- and is left blank rather than shown as a target-side effect.
+  const cols = new Map();
+  const factor = new Map();
+  for (const row of perHitRows) {
+    const def = defAt(row);
+    const stats = attackerStats(row);
+    cols.set(row, { def, stats });
+    const f = factorOf(row, def.enemy_def, def.enemy_def_reduction_pct, stats);
+    if (f !== null && f !== "") factor.set(row, f);
+  }
+  const groupOf = (row) => `${String(row.attacker_entity).toLowerCase()}|${row.attack_property_name || row.ability_name || row.skill_id}`;
+  const byAttacker = new Map();
+  for (const [row, f] of factor) {
+    const a = String(row.attacker_entity).toLowerCase();
+    const list = byAttacker.get(a) ?? [];
+    list.push({ t: +row.elapsed_ms, f, g: groupOf(row) });
+    byAttacker.set(a, list);
+  }
+  const median = (xs) => { const v = [...xs].sort((x, y) => x - y); return v[Math.floor(v.length / 2)]; };
+  const ratios = new Map();
+  for (const [row, f] of factor) {
+    const g = groupOf(row);
+    const near = (byAttacker.get(String(row.attacker_entity).toLowerCase()) ?? []).filter((x) => x.g !== g && Math.abs(x.t - +row.elapsed_ms) <= 1000).map((x) => x.f);
+    if (!near.length) continue;
+    const list = ratios.get(g) ?? [];
+    list.push(f / median(near));
+    ratios.set(g, list);
+  }
+  const special = new Set([...ratios].filter(([, r]) => r.length >= 3 && Math.abs(median(r) - 1) > 0.03).map(([g]) => g));
+  const factorPct = (row) => {
+    const f = factor.get(row);
+    if (f === undefined || special.has(groupOf(row))) return "";
+    const v = (f - 1) * 100;
+    return Math.abs(v) < 0.2 ? "0" : v.toFixed(1);
+  };
+  return (row) => {
+    const { def, stats } = cols.get(row) ?? { def: defAt(row), stats: attackerStats(row) };
+    return withDaze(row, {
+      ...def,
+      enemy_dmg_res_pct: resAt(row),
+      enemy_damage_taken_pct: factorPct(row),
+      enemy_debuffs: debuffText(row),
+      flat_pen: stats.flatPen === null ? "" : String(stats.flatPen),
+      sheer_force: stats.sheer === null ? "" : String(stats.sheer),
+    });
+  };
 }
