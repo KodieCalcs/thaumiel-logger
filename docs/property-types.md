@@ -56,21 +56,20 @@ Findings from it so far: `Pheony_UniqueSkill_Vulnerable` +10% (both attackers); 
 `DamageResistRatio_Talent02` (M1) -10% All-Attribute RES (574) = +10%. Velina's `ResistDown_Wind` / `_Fire` showed no effect
 on damage, as they should not: her ability data defines them as `Actor_AbnormalResistDelta_Wind` /
 `_Fire`, Anomaly BUILDUP RES (as is the Disc set's `AbnormalResistDelta_201`, Fire).
-## Anomaly buildup RES (measured, not a column yet)
+## Anomaly buildup RES (measured: `enemy_buildup_taken_pct`)
 
 Buildup-RES debuffs (`Actor_AbnormalResistDelta_<element>`: Velina's `WindRegion_ResistDown_*`, the
-Disc set's `AbnormalResistDeltaModifier_201`) are stored nowhere either: not in the enemy's property
-table, not in the per-element gauge object the anomaly probe dumps. Measured instead: a hit's
-requested buildup / (skill buildup x hit split x Anomaly Mastery / 100 x (1 + buildup bonus)), with
-the skill buildup from the hotfix skill table (sheet-webapp `tools/decode-skill-table.mjs`, field 15
-`JBJBKOPDKNH`), is exactly 0.0100 on every hit of Yixuan and Nicole (370 hits). Phoenix steps
-0.0100 -> 0.0120 under the Disc set (+20% Fire) -> 0.0134 with Velina's Fire-down too (+14%, additive),
-and Velina's Wind hits +14% under her Wind-down; each debuff affects only its own element.
-The formula needs the IN-BATTLE Anomaly Mastery: the result's `anomaly_mastery` field is the BASE
-value. Velina's field is 112 while her buildup used 196 (her stat table's type 579 reads 112 -> 196),
-which is why she first read 0.0200; with 196 she is exact, and 1.14x under her own Wind-down. Yuzuha's
-hits imply 201 against a field of 171. Phoenix only looked right because her Mastery sits at the cap.
-Not shipped because in-battle Mastery is not on every hit: type 579 is read by the game (so logged)
-for some characters only (Velina, Yixuan; not Phoenix, Nicole), and the attacker snapshot holds the
-base value. A column needs the logger to read 579 for the attacker on every hit, and the skill table
-shipped with the tools.
+Disc set's `AbnormalResistDeltaModifier_201`) are stored nowhere: not in the enemy's property table,
+not in the per-element gauge object the anomaly probe dumps. The column measures them: a hit's
+requested buildup / (skill buildup x hit split x in-battle Anomaly Mastery / 100 x (1 + buildup
+bonus) / 100), the skill buildup from `tools/skill-buildup.json` (sheet-webapp
+`tools/export-skill-buildup.mjs`, client skill table field 15).
+
+The in-battle Mastery matters: the result's `anomaly_mastery` field is the BASE value on direct hits
+(Velina 112 while her buildup used 196). The game reads in-battle Mastery (579) only for some
+characters, so since 2026-09-28 the logger reads the tracked stats itself on every hit
+(`statelog_on_hit`: bases 13/21/22/46/50/65 and 550-599 on every table that showed a flat PEN read).
+
+On that build's capture (Phoenix / Velina / Nangong Yu): Phoenix 0 -> 20 under the Disc set (+20%
+Fire) -> 34 with Velina's Fire-down too (+14%, additive), Velina 0 -> 14 under her Wind-down; each
+debuff only affects its own element. Yixuan 0 on all 289 hits.
