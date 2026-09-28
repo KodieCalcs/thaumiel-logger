@@ -228,7 +228,7 @@ const HIT_FIELDS = {
   anomaly_buildup: "Anomaly buildup the target's gauge took from this hit (per Attribute: see the attacker)",
   crit: "Yes or No",
   during_stun: "Yes when the target was Stunned as the hit landed; null when that is not known",
-  enemy_def: "the target's DEF at the hit, after debuffs on it; null when not known (and for hits on the team)",
+  enemy_def: "the target's DEF at the hit, after debuffs on it; with no DEF debuff, read off the target's own hits (null if it never attacked; null for hits on the team)",
   enemy_def_reduction_pct:
     "DEF reduction from debuffs on the target (e.g. Nicole's), %. The attacker's own DEF reduction is not in it: that is the DefenceRatio in other_modifiers",
   enemy_dmg_res_pct: "the target's DMG RES change from debuffs on it, %; negative = it takes more damage (e.g. -10)",
@@ -245,6 +245,7 @@ const HIT_FIELDS = {
   impact: "the attacker's Impact at the hit",
   anomaly_mastery: "the attacker's Anomaly Mastery at the hit",
   anomaly_proficiency: "the attacker's Anomaly Proficiency at the hit",
+  attacker_level: "the attacker's level (the DEF multiplier's level factor and the Anomaly level multiplier come from it)",
   dmg_bonus_pct: "total DMG bonus on the hit, %",
   crit_rate_pct: "the attacker's CRIT Rate at the hit, %",
   crit_dmg_pct: "the attacker's CRIT DMG at the hit, %",

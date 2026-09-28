@@ -12,6 +12,9 @@
 // game applies them while the hit is computed, and their amounts are in no log, so the names (and
 // when they were on) are what is captured. DEF reduction and DMG RES are stored stats, read below.
 //
+// enemy_def when nothing has lowered it: the target's own hits carry its DEF (the result's DEF field is
+// the attacker's), so the nearest of those is used; a target that never attacked has none.
+//
 // enemy_daze_taken_pct is measured, not read: the Daze a hit asked for divided by its Daze
 // multiplier x (Impact + flat Impact bonus, BreakStunDelta) x (1 + the attacker's Daze bonus,
 // AddedBreakStunRatio) x its distance falloff is exactly 1 on every hit of four test battles except
@@ -180,6 +183,25 @@ export function enemyStats(dir, perHitRows) {
     .map((r) => ({ t: +r.elapsed_ms, target: String(r.target_entity).toLowerCase(), damage: +r.damage_ceil }))
     .filter((h) => Number.isFinite(h.t) && h.damage > 0);
   const tables = tableTargets(props, hits);
+  // The target's DEF from its own hits (f11c is the attacker's DEF), in time order.
+  const ownDef = new Map();
+  for (const r of perHitRows) {
+    if (!(+r.f11c > 0)) continue;
+    const who = String(r.attacker_entity).toLowerCase();
+    const list = ownDef.get(who) ?? [];
+    list.push({ t: +r.elapsed_ms, def: +r.f11c });
+    ownDef.set(who, list);
+  }
+  const ownDefAt = (target, t) => {
+    const list = ownDef.get(target);
+    if (!list?.length) return "";
+    let pick = list[0];
+    for (const x of list) {
+      if (x.t > t) break;
+      pick = x;
+    }
+    return pick.def.toFixed(2);
+  };
   // Per table, the DEF-reduction writes in time order with the running reduction after each.
   const series = new Map();
   for (const w of props) {
@@ -206,7 +228,7 @@ export function enemyStats(dir, perHitRows) {
     if (!table) return none();
     if (unreadable.has(table)) return none();
     const s = series.get(table);
-    if (!s) return { enemy_def: "", enemy_def_reduction_pct: "0" }; // never debuffed; DEF not written
+    if (!s) return { enemy_def: ownDefAt(String(row.target_entity).toLowerCase(), +row.elapsed_ms), enemy_def_reduction_pct: "0" }; // never debuffed
     const t = +row.elapsed_ms;
     let last = null;
     for (const w of s) {
