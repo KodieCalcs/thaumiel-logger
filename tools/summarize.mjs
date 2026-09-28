@@ -422,9 +422,18 @@ async function publishStaged(root) {
   if (!logsDirs.length) note("no server logs folder found (.tools\\server-logs.txt, or a server folder beside the game folder); publishing every battle with a hit");
   for (const battle of stagedBattles(root)) {
     try {
+      // A battle that recorded no damage has nothing to show, settled or not (entered and left
+      // without fighting: settled battles of 14 s to 7 min with 0 damage rows became empty folders).
+      const result = resultFileOf(battle.dir);
+      if (!result || !hasHits(result)) {
+        if (!battle.judged) {
+          fs.writeFileSync(path.join(battle.dir, "no-settlement.txt"), "no damage recorded\r\n");
+          note(`${battle.dir}: no damage recorded, left in diagnostics`);
+        }
+        continue;
+      }
       if (!logsDirs.length) {
-        if (battle.hits > 0) note(`${publishWithoutServer(root, battle)}: published (no server to check)`);
-        else if (!battle.judged) fs.writeFileSync(path.join(battle.dir, "no-settlement.txt"), "no hits\r\n");
+        note(`${publishWithoutServer(root, battle)}: published (no server to check)`);
         continue;
       }
       let settlement = findSettlement(battle, logsDirs);
