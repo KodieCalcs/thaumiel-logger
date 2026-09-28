@@ -217,6 +217,11 @@ function attackerTables(props, series, perHitRows) {
     }
   }
   for (const [a, v] of votes) out.set(a, [...v].sort((x, y) => y[1] - x[1])[0][0]);
+  // The rest by their most common ATK (a stray hit credited with a teammate's ATK must not decide):
+  // the tables whose in-battle / base ATK reads include it, minus tables already taken; on a tie the
+  // busiest (most Energy writes) -- a character's own table, not the copies its summons carry.
+  const busy = new Map();
+  for (const w of props) if (w.type === "7") busy.set(w.table, (busy.get(w.table) ?? 0) + 1);
   const byAtk = new Map();
   for (const [table, types] of series) {
     if (!types.has("22") && !types.has("65")) continue; // a character's own table
@@ -227,11 +232,23 @@ function attackerTables(props, series, perHitRows) {
       byAtk.set(k, set);
     }
   }
+  const atkCounts = new Map();
   for (const h of perHitRows) {
     const a = String(h.attacker_entity).toLowerCase();
     if (out.has(a)) continue;
-    const cands = byAtk.get((+h.atk).toFixed(1));
-    if (cands?.size === 1) out.set(a, [...cands][0]);
+    const m = atkCounts.get(a) ?? new Map();
+    const k = (+h.atk).toFixed(1);
+    m.set(k, (m.get(k) ?? 0) + 1);
+    atkCounts.set(a, m);
+  }
+  const taken = new Set(out.values());
+  for (const [a, m] of atkCounts) {
+    const [k] = [...m].sort((x, y) => y[1] - x[1])[0];
+    const cands = [...(byAtk.get(k) ?? [])].filter((t) => !taken.has(t));
+    if (!cands.length) continue;
+    const pick = cands.sort((x, y) => (busy.get(y) ?? 0) - (busy.get(x) ?? 0))[0];
+    out.set(a, pick);
+    taken.add(pick);
   }
   return out;
 }
