@@ -117,7 +117,7 @@ fn initPatches(syscall: *nt.Syscall) !void {
     // logger. On a client the logger was not built for, start none of it (logger_client.zig), so
     // a build that follows a newer upstream runs exactly like upstream.
     if (!logger_client.supported()) {
-        log.info("combat logger off: this client is not {s}", .{logger_client.client_name});
+        log.info("combat logger off (client is not {s}, or logger-disable.txt is present)", .{logger_client.client_name});
         return;
     }
 

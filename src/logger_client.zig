@@ -59,9 +59,26 @@ fn summariesState() Summaries {
     return .no_node;
 }
 
-/// True when the running client is the one the logger was built for. Always writes
-/// `Combat Logs\logger status.txt` explaining the outcome in plain words.
+/// `logger-disable.txt` beside the launcher turns the whole logger off, for comparing the game
+/// with and without it on the same DLL (the client patch runs either way).
+pub const disable_file = "logger-disable.txt";
+
+const disabled_text =
+    \\Combat logger: OFF
+    \\
+    \\Turned off by logger-disable.txt next to remielle.exe. The game itself works normally.
+    \\Delete that file to turn the logger back on.
+    \\
+;
+
+/// True when the running client is the one the logger was built for and the logger is not
+/// turned off. Always writes `Combat Logs\logger status.txt` explaining the outcome in plain words.
 pub fn supported() bool {
+    if (GetFileAttributesA(disable_file) != 0xFFFFFFFF) {
+        _ = CreateDirectoryA(names.root_dir, null);
+        writeStatus(disabled_text);
+        return false;
+    }
     const id = readIdentity();
     const ok = if (id) |i| matches(i) else false;
     var buffer: [4096]u8 = undefined;
