@@ -34,7 +34,9 @@ export function identitySkill(buffer, client, index) {
   }
   return { id: ids.size === 1 ? [...ids][0] : null, candidates: [...ids].sort((a, b) => a - b) };
 }
-export function attribute({ ability, prop, buffer, client, index, map, warn = console.error }) {
+// Order: config-pointer identity, then the hand/capture map, then the client's own AttackProperty
+// config (clientMap, generate-attack-property-skills.mjs) for hits identity cannot see (projectiles).
+export function attribute({ ability, prop, buffer, client, index, map, clientMap = {}, warn = console.error }) {
   // Anomaly effect pointers can retain the triggering attack. That is not the tick's skill.
   if (ability === 'Player_ElementAbnormalBuff') return { id: 'anomaly', source: 'name' };
   const derived = identitySkill(buffer, client, index);
@@ -45,5 +47,7 @@ export function attribute({ ability, prop, buffer, client, index, map, warn = co
     return { id: derived.id, source: 'identity' };
   }
   if (mapped != null) return { id: mapped, source: 'map' };
+  const configured = clientMap[prop];
+  if (configured != null) return { id: configured, source: 'client' };
   return { id: '', source: prop ? 'unmapped' : 'no-name' };
 }

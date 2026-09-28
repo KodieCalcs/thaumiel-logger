@@ -324,3 +324,33 @@ The old element table was unused and emitted no element column. It has been remo
 - Existing .gitignore excludes local-data/, all *.tsv, *.pb and *.dmp, plus binaries and caches. Captures/client data are excluded when kept under local-data/. Arbitrary exported JSON/CSV or a client-data directory outside local-data/ is NOT universally ignored; keep those inputs/outputs under local-data/. No .gitignore edit was needed within this tools/docs-only task.
 - Remaining squad-specific release review: attack-property-skill-map.json is intentionally retained as regression/fallback data; discovery/claude-hits-readable.cjs embeds squad-specific agent/skill/split labels and needs exclusion or regeneration for a public general-purpose surface; share-combat-results.py embeds capture-specific ACTORS entity numbers and needs exclusion or replacement with capture-derived names. events-timeline.mjs has squad names in explanatory comments, not a required name map. per-hit-log.mjs retains historical validation examples in comments. New naming tests contain explicit anchor examples, not production name tables.
 - Full attribution of arbitrary non-animation damage is NOT established: unknown Agents' bypass-path hits still require a future generic source or verified fallback data. This change removes per-squad setup for identity-covered hits and public readable naming; it does not claim the uncovered bypass paths are solved.
+  - 2026-09-28: bypass-path hits that carry an AttackProperty name are now covered by the client-config fallback below. Rows the game settles with no skill id at all (RemielleOrigin_UniqueSkill Luminize, Pheony_UniqueSkill, Sunna's Cat's Gaze detonations) get no id here. `readable-log.mjs` labels the Core Passive ones by their owner (below); where they are settled (an Anomaly bucket, the Agent's unitemized direct damage, or another Agent's skill-0 row) is decided against the settlement, which these readers do not do.
+
+## Client-config fallback for projectile hits (2026-09-28)
+
+Projectile/bullet hits never pass through TriggerAttackPattern, so they have no hits.tsv row for identity to join on. Before this change they fell to the hand map, or stayed unmapped for any Agent without one. Astra Yao's Tone Cluster bullets were an example: 344,759 damage, settlement-only, on a 2026-09-28 capture.
+
+The client names the skill itself. Every ConfigEntityAnimEvent whose `ActiveDynamicProp.IsOverrideDynamicProp` is true carries the skill id in `OverrdieDynamicPropKey` (the client's spelling). `tools/attack-property-client-skills.json` holds that table for every Agent and Bangboo as `map` (name -> skill id, one entry per line, 367 KB). `OverrideDynamicPropKey2` is kept separately under `alt`, for reference only. `attribute()` uses the table last: identity first, then attack-property-skill-map.json, then this table (source `client`).
+
+Regenerate after a client patch or hotfix from the decoded roster extract. List directories oldest first; a later directory's file replaces the same-named one, matching how the hotfix tree works:
+
+```
+node tools/generate-attack-property-skills.mjs "CNBetaWin3.3.4 + hotfix 19293654" <client-extract-3.3.4>/decoded <client-extract-19293654>/decoded
+```
+
+The current table maps 6,075 names from 142 files. 132 names exist both in an Agent's file and in its `_MusicBattleActivity` event copy (Aria, Summer) with different ids. The base file wins for that exact shape only; any other conflict is left out of the map and listed under `conflicts`.
+
+Validation before adoption:
+
+- It agrees with all 231 attack-property-skill-map.json entries.
+- It agrees with all 126,197 identity/map-attributed rows across 67 private per-hit logs, with 0 disagreements. The only names it lacks are the enemy's (Monster_Cottus_*) and Velina_Attack_WindRegion_AttackProperty_02, which has no override.
+- Settlement check, committed tools vs this change, same capture:
+  - an Evelyn / Roxy / Astra Yao run (no hand entries): 38 -> 43 exact; settlement-only 348,750 -> 0.
+  - phoenix-3837: 32 -> 35 exact; settlement-only 289,126 -> 0. The new rows are 1561020 Velina Fire field extra (247,256), 1581022 Remielle AirState_Back_Explode_01 (41,870) and 1641016 Pheony ParryAid_H (0 damage, Daze only).
+  - Mismatches: 0 in both runs.
+  - 24 private reference captures, regenerated into scratch copies:
+    - Never worse on any run.
+    - Every Phoenix run ends with 0 settlement-only damage (it was 262k–304k each).
+    - The SNS runs go from 25–29 to 31–36 skills exact, with Norma's EX projectiles named.
+    - What the SNS runs still leave is Sunna's Cat's Gaze, a skill-0 row under Severian (the
+      triggering Agent), which has no skill id to find.

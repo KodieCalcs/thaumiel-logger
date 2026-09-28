@@ -16,6 +16,10 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const mapFile = path.join(here, "attack-property-skill-map.json");
 const mapAvailable = fs.existsSync(mapFile);
 const skillMap = mapAvailable ? JSON.parse(fs.readFileSync(mapFile, "utf8")).map : {};
+// The client's AttackProperty -> skill id table (generate-attack-property-skills.mjs): names
+// projectile hits of any Agent, including ones with no hand map entry.
+const clientMapFile = path.join(here, "attack-property-client-skills.json");
+const clientMap = fs.existsSync(clientMapFile) ? JSON.parse(fs.readFileSync(clientMapFile, "utf8")).map : {};
 // Default report preserves historical accounting. --all-skills includes newly identified
 // enemy/guest skills too; the CSV always exposes the capture-derived attribution.
 const allSkills = process.argv.includes("--all-skills");
@@ -177,7 +181,7 @@ for (const r of res.rows) {
   rawJoinFields.set(+r.sequence, { daze_mv: F(b, L.daze_mv), impact: F(b, L.impact), buildup_requested: F(b, L.buildup_requested) });
   const { ability, prop, other: s18 } = a8Names(r);
   const mapped = prop ? skillMap[prop] : undefined;
-  const attribution = attribute({ ability, prop, buffer: b, client, index: identity, map: skillMap, warn });
+  const attribution = attribute({ ability, prop, buffer: b, client, index: identity, map: skillMap, clientMap, warn });
   const damage = F(b, L.damage);
   const p6 = (v) => (v === "" ? "" : +v.toPrecision(6));
   const prec = (v, digits) => (v === "" ? "" : +v.toPrecision(digits));
