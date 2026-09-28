@@ -1,10 +1,14 @@
 // Modified from upstream thaumiel (0e669bc) for the per-hit logger fork, 2026-09-11..13: unwind
 // tables, the C/asm probe sources and libc are added to the DLL; 2026-09-28: the releases-url
-// option and the version-gate test step. See README.md (AGPL-3.0 §5a).
+// option, the version-gate test step and a baseline x86_64 default target. See README.md
+// (AGPL-3.0 §5a).
 const std = @import("std");
 
 pub fn build(b: *std.Build) void {
-    const target = b.standardTargetOptions(.{ .default_target = .{ .os_tag = .windows } });
+    // x86_64 named explicitly so the default CPU is the generic baseline, not the build machine's
+    // own: the DLL runs on players' machines, and a "native" build can use instructions (AVX-512,
+    // AVX-VNNI, ...) their CPUs lack. `-Dcpu=native` still opts in for a local-only build.
+    const target = b.standardTargetOptions(.{ .default_target = .{ .cpu_arch = .x86_64, .os_tag = .windows } });
     const optimize = b.standardOptimizeOption(.{});
 
     const launcher = b.addExecutable(.{
