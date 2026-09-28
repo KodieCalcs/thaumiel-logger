@@ -224,6 +224,7 @@ const HIT_FIELDS = {
   skill_id: "the game's skill id",
   ability: "the in-game name of the action",
   client_name: "the game's internal name for the hit",
+  attack_tags: "the game's own tags on the hit, | separated: an attack's type (AttackNormal|Normal = Basic Attack, AttackSpecial|ExSp = EX Special, AttackQTE|NormalQTE = Chain, AttackQTE|ExQTE = Ultimate, AttackAid|BeHitAid = Quick Assist, AttackAid|AssaultAid = Assist Follow-Up, ParryAid = Defensive Assist, Counter = Dodge Counter), or for Anomaly damage Buff + the Anomaly (Burn, Electric = Shock, Erosion = Corruption, Frozen/Frost = Shatter, Strike = Assault, Wind = Windswept, Catalysis = Vortex, Disorder), ending in Abloom for an Abloom",
   hit_split: "this hit's fraction of its action's total multiplier",
   damage: "final damage, as the game shows it",
   daze: "Daze the target's Stun gauge took from this hit (0 while it is Stunned)",
