@@ -49,7 +49,9 @@ tried earlier is recorded there as a ruled-out lead.
 The damage probes are **on by default** (since 2026-09-28; they were opt-in before) and
 `damage-probe-disable.txt` in the launch directory turns them off. The hit log always runs. The
 il2cpp dump is **opt-in**: it is written only when `dumper-enable.txt` exists in the launch
-directory (the name lookups the hooks need run either way).
+directory (the name lookups the hooks need run either way). `logger-disable.txt` in the launch
+directory turns the whole logger off, exactly as an unsupported client does (`logger_client.zig`),
+so the game can be compared with and without it on the same DLL.
 Each probe writes its install status to `damage-probe-status.txt` (`string numeric event enqueue
 result snapshot daze anomaly`): 0 disabled, 1 installed, 2 installed but protection restoration failed (stop the
 test); -1 missing module, -2 wrong PE identity, -3 wrong code fingerprint, -4 allocation/protection
