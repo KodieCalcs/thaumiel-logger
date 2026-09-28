@@ -62,6 +62,34 @@ function stunWindows() {
   }
   return windows;
 }
+// Pauses: timescale.tsv (timescalelog.zig, change-only) carries the game's pause counter in its
+// `pause` column. Wall time runs on while the game is paused, and so does the time manager's own
+// world time, so time_s leaves paused spans out: a span runs from the first row with pause > 0 to
+// the next row with pause back at 0. Without timescale.tsv nothing is left out.
+function pausedSpans() {
+  let text;
+  try {
+    text = fs.readFileSync(path.join(dir, "timescale.tsv"), "utf8");
+  } catch {
+    return [];
+  }
+  const lines = text.split(/\r?\n/).filter((l) => l && !l.startsWith("#"));
+  const head = (lines[0] ?? "").split("\t");
+  const [T, PAUSE] = ["elapsed_ms", "pause"].map((n) => head.indexOf(n));
+  if (T < 0 || PAUSE < 0) return [];
+  const spans = [];
+  let from = null;
+  for (const l of lines.slice(1)) {
+    const c = l.split("\t");
+    const isPaused = +c[PAUSE] > 0;
+    if (isPaused && from === null) from = +c[T];
+    else if (!isPaused && from !== null) { spans.push([from, +c[T]]); from = null; }
+  }
+  if (from !== null) spans.push([from, Infinity]);
+  return spans;
+}
+const paused = pausedSpans();
+const pausedBefore = (ms) => paused.reduce((sum, [a, b]) => sum + Math.max(0, Math.min(b, ms) - a), 0);
 const stunned = [...(stunWindows() ?? new Map()).values()].filter((w) => w.length);
 const mainStun = stunned.length === 1 ? stunned[0] : null;
 const duringStun = (r) => {
@@ -94,7 +122,7 @@ for (const r of rows) {
   const other = Object.entries(m).filter(([k]) => !/^Actor_(CriticalDelta|CriticalDamageRatioDelta|AddedDamageRatio(_\w+)?)$/.test(k)).filter(([, v]) => +v !== 0)
     .map(([k, v]) => k.replace(/^Actor_/, "") + "=" + v).join("; ");
   const o = {
-    time_s: ((+r.elapsed_ms - t0) / 1000).toFixed(3), attacker: att, target: targetOf(r.target_entity), skill_id: r.skill_id,
+    time_s: ((+r.elapsed_ms - t0 - (pausedBefore(+r.elapsed_ms) - pausedBefore(t0))) / 1000).toFixed(3), attacker: att, target: targetOf(r.target_entity), skill_id: r.skill_id,
     ability: (r.skill_id === "anomaly" ? anomalyName(r, att, names, triggers) : null) ?? actionName(r, att, names) ?? readable(r), client_name: readable(r), attack_tags: r.attack_tags ?? "", hit_split: r.hit_split, damage: r.damage_ceil, daze: r.daze === "" ? "" : (+r.daze).toFixed(2), crit: +r.crit ? "Yes" : "No", during_stun: duringStun(r),
     damage_mv_pct: pct(r.dmg_mv), daze_mv_pct: pct(r.daze_mv), energy: r.energy, decibels: r.decibels,
     atk: r.atk, impact: r.impact, anomaly_mastery: r.anomaly_mastery, anomaly_proficiency: r.anomaly_proficiency,

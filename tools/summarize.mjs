@@ -215,7 +215,7 @@ function hitsSheet(csv) {
 
 /** What each hit field means, written into combat-log.json for whoever (or whatever) reads it. */
 const HIT_FIELDS = {
-  time_s: "seconds since the battle's first hit",
+  time_s: "seconds since the battle's first hit, with time spent paused left out",
   attacker: "who dealt the hit: an Agent, a Bangboo, or an enemy",
   target: 'who took it; "enemy (main)" is the most-hit enemy',
   skill_id: "the game's skill id",
