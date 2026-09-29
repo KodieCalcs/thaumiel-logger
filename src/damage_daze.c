@@ -41,9 +41,9 @@ static const char *daze_header =
     ", stun component be-hit handler) this=rcx ctx=rdx result_ptr=ctx+" PIN_STR(PIN_HitContext_result)
     " cur_before=this+" PIN_STR(PIN_StunMixin_cur_stun) " target_value=this+" PIN_STR(PIN_StunMixin_daze_target)
     " join=result_ptr_same_thread_nearest_ms applied_daze=result+" PIN_STR(PIN_DamageResult_daze)
-    "_in_the_result_probe semantics=code_traced_" PIN_VERSION "_join_checks\n"
+    "_in_the_result_probe semantics=code_traced_" PIN_VERSION "_join_checks order=process_wide_shared_with_state.tsv\n"
     "sequence\telapsed_ms\tthread\tskipped\tcaller_rva\tthis\tctx\tresult_ptr\tentity_ptr\tcur_before\ttarget_value\tresult_daze_mv\tresult_impact"
-    "\tthis_bytes\tthis_hex\tctx_bytes\tctx_hex\n";
+    "\tthis_bytes\tthis_hex\tctx_bytes\tctx_hex\torder\n";
 
 static float daze_float(uintptr_t address) {
     float f = 0; unsigned char raw[4];
@@ -53,6 +53,7 @@ static float daze_float(uintptr_t address) {
 void damage_daze_record(const ProbeRegisters *r, const uint64_t *entry_stack) {
     DWORD error = GetLastError();
     if (daze_output == INVALID_HANDLE_VALUE) { SetLastError(error); return; }
+    uint64_t order = thaumiel_log_next_order(); /* before the lock: the moment of the call */
     if (!TryAcquireSRWLockExclusive(&daze_lock)) { InterlockedIncrement(&daze_skipped); SetLastError(error); return; }
     uint64_t caller = 0; snapshot((uintptr_t)entry_stack, &caller, sizeof(caller));
     uintptr_t self = r->gpr[0], ctx = r->gpr[1];
@@ -74,6 +75,7 @@ void damage_daze_record(const ProbeRegisters *r, const uint64_t *entry_stack) {
         before, target, daze_mv, impact);
     p += sprintf(p, "\t%llu\t", (unsigned long long)n); p = result_hex(p, self_bytes, n);
     p += sprintf(p, "\t%llu\t", (unsigned long long)m); p = result_hex(p, ctx_bytes, m);
+    p += sprintf(p, "\t%llu", (unsigned long long)order);
     *p++ = '\n';
     DWORD written = 0;
     if (!WriteFile(daze_output, line, (DWORD)(p - line), &written, NULL) || written != (DWORD)(p - line)) InterlockedIncrement(&daze_skipped);

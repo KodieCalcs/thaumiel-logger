@@ -5,7 +5,8 @@
 // client's internal name stays in `client_name`); `daze` is the Daze the target's Stun gauge took
 // from the hit (per-hit-log.mjs `daze`, clamped at the gauge's maximum); a summon's zero-damage copy
 // of its Agent's hit is left out (display-names.mjs). `during_stun` is the result's own stunned flag
-// where the client has one, else the Stun windows in state.tsv (see stunWindows).
+// where the client has one, else the Stun windows in state.tsv (see stunWindows): Yes when the
+// target was already Stunned as the hit was computed, so not on the hit whose Daze starts the Stun.
 import fs from "node:fs";
 import path from "node:path";
 import { parseCsv } from "./log-csv.mjs";
@@ -36,6 +37,10 @@ const mainTarget = [...targets].sort((a, b) => b[1] - a[1])[0]?.[0];
 // A Reset (detach + attach on one frame) keeps it open. Per recipient pointer, which is not the
 // hit's target handle, so the windows are used only when exactly one enemy was Stunned (read as the
 // main target); otherwise, or without state.tsv, during_stun is left empty.
+// Each window is [start ms, end ms, start order, end order]. The orders (the shared row counter,
+// captures from 2026-09-29 on) decide a hit in the same ~16 ms step as an attach or detach: the hit
+// whose Daze fills the gauge shares the Stun's millisecond but was computed before it (capture 3797:
+// no Stun multiplier on that hit, the multiplier on the next one in the same ms).
 function stunWindows() {
   let text;
   try {
@@ -45,9 +50,10 @@ function stunWindows() {
   }
   const lines = text.split(/\r?\n/).filter((l) => l && !l.startsWith("#"));
   const head = (lines[0] ?? "").split("\t");
-  const [T, KIND, SELF, A, NAME] = ["elapsed_ms", "kind", "self", "a", "name"].map((n) => head.indexOf(n));
+  const [T, KIND, SELF, A, NAME, ORDER] = ["elapsed_ms", "kind", "self", "a", "name", "order"].map((n) => head.indexOf(n));
+  const orderOf = (c) => (ORDER < 0 || c[ORDER] === undefined || c[ORDER] === "" ? null : +c[ORDER]);
   const live = new Map(); // enemy -> live instances
-  const windows = new Map(); // enemy -> [[start, end]]
+  const windows = new Map(); // enemy -> [[start, end, startOrder, endOrder]]
   for (const l of lines.slice(1)) {
     const c = l.split("\t");
     if (c[NAME] !== "StunBuffModifier") continue;
@@ -57,9 +63,12 @@ function stunWindows() {
     live.set(enemy, set);
     windows.set(enemy, list);
     if (c[KIND] === "mod+" || c[KIND] === "modA") {
-      if (set.size === 0) list.push([+c[T], Infinity]);
+      if (set.size === 0) list.push([+c[T], Infinity, orderOf(c), Infinity]);
       set.add(c[SELF]);
-    } else if (c[KIND] === "modD" && set.delete(c[SELF]) && set.size === 0 && list.length) list[list.length - 1][1] = +c[T];
+    } else if (c[KIND] === "modD" && set.delete(c[SELF]) && set.size === 0 && list.length) {
+      list[list.length - 1][1] = +c[T];
+      list[list.length - 1][3] = orderOf(c) ?? Infinity;
+    }
   }
   return windows;
 }
@@ -118,7 +127,9 @@ const duringStun = (r) => {
   if (!mainStun) return stunned.length === 0 && stunWindows() ? "No" : "";
   if (r.target_entity !== mainTarget) return "No";
   const t = +r.elapsed_ms;
-  return mainStun.some(([start, end]) => t >= start && t < end) ? "Yes" : "No";
+  const o = r.hit_order === undefined || r.hit_order === "" ? null : +r.hit_order;
+  return mainStun.some(([start, end, startOrder, endOrder]) =>
+    o !== null && startOrder !== null ? o > startOrder && o < endOrder : t >= start && t < end) ? "Yes" : "No";
 };
 const targetOf = (e) => (entityName.has(e) ? nameOf(e) : e === mainTarget ? "enemy (main)" : "enemy " + e.slice(-5));
 

@@ -9,6 +9,7 @@ void damage_result_entry(void) {}
 void damage_snapshot_entry(void) {}
 void damage_daze_entry(void) {}
 void damage_anomaly_entry(void) {}
+void statelog_on_hit(void) {} /* statelog.zig: damage_result_record calls it (per-hit stat reads) */
 static void check(int ok){if(!ok){puts("FAIL recorder");exit(1);}}
 /* Return-address classifier and stack scan against a synthetic "code" page: only words that
  * land in the declared executable range AND follow a call encoding count. */

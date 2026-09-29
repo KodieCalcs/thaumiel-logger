@@ -18,7 +18,7 @@ static const char *result_header =
     PIN_STR(PIN_DamageResult_geometry) " dictionary=result+" PIN_STR(PIN_DamageResult_stat_dict)
     " phase=before_display_conversion string_encoding=utf16le_hex max_string_units=192 dictionary60_max_slots=128"
     " dictionary60_stride=24 tags=List<String>_at_result+" PIN_STR(PIN_DamageResult_attack_tags)
-    "(items+0x10,size+0x18,max_16) numeric_field_map=per-hit-log.mjs_LAYOUTS_" PIN_CLIENT "\n"
+    "(items+0x10,size+0x18,max_16) numeric_field_map=per-hit-log.mjs_LAYOUTS_" PIN_CLIENT " order=process_wide_shared_with_state.tsv\n"
     "sequence\telapsed_ms\tthread\tskipped\tcaller_rva\tcontext_ptr\tentity1_ptr\tentity2_ptr\tresult_ptr\tcomponent_ptr\toutput_event_ptr"
     "\tcontext_bytes\tcontext_hex\tentity1_bytes\tentity1_hex\tentity2_bytes\tentity2_hex\tresult_bytes\tresult_hex\tcomponent_bytes\tcomponent_hex"
     "\ts10_length\ts10_bytes\ts10_hex\ts40_length\ts40_bytes\ts40_hex\ts58_length\ts58_bytes\ts58_hex\ts70_length\ts70_bytes\ts70_hex"
@@ -29,7 +29,7 @@ static const char *result_header =
     "\ta8s" PIN_HitNames_strings_1_X "_length\ta8s" PIN_HitNames_strings_1_X "_bytes\ta8s" PIN_HitNames_strings_1_X "_hex"
     "\ta8s" PIN_HitNames_strings_2_X "_length\ta8s" PIN_HitNames_strings_2_X "_bytes\ta8s" PIN_HitNames_strings_2_X "_hex"
     "\ttags_ptr\ttags_bytes\ttags_hex\ttags_size\ttags_capacity\ttags"
-    "\tfloat_list\tteam_props\tbase_props\n";
+    "\tfloat_list\tteam_props\tbase_props\torder\n";
 
 static char *result_hex(char *p, const unsigned char *bytes, SIZE_T n) {
     static const char hex[] = "0123456789abcdef";
@@ -179,6 +179,7 @@ void damage_result_record(const ProbeRegisters *r, const uint64_t *entry_stack) 
     DWORD error=GetLastError();
     statelog_on_hit(); /* before the result lock: it takes its own, and only reads */
     if (result_output==INVALID_HANDLE_VALUE) { SetLastError(error); return; }
+    uint64_t order=thaumiel_log_next_order(); /* after statelog_on_hit: this hit's own stat reads sort before its row */
     if (!TryAcquireSRWLockExclusive(&result_lock)) { InterlockedIncrement(&result_skipped); SetLastError(error); return; }
     uint64_t stack[7]; snapshot((uintptr_t)entry_stack,stack,sizeof(stack));
     /* 3.3.4: the result object grew -- its last instance field sits at +0x2a0 (3.3.3: +0x284),
@@ -212,6 +213,7 @@ void damage_result_record(const ProbeRegisters *r, const uint64_t *entry_stack) 
     p=result_float_list(p,result,count);
     p=result_int_dictionary(p,result,count,PIN_DamageResult_team_props);
     p=result_int_dictionary(p,result,count,PIN_DamageResult_base_props);
+    p+=sprintf(p,"\t%llu",(unsigned long long)order);
     *p++='\n'; DWORD written=0;
     if(!WriteFile(result_output,line,(DWORD)(p-line),&written,NULL)||written!=(DWORD)(p-line)) InterlockedIncrement(&result_skipped);
     ReleaseSRWLockExclusive(&result_lock); SetLastError(error);

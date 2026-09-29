@@ -8,6 +8,7 @@ void damage_result_entry(void) {}
 void damage_snapshot_entry(void) {}
 void damage_daze_entry(void) {}
 void damage_anomaly_entry(void) {}
+void statelog_on_hit(void) {} /* statelog.zig: damage_result_record calls it (per-hit stat reads) */
 #define CHECK(x) do {if(!(x)){printf("FAIL line %d: %s\n",__LINE__,#x);exit(1);}} while(0)
 int main(void) {
     CHECK(damage_daze_start()==-7);
@@ -42,7 +43,9 @@ int main(void) {
       CHECK(!memcmp(cell,"5a5a5a5a",8)); CHECK(!memcmp(cell+DAZE_THIS_BEFORE*2,"00509a44",8)); /* 1234.5f = 0x449a5000 little-endian */
       CHECK(!strncmp(cell+DAZE_THIS_BYTES*2,"\t80\ta5a5a5a5",12)); }
     CHECK(strstr(text,"\t0x1\t0x0\t0x7000deadbeef\t1234.5\t1373.09595\t-1\t-1\t256\t")); /* second row: ctx unreadable */
-    CHECK(strstr(text,"\t0x0\t0x0\t0x0\t0x0\t-1\t-1\t-1\t-1\t0\t\t0\t\n")); /* third row: null this/ctx */
+    CHECK(strstr(text,"\t0x0\t0x0\t0x0\t0x0\t-1\t-1\t-1\t-1\t0\t\t0\t\t3\n")); /* third row: null this/ctx; order 3 */
+    CHECK(strstr(text,"\t1\n")&&strstr(text,"\t2\n")&&log_order==4); /* order: one per call, the lock-skipped call too (a gap, never a reuse) */
+    CHECK(thaumiel_log_next_order()==5); /* the counter statelog.zig takes its rows' order from */
     CHECK(strstr(text,"\tthis_hex")==NULL); /* header not in the data rows */
     CloseHandle(daze_output); DeleteFileA("damage-daze-test.tmp");
     VirtualFree((void*)damage_daze_original,0,MEM_RELEASE); VirtualFree(image,0,MEM_RELEASE);

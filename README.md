@@ -72,7 +72,8 @@ its loadout are copied into the folder. A few seconds after a battle ends, its f
 | `combat-log.json` | Every hit, as data for programs and AI tools: the same rows as the Every hit tab (numbers as numbers), plus the game version, the battle length, how many skills match the server's settlement exactly, and what each field means. |
 
 Daze is what the enemy's Stun gauge actually took, so hits that land while it is Stunned count 0;
-`during_stun` says which hits those are.
+`during_stun` says which hits those are. The hit that fills the gauge is not one of them: the game
+deals it just before the Stun begins, so it keeps its Daze and gets no Stun bonus.
 
 The folder also has the server's settlement and your build for that battle,
 `endbattle_7.pb` and `endbattle_7_loadout.json`. Upload both to the site with the log.

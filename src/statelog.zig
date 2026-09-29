@@ -34,6 +34,12 @@
 //!             "recently hit, meter does not drain" window, worth logging in its own right.
 //!   grace~/-  that window's first observed frame and the frame `+0xe0` ran out.
 //!
+//! The last column, `order`, is one process-wide counter shared with the damage-result /
+//! -snapshot / -daze / -anomaly probes (damage_probe.c), taken when the row is decided.
+//! `elapsed_ms` moves in ~16 ms steps, so `order` is what says whether a hit came before or after
+//! a modifier change in the same tick (added 2026-09-29: the hit that fills the Daze gauge and the
+//! StunBuffModifier it starts share a millisecond).
+//!
 //! **The Stun window itself needs no hook of its own.** It is in the `prop` rows: CurStun is
 //! property type 11, and the capture above shows it clamped to MaxStun 17582.70 at 61.875 s
 //! (the hit log's first stunned hit is 61.9 s) and then draining. Stun start = the write clamped
@@ -134,7 +140,7 @@ const all_fields = [_]Field{
 
 var file: LogFile = .{
     .name = "state.tsv",
-    .header = "elapsed_ms\tkind\tself\ta\tb\tc\td\ti0\ti1\tf0\tf1\tname\tcaller\n",
+    .header = "elapsed_ms\tkind\tself\ta\tb\tc\td\ti0\ti1\tf0\tf1\tname\tcaller\torder\n",
 };
 var game_base: usize = 0;
 var installed = false;
@@ -180,20 +186,26 @@ fn now() u64 {
     return GetTickCount64() - capture.started;
 }
 
+/// The last `order` column: one process-wide counter shared with the damage probes
+/// (damage_probe.c), taken when the row is decided. elapsed_ms steps ~16 ms, so it is what orders
+/// this file's rows against a damage-result row in the same tick (the hit that fills the Daze
+/// gauge and the StunBuffModifier it starts share a millisecond).
+extern fn thaumiel_log_next_order() callconv(.c) u64;
+
 // --- records (called from state_hook.c, on the game thread) -------------------------
 
 export fn statelog_property_set(store: u64, kind: u32, key: u64, mode: u32, in: f64, out: f64, caller: u64) callconv(.c) void {
     if (file.out == null) return;
     var buf: [256]u8 = undefined;
     const name = readString(key, &buf);
-    file.emit("{d}\tprop\t0x{X}\t\t\t\t\t{d}\t{d}\t{d}\t{d}\t{s}\t0x{X}\n", .{ now(), store, kind, mode, in, out, name, rva(caller) });
+    file.emit("{d}\tprop\t0x{X}\t\t\t\t\t{d}\t{d}\t{d}\t{d}\t{s}\t0x{X}\t{d}\n", .{ now(), store, kind, mode, in, out, name, rva(caller), thaumiel_log_next_order() });
 }
 
 export fn statelog_property_notify(entity: u64, kind: u32, key: u64, value: f64, caller: u64) callconv(.c) void {
     if (file.out == null) return;
     var buf: [256]u8 = undefined;
     const name = readString(key, &buf);
-    file.emit("{d}\tnotify\t0x{X}\t\t\t\t\t{d}\t\t{d}\t\t{s}\t0x{X}\n", .{ now(), entity, kind, value, name, rva(caller) });
+    file.emit("{d}\tnotify\t0x{X}\t\t\t\t\t{d}\t\t{d}\t\t{s}\t0x{X}\t{d}\n", .{ now(), entity, kind, value, name, rva(caller), thaumiel_log_next_order() });
 }
 
 // --- property reads ----------------------------------------------------------------
@@ -292,7 +304,7 @@ fn recordValue(table: u64, kind: u32, k: u64, key: u64, v: f64, caller: u64) voi
     if (!changed) return;
     var buf: [256]u8 = undefined;
     const name = if (kind == 10) readString(key, &buf) else "";
-    file.emit("{d}\tget\t0x{X}\t\t\t\t\t{d}\t\t{d}\t\t{s}\t0x{X}\n", .{ now(), table, kind, v, name, rva(caller) });
+    file.emit("{d}\tget\t0x{X}\t\t\t\t\t{d}\t\t{d}\t\t{s}\t0x{X}\t{d}\n", .{ now(), table, kind, v, name, rva(caller), thaumiel_log_next_order() });
 }
 
 // --- per-hit stat reads ----------------------------------------------------------------
@@ -363,10 +375,11 @@ export fn statelog_modifier_init(self: u64, ability: u64, owner: u64, config: u6
     _ = owner;
     _ = config;
     _ = extra;
+    const order = thaumiel_log_next_order();
     const cfg = readPtr(self, m_config.offset);
     var buf: [256]u8 = undefined;
     const name = readString(readPtr(cfg, c_name.offset), &buf);
-    file.emit("{d}\tmod+\t0x{X}\t0x{X}\t0x{X}\t0x{X}\t0x{X}\t{d}\t{d}\t{d}\t{d}\t{s}\t0x{X}\n", .{
+    file.emit("{d}\tmod+\t0x{X}\t0x{X}\t0x{X}\t0x{X}\t0x{X}\t{d}\t{d}\t{d}\t{d}\t{s}\t0x{X}\t{d}\n", .{
         now(),
         self,
         readPtr(self, m_owner.offset),
@@ -379,16 +392,18 @@ export fn statelog_modifier_init(self: u64, ability: u64, owner: u64, config: u6
         @as(f32, @floatFromInt(readI32(self, m_stacks.offset))),
         name,
         rva(caller),
+        order,
     });
 }
 
 export fn statelog_modifier_event(self: u64, kind: u32, caller: u64) callconv(.c) void {
     if (file.out == null) return;
+    const order = thaumiel_log_next_order();
     const cfg = readPtr(self, m_config.offset);
     var buf: [256]u8 = undefined;
     const name = readString(readPtr(cfg, c_name.offset), &buf);
     const label = if (kind == 'A') "modA" else "modD";
-    file.emit("{d}\t{s}\t0x{X}\t0x{X}\t\t\t0x{X}\t{d}\t{d}\t\t\t{s}\t0x{X}\n", .{
+    file.emit("{d}\t{s}\t0x{X}\t0x{X}\t\t\t0x{X}\t{d}\t{d}\t\t\t{s}\t0x{X}\t{d}\n", .{
         now(),
         label,
         self,
@@ -398,12 +413,14 @@ export fn statelog_modifier_event(self: u64, kind: u32, caller: u64) callconv(.c
         readI32(self, m_stacks.offset),
         name,
         rva(caller),
+        order,
     });
 }
 
 export fn statelog_stun_enter(self: u64, caller: u64) callconv(.c) void {
     if (file.out == null) return;
-    file.emit("{d}\tgrace+\t0x{X}\t0x{X}\t\t\t\t{d}\t{d}\t{d}\t{d}\t\t0x{X}\n", .{
+    const order = thaumiel_log_next_order();
+    file.emit("{d}\tgrace+\t0x{X}\t0x{X}\t\t\t\t{d}\t{d}\t{d}\t{d}\t\t0x{X}\t{d}\n", .{
         now(),
         self,
         readPtr(self, s_entity.offset),
@@ -412,6 +429,7 @@ export fn statelog_stun_enter(self: u64, caller: u64) callconv(.c) void {
         readF32(self, s_cur_stun.offset),
         readF32(self, s_remaining.offset),
         rva(caller),
+        order,
     });
 }
 
@@ -435,12 +453,12 @@ export fn statelog_stun_update(self: u64, dt: f32) callconv(.c) void {
     }
     if (stunned == last_stunned) return;
     if (stunned != 0) {
-        file.emit("{d}\tgrace~\t0x{X}\t0x{X}\t\t\t\t\t\t{d}\t{d}\t\t\n", .{
-            now(), self, readPtr(self, s_entity.offset), readF32(self, s_remaining.offset), readF32(self, s_cur_at_entry.offset),
+        file.emit("{d}\tgrace~\t0x{X}\t0x{X}\t\t\t\t\t\t{d}\t{d}\t\t\t{d}\n", .{
+            now(), self, readPtr(self, s_entity.offset), readF32(self, s_remaining.offset), readF32(self, s_cur_at_entry.offset), thaumiel_log_next_order(),
         });
     } else {
-        file.emit("{d}\tgrace-\t0x{X}\t0x{X}\t\t\t\t\t\t{d}\t{d}\t\t\n", .{
-            now(), self, readPtr(self, s_entity.offset), readF32(self, s_cur_stun.offset), readF32(self, s_config_value.offset),
+        file.emit("{d}\tgrace-\t0x{X}\t0x{X}\t\t\t\t\t\t{d}\t{d}\t\t\t{d}\n", .{
+            now(), self, readPtr(self, s_entity.offset), readF32(self, s_cur_stun.offset), readF32(self, s_config_value.offset), thaumiel_log_next_order(),
         });
     }
     _ = dt;

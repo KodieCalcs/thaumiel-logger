@@ -30,13 +30,14 @@ static const char *snapshot_header =
     "# schema=1 client=" PIN_CLIENT " target_rva=" PIN_STR(PIN_ResultFactory_create_RVA) " (" PIN_ResultFactory_CLASS
     ", hit-result factory) snapshot=rcx first_0x200 arg4=r9 first_0x190 join=same_thread_order_then_snapshot+"
     PIN_STR(PIN_AttackSnapshot_atk) "==result+" PIN_STR(PIN_DamageResult_atk) "_and_snapshot+" PIN_STR(PIN_AttackSnapshot_daze_mv)
-    "==result+" PIN_STR(PIN_DamageResult_daze_mv) " semantics=unlabeled_except_traced_copies\n"
+    "==result+" PIN_STR(PIN_DamageResult_daze_mv) " semantics=unlabeled_except_traced_copies order=process_wide_shared_with_state.tsv\n"
     "sequence\telapsed_ms\tthread\tskipped\tcaller_rva\tsnapshot_ptr\targ2\targ3\targ4_ptr\targ5_ptr\targ6_ptr\targ7\tmethod"
-    "\tsnapshot_bytes\tsnapshot_hex\targ4_bytes\targ4_hex\n";
+    "\tsnapshot_bytes\tsnapshot_hex\targ4_bytes\targ4_hex\torder\n";
 
 void damage_snapshot_record(const ProbeRegisters *r, const uint64_t *entry_stack) {
     DWORD error = GetLastError();
     if (snapshot_output == INVALID_HANDLE_VALUE) { SetLastError(error); return; }
+    uint64_t order = thaumiel_log_next_order(); /* before the lock: the moment of the call */
     if (!TryAcquireSRWLockExclusive(&snapshot_lock)) { InterlockedIncrement(&snapshot_skipped); SetLastError(error); return; }
     uint64_t stack[9]; snapshot((uintptr_t)entry_stack, stack, sizeof(stack));
     unsigned char snap[SNAPSHOT_BYTES], arg4[SNAPSHOT_ARG4_BYTES];
@@ -49,6 +50,7 @@ void damage_snapshot_record(const ProbeRegisters *r, const uint64_t *entry_stack
         (unsigned long long)stack[5], (unsigned long long)stack[6], (unsigned long long)stack[7], (unsigned long long)stack[8]);
     p += sprintf(p, "\t%llu\t", (unsigned long long)n); p = result_hex(p, snap, n);
     p += sprintf(p, "\t%llu\t", (unsigned long long)m); p = result_hex(p, arg4, m);
+    p += sprintf(p, "\t%llu", (unsigned long long)order);
     *p++ = '\n';
     DWORD written = 0;
     if (!WriteFile(snapshot_output, line, (DWORD)(p - line), &written, NULL) || written != (DWORD)(p - line)) InterlockedIncrement(&snapshot_skipped);

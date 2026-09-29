@@ -166,7 +166,19 @@ const F = (b, o) => (o == null ? "" : b.readFloatLE(o)), I = (b, o) => (o == nul
       Q = (b, o) => (o == null ? "" : "0x" + b.readBigUInt64LE(o).toString(16));
 const cols = ["seq", "elapsed_ms", "thread", "attacker_entity", "target_entity", "ability_name", "attack_property_name", "skill_id", "skill_id_source",
   "hit_split", "damage_unrounded", "damage_ceil", "crit", "dmg_mv", "daze_mv", "energy", "decibels", "daze", "daze_requested", "buildup_requested", "buildup_applied",
-  "atk", "impact", "anomaly_mastery", "anomaly_proficiency", "level", "target_state", "dmg_mult", "attenuation_curve", "attenuation", "f11c", "f174", "f0f8", "display_skill_id", "a8_str18", "attack_tags", "modifiers", "base_props", "team_props", "float_list"];
+  "atk", "impact", "anomaly_mastery", "anomaly_proficiency", "level", "target_state", "dmg_mult", "attenuation_curve", "attenuation", "f11c", "f174", "f0f8", "display_skill_id", "a8_str18", "attack_tags", "modifiers", "base_props", "team_props", "float_list",
+  "order", "hit_order"];
+// order / hit_order (captures from 2026-09-29 on; empty before): the probes' and state.tsv's shared
+// row counter, which orders rows of one ~16 ms elapsed_ms step. `order` is the result converter's,
+// after the hit's own stat reads. `hit_order` is the moment the hit's damage reached the target: the
+// target's HP write in state.tsv (property type 0, change = -damage; paired at the end of this file).
+// The damage is computed just before it, so a state.tsv row with a smaller order was in place for the
+// hit and one after it is the hit's own consequence or later: the Stun its Daze starts (the Daze
+// be-hit handler, the applier and the converter all come after the HP write), a debuff it lands.
+// Battle 14 (2026-09-29): a Nicole Chain explosion's factory row came BEFORE the DEF debuff the game
+// counted in its damage (factor 65 with it, 111.7 without), its HP write after, so the earliest hook
+// row is not the moment. A hit with no damage (no HP write) keeps its earliest hook row (normally its
+// Daze be-hit row; the factory row for bullet / summon hits).
 // attenuation_curve: the result's fifth string slot (3.3.2 +0xb8, 3.3.0 +0xa0; probe column sa0), e.g.
 // DistanceAttenuation_Lisa / DistanceAttenuation_Curve_01, empty on anomaly ticks and field hits.
 // The stun component's applier multiplies the hit's Daze by that curve evaluated on the
@@ -184,7 +196,8 @@ const rawJoinFields = new Map(); // Compare raw float32 values, never CSV displa
 const hits = []; const rawResultPtr = new Map(); // result_ptr per row, for the daze-log join
 for (const r of res.rows) {
   const b = Buffer.from(r.result_hex, "hex"); rawResultPtr.set(+r.sequence, r.result_ptr);
-  if (b.length < 0x290) { hits.push({ seq: r.sequence, elapsed_ms: r.elapsed_ms, thread: r.thread, incomplete: b.length }); continue; }
+  const order = r.order === undefined || r.order === "" ? "" : +r.order;
+  if (b.length < 0x290) { hits.push({ seq: r.sequence, elapsed_ms: r.elapsed_ms, thread: r.thread, incomplete: b.length, order, hit_order: order }); continue; }
   rawJoinFields.set(+r.sequence, { daze_mv: F(b, L.daze_mv), impact: F(b, L.impact), buildup_requested: F(b, L.buildup_requested) });
   const { ability, prop, other: s18 } = a8Names(r);
   const mapped = prop ? skillMap[prop] : undefined;
@@ -212,9 +225,12 @@ for (const r of res.rows) {
     // The result's stat-keyed dictionaries and float list (damage_result.c, dumped since 2026-09-28): raw
     // "type=value|" cells until each type is identified from a capture; empty on older captures.
     base_props: (r.base_props ?? "").replace(/\|$/, ""), team_props: (r.team_props ?? "").replace(/\|$/, ""), float_list: (r.float_list ?? "").replace(/\|$/, ""),
+    order, hit_order: order,
   });
 }
 const csvCell = (v) => (v === undefined || v === null ? "" : /[",\n]/.test(String(v)) ? '"' + String(v).replace(/"/g, '""') + '"' : String(v));
+/** A paired hook row of this hit: hit_order becomes the earliest of the hit's rows. */
+const earlierHookRow = (hit, row) => { if (row.order !== undefined && row.order !== "" && hit.hit_order !== "" && +row.order < hit.hit_order) hit.hit_order = +row.order; };
 fs.writeFileSync(path.join(dir, "per-hit-log.csv"), [cols.join(","), ...hits.map((h) => cols.map((c) => csvCell(h[c])).join(","))].join("\n") + "\n");
 const complete = hits.filter((h) => !h.incomplete);
 const bySource = {}; for (const h of complete) bySource[h.skill_id_source] = (bySource[h.skill_id_source] || 0) + 1;
@@ -335,7 +351,7 @@ if (snapFile) {
       if (c.thread !== r.thread || used.has(c.seq) || Math.abs(c.elapsed_ms - t) > 1) continue;
       const rb = bufs.get(c.seq); if (L.snapshot_atk != null && L.atk != null && b.length >= L.snapshot_atk + 4 && rb && b.readFloatLE(L.snapshot_atk) === rb.readFloatLE(L.atk)) { h = c; break; }
     }
-    if (h) { used.add(h.seq); verified++; }
+    if (h) { used.add(h.seq); verified++; earlierHookRow(h, r); }
     const check = h ? "ok" : "unpaired";
     const o = { seq: r.sequence, elapsed_ms: r.elapsed_ms, thread: r.thread, result_seq: h?.seq ?? "", pair_check: check, attack_property_name: h?.attack_property_name ?? "", snapshot_ptr: r.snapshot_ptr, arg2: r.arg2, arg3: r.arg3, arg4_ptr: r.arg4_ptr, arg6_ptr: r.arg6_ptr, snapshot_bytes: r.snapshot_bytes };
     for (let i = 0; i < nf; i++) { const off = i * 4; if (off + 4 > b.length) { o["f" + off.toString(16).padStart(3, "0")] = ""; continue; } const f = b.readFloatLE(off), n = b.readInt32LE(off); o["f" + off.toString(16).padStart(3, "0")] = n === 0 ? 0 : (Number.isFinite(f) && Math.abs(f) > 1e-6 && Math.abs(f) < 1e8 ? +f.toPrecision(7) : n); }
@@ -377,7 +393,7 @@ if (dazeFile) {
     }
     let check = "unpaired";
     if (h) {
-      used.add(h.seq); paired++;
+      used.add(h.seq); paired++; earlierHookRow(h, r);
       const ok = floatsMatch(h);
       check = ok ? "ok" : "pointer-only"; if (ok) verified++;
     }
@@ -438,7 +454,7 @@ if (anomalyFile) {
       if (dt < best || (dt === best && floatsMatch(c) && !floatsMatch(h))) { best = dt; h = c; }
     }
     let check = "unpaired";
-    if (h) { paired++; check = floatsMatch(h) ? "ok" : "pointer-only"; if (check === "ok") verified++; }
+    if (h) { paired++; check = floatsMatch(h) ? "ok" : "pointer-only"; if (check === "ok") verified++; earlierHookRow(h, r); }
     out.push({ seq: +r.sequence, elapsed_ms: +r.elapsed_ms, thread: r.thread, result_seq: h?.seq ?? "", pair_check: check, attack_property_name: h?.attack_property_name ?? "",
       target_entity: h?.target_entity ?? "", target_state: h?.target_state ?? "", gauge: r.this, entity_ptr: r.entity_ptr, element: +r.element, variant: +r.variant, variant2: +r.variant2,
       cur_before: +r.cur_before, max: +r.max, requested: h ? +h.buildup_requested : "", applied: h ? +h.buildup_applied : "", took: "", gauge_after: "", unlogged_delta: "", fill: "", f68: +r.f68, result_ptr: r.result_ptr });
@@ -478,3 +494,38 @@ if (anomalyFile) {
   console.log(`anomaly rows: ${an.rows.length} (${byGauge.size} gauges); paired by result pointer ${paired}, verified by requested + Daze MV ${verified}, unpaired ${an.rows.length - paired}; hits taken by a gauge ${takenResults.size}, hits with buildup refused ${refused}`);
   for (const g of gaugeSummary) console.log(`  gauge ${g.gauge} element ${g.element} variant ${g.variant}: ${g.rows} rows, took ${g.took} (${g.attackers.map(([k, v]) => k + " " + v).join(", ")}), fills ${g.fills.length} at max ${g.fills.map((f) => f.max).join("/")}, max values seen ${g.maxes.join(", ")}, unlogged changes ${g.unlogged}${g.unlogged ? " e.g. " + g.unloggedDeltas.slice(0, 5).map((d) => d.join("s:")).join(" ") : ""}`);
 }
+
+// --- the moment each hit dealt its damage (captures with the shared row order) ----------------
+// state.tsv writes every property change; a hit's damage is one negative HP (type 0) write on the
+// target's table, `-damage` to the unit. Pair each damaging hit with the latest unused such write
+// within 50 ms that comes before its converter row: the write can be a frame (16 ms) earlier than the
+// result row's millisecond. Battles 12 and 14 (2026-09-29): 395 / 395 and 707 / 707 paired, and no
+// StunBuffModifier row fell between a hit's HP write and its earliest hook row.
+const stateFile = path.join(dir, "state.tsv");
+if (fs.existsSync(stateFile) && complete.some((h) => h.order !== "")) {
+  const lines = fs.readFileSync(stateFile, "utf8").split(/\r?\n/).filter((l) => l && !l.startsWith("#"));
+  const head = (lines[0] ?? "").split("\t");
+  const [T, KIND, TYPE, F0, ORD] = ["elapsed_ms", "kind", "i0", "f0", "order"].map((n) => head.indexOf(n));
+  if (ORD >= 0) {
+    const writes = [];
+    for (const l of lines.slice(1)) {
+      const c = l.split("\t");
+      if (c[KIND] === "prop" && c[TYPE] === "0" && +c[F0] < 0 && c[ORD] !== "") writes.push({ t: +c[T], o: +c[ORD], damage: -c[F0] });
+    }
+    const used = new Set();
+    let paired = 0, damaging = 0;
+    for (const h of complete.filter((x) => x.order !== "" && +x.damage_ceil > 0).sort((a, b) => a.order - b.order)) {
+      damaging++;
+      let best = null;
+      for (const w of writes) {
+        if (used.has(w) || w.o >= h.order || Math.abs(w.t - h.elapsed_ms) > 50 || Math.abs(w.damage - h.damage_ceil) > 1) continue;
+        if (!best || w.o > best.o) best = w;
+      }
+      if (best) { used.add(best); h.hit_order = best.o; paired++; }
+    }
+    console.log(`hit moments: ${paired} of ${damaging} damaging hits paired with the target's HP write; the rest keep their earliest hook row`);
+  }
+}
+
+// Last write: hit_order is final only after every hook row (snapshot, Daze, anomaly gauge) and the HP writes are paired.
+fs.writeFileSync(path.join(dir, "per-hit-log.csv"), [cols.join(","), ...hits.map((h) => cols.map((c) => csvCell(h[c])).join(","))].join("\n") + "\n");

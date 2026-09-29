@@ -9,6 +9,7 @@ void damage_result_entry(void) {}
 void damage_snapshot_entry(void) {}
 void damage_daze_entry(void) {}
 void damage_anomaly_entry(void) {}
+void statelog_on_hit(void) {} /* statelog.zig: damage_result_record calls it (per-hit stat reads) */
 static void check(int ok){if(!ok){puts("FAIL installer");exit(1);}}
 int main(void){
     check(damage_numeric_start()==-7);check(damage_event_start()==-7);check(damage_enqueue_start()==-7); /* none installs before the string probe */

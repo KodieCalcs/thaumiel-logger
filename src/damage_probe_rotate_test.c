@@ -12,6 +12,7 @@ void damage_result_entry(void) {}
 void damage_snapshot_entry(void) {}
 void damage_daze_entry(void) {}
 void damage_anomaly_entry(void) {}
+void statelog_on_hit(void) {} /* statelog.zig: damage_result_record calls it (per-hit stat reads) */
 #define CHECK(x) do {if(!(x)){printf("FAIL line %d: %s\n",__LINE__,#x);exit(1);}} while(0)
 
 static int count_files(const char *dir, const char *prefix, char *first, size_t first_len) {

@@ -227,7 +227,7 @@ const HIT_FIELDS = {
   daze: "Daze the target's Stun gauge took from this hit (0 while it is Stunned)",
   anomaly_buildup: "Anomaly buildup the target's gauge took from this hit (per Attribute: see the attacker)",
   crit: "Yes or No",
-  during_stun: "Yes when the target was Stunned as the hit landed; null when that is not known",
+  during_stun: "Yes when the target was already Stunned as the game dealt the hit (not the hit whose Daze starts the Stun); null when that is not known",
   enemy_def: "the target's DEF at the hit, after debuffs on it; with no DEF debuff, read off the target's own hits (null if it never attacked; null for hits on the team)",
   enemy_def_reduction_pct:
     "DEF reduction from debuffs on the target (e.g. Nicole's), %. The attacker's own DEF reduction is not in it: that is the DefenceRatio in other_modifiers",

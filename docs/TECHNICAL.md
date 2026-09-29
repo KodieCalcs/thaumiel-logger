@@ -46,6 +46,18 @@ the result all along (`per-hit-log.csv` columns `daze` / `daze_requested`, forme
 `buildup_est`; see `docs/damage-probe-howto.md`, "Per-hit Daze"). The stun-widget hook that was
 tried earlier is recorded there as a ruled-out lead.
 
+**Row order across files** (since 2026-09-29). `state.tsv` and the damage-result, -snapshot, -daze
+and -anomaly files end in an `order` column: one counter for the whole process, taken when each
+hook is called. `elapsed_ms` moves in ~16 ms steps and each file keeps its own `sequence`, so
+`order` is what orders rows of different files within one step. The hit whose Daze fills the gauge
+shares the Stun's millisecond: its Daze be-hit row comes before the `StunBuffModifier` attach and
+its converter row after, and the game dealt it without the Stun multiplier. `per-hit-log.csv`
+carries `order` (the converter's, after the hit's own stat reads) and `hit_order` (when the hit's
+damage reached the target: its HP write in `state.tsv`, which comes after the debuffs the game
+counted in that damage and before the Stun its Daze starts; a hit with no damage keeps its earliest
+hook row); `readable-log.mjs` decides `during_stun` and the enemy-side columns by them
+(`tools/test-stun-order.mjs`). Earlier captures have no `order` and keep the millisecond rule.
+
 The damage probes are **on by default** (since 2026-09-28; they were opt-in before) and
 `damage-probe-disable.txt` in the launch directory turns them off. The hit log always runs. The
 il2cpp dump is **opt-in**: it is written only when `dumper-enable.txt` exists in the launch

@@ -27,6 +27,13 @@ static volatile LONG skipped;
 static uintptr_t module_base;
 static ULONGLONG started;
 static uint64_t sequence;
+/* One process-wide row order, the last `order` column of state.tsv and of the damage-result /
+ * -snapshot / -daze / -anomaly probes. elapsed_ms is GetTickCount64 (~16 ms steps) and each file
+ * has its own sequence, so rows of different files in one tick could not be ordered: the hit that
+ * fills the Daze gauge and the Stun it starts share a millisecond. Taken at hook entry, on the
+ * calling thread; statelog.zig calls it for its rows. */
+static volatile LONG64 log_order;
+uint64_t thaumiel_log_next_order(void) { return (uint64_t)InterlockedIncrement64(&log_order); }
 
 static HANDLE numeric_output = INVALID_HANDLE_VALUE;
 static SRWLOCK numeric_lock = SRWLOCK_INIT;

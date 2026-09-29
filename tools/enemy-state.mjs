@@ -84,19 +84,32 @@ function readState(dir) {
   }
   const lines = text.split(/\r?\n/).filter((l) => l && !l.startsWith("#"));
   const head = (lines[0] ?? "").split("\t");
-  const [T, KIND, SELF, A, B, TYPE, F0, F1, NAME] = ["elapsed_ms", "kind", "self", "a", "b", "i0", "f0", "f1", "name"].map((n) => head.indexOf(n));
+  const [T, KIND, SELF, A, B, TYPE, F0, F1, NAME, ORDER] = ["elapsed_ms", "kind", "self", "a", "b", "i0", "f0", "f1", "name", "order"].map((n) => head.indexOf(n));
   const props = [];
   const gets = [];
   const mods = [];
   for (const l of lines.slice(1)) {
     const c = l.split("\t");
-    if (c[KIND] === "prop") props.push({ t: +c[T], table: c[SELF], type: c[TYPE], change: +c[F0], after: +c[F1] });
-    else if (c[KIND] === "get") gets.push({ t: +c[T], table: c[SELF], type: c[TYPE], value: +c[F0] });
+    const o = ORDER < 0 ? null : orderOrNull(c[ORDER]);
+    if (c[KIND] === "prop") props.push({ t: +c[T], o, table: c[SELF], type: c[TYPE], change: +c[F0], after: +c[F1] });
+    else if (c[KIND] === "get") gets.push({ t: +c[T], o, table: c[SELF], type: c[TYPE], value: +c[F0] });
     else if ((c[KIND] === "mod+" || c[KIND] === "modA" || c[KIND] === "modD") && c[NAME])
-      mods.push({ t: +c[T], kind: c[KIND], self: c[SELF], on: c[A].toLowerCase(), caster: (c[B] || "").toLowerCase(), name: c[NAME] });
+      mods.push({ t: +c[T], o, kind: c[KIND], self: c[SELF], on: c[A].toLowerCase(), caster: (c[B] || "").toLowerCase(), name: c[NAME] });
   }
   return { props, mods, gets };
 }
+
+const orderOrNull = (v) => (v === undefined || v === null || v === "" ? null : +v);
+/** Whether a state.tsv row (t ms, o order) came before a hit at (t, o). By the shared row order when
+ *  both carry it (captures from 2026-09-29 on): elapsed_ms moves in ~16 ms steps, and a debuff or
+ *  write the hit itself causes lands in the hit's own millisecond. Otherwise at or before the hit's
+ *  millisecond, as before. For the target's side the hit's position is its hit_order (before its own
+ *  consequences); for the attacker's own stat reads it is the converter's `order`, which comes after
+ *  the reads taken for that hit (per-hit-log.mjs). */
+const notAfter = (entry, t, o) => (entry.o !== null && o !== null ? entry.o < o : entry.t <= t);
+/** Past the hit? In millisecond mode the rows are in time order, so a scan can stop there; with the
+ *  row order it cannot (rows of different threads are written in lock order, not quite order). */
+const stopAt = (entry, t, o) => entry.o === null || o === null ? entry.t > t : false;
 
 // Not debuffs in the sense a reader means: the Stun itself (during_stun has it) and the engine's
 // placeholder instance.
@@ -124,20 +137,21 @@ function debuffsOn(mods, attackers) {
     if (m.kind === "modD") {
       if (live.get(key) !== m.name) continue;
       live.delete(key);
-      list.push([m.t, m.name, -1]);
+      list.push([m, m.name, -1]);
     } else {
       if (live.get(key) === m.name) continue; // mod+ and modA of one attach
       live.set(key, m.name);
-      list.push([m.t, m.name, +1]);
+      list.push([m, m.name, +1]);
     }
     events.set(m.on, list);
   }
-  return (target, t) => {
+  return (target, t, o = null) => {
     const list = events.get(target);
     if (!list) return [];
     const count = new Map();
     for (const [at, name, d] of list) {
-      if (at > t) break;
+      if (stopAt(at, t, o)) break;
+      if (!notAfter(at, t, o)) continue;
       count.set(name, (count.get(name) ?? 0) + d);
     }
     return [...count].filter(([, n]) => n > 0).map(([name]) => name).sort();
@@ -225,8 +239,8 @@ function attackerTables(props, series, perHitRows) {
   const byAtk = new Map();
   for (const [table, types] of series) {
     if (!types.has("22") && !types.has("65")) continue; // a character's own table
-    for (const type of ["560", "2"]) for (const [, v] of types.get(type) ?? []) {
-      const k = v.toFixed(1);
+    for (const type of ["560", "2"]) for (const { value } of types.get(type) ?? []) {
+      const k = value.toFixed(1);
       const set = byAtk.get(k) ?? new Set();
       set.add(table);
       byAtk.set(k, set);
@@ -319,7 +333,7 @@ export function enemyStats(dir, perHitRows) {
   const { props, mods: modRows, gets } = state;
   const attackers = new Set(perHitRows.map((r) => String(r.attacker_entity).toLowerCase()));
   const debuffs = debuffsOn(modRows, attackers);
-  const debuffText = (row) => debuffs(String(row.target_entity).toLowerCase(), +row.elapsed_ms).join("; ");
+  const debuffText = (row) => debuffs(String(row.target_entity).toLowerCase(), +row.elapsed_ms, orderOrNull(row.hit_order)).join("; ");
   const client = clientOf(dir);
   const type = DEF_REDUCTION_TYPE[client];
   if (!type) return (row) => withDaze(row, { ...empty, enemy_debuffs: debuffText(row) });
@@ -353,7 +367,7 @@ export function enemyStats(dir, perHitRows) {
     if (w.type !== type) continue;
     const s = series.get(w.table) ?? [];
     const reduction = (s.length ? s[s.length - 1].reduction : 0) - w.change;
-    s.push({ t: w.t, reduction, def: w.after });
+    s.push({ t: w.t, o: w.o, reduction, def: w.after });
     series.set(w.table, s);
   }
   // DEF before the first write: the first write's DEF with its reduction undone. Every write must
@@ -374,11 +388,11 @@ export function enemyStats(dir, perHitRows) {
     if (unreadable.has(table)) return none();
     const s = series.get(table);
     if (!s) return { enemy_def: ownDefAt(String(row.target_entity).toLowerCase(), +row.elapsed_ms), enemy_def_reduction_pct: "0" }; // never debuffed
-    const t = +row.elapsed_ms;
+    const t = +row.elapsed_ms, o = orderOrNull(row.hit_order);
     let last = null;
     for (const w of s) {
-      if (w.t > t) break;
-      last = w;
+      if (stopAt(w, t, o)) break;
+      if (notAfter(w, t, o)) last = w;
     }
     return last
       ? { enemy_def: last.def.toFixed(2), enemy_def_reduction_pct: pct(last.reduction) }
@@ -391,7 +405,7 @@ export function enemyStats(dir, perHitRows) {
   for (const w of props) {
     if (!resType || w.type !== resType) continue;
     const s = res.get(w.table) ?? [];
-    s.push({ t: w.t, total: w.after, ok: Math.abs((s.length ? s[s.length - 1].total : 0) + w.change - w.after) <= 0.5 });
+    s.push({ t: w.t, o: w.o, total: w.after, ok: Math.abs((s.length ? s[s.length - 1].total : 0) + w.change - w.after) <= 0.5 });
     res.set(w.table, s);
   }
   const resAt = (row) => {
@@ -400,10 +414,11 @@ export function enemyStats(dir, perHitRows) {
     const s = res.get(table);
     if (!s) return "0";
     if (!s.every((w) => w.ok)) return "";
+    const t = +row.elapsed_ms, o = orderOrNull(row.hit_order);
     let total = 0;
     for (const w of s) {
-      if (w.t > +row.elapsed_ms) break;
-      total = w.total;
+      if (stopAt(w, t, o)) break;
+      if (notAfter(w, t, o)) total = w.total;
     }
     return Math.abs(total) < 1e-6 ? "0" : (total / 100).toFixed(2);
   };
@@ -412,17 +427,17 @@ export function enemyStats(dir, perHitRows) {
   for (const g of gets) {
     const types = statSeries.get(g.table) ?? new Map();
     const list = types.get(g.type) ?? [];
-    list.push([g.t, g.value]);
+    list.push(g);
     types.set(g.type, list);
     statSeries.set(g.table, types);
   }
-  const statAt = (table, type, t) => {
+  const statAt = (table, type, t, o = null) => {
     const list = statSeries.get(table)?.get(type);
     if (!list) return null;
-    let v = list[0][1];
-    for (const [at, x] of list) {
-      if (at > t) break;
-      v = x;
+    let v = list[0].value;
+    for (const g of list) {
+      if (stopAt(g, t, o)) break;
+      if (notAfter(g, t, o)) v = g.value;
     }
     return v;
   };
@@ -438,15 +453,15 @@ export function enemyStats(dir, perHitRows) {
   const attackerStats = (row) => {
     const a = String(row.attacker_entity).toLowerCase();
     const table = ownTable.get(a);
-    const t = +row.elapsed_ms;
-    const pen = table ? (statAt(table, "568", t) ?? statAt(table, "22", t)) : null;
-    const sheer = table ? statAt(table, "65", t) : null;
+    const t = +row.elapsed_ms, o = orderOrNull(row.order); // the converter's: after this hit's own reads
+    const pen = table ? (statAt(table, "568", t, o) ?? statAt(table, "22", t, o)) : null;
+    const sheer = table ? statAt(table, "65", t, o) : null;
     // `measured`: the stats came from the game's own reads, not the loadout -- the damage factor
     // needs that (a loadout knows no PEN from buffs).
     // In-battle Anomaly Mastery / Proficiency (579 / 577): the result's own fields are the BASE values
     // on direct hits (docs/property-types.md).
-    const am = table ? statAt(table, "579", t) : null;
-    const ap = table ? statAt(table, "577", t) : null;
+    const am = table ? statAt(table, "579", t, o) : null;
+    const ap = table ? statAt(table, "577", t, o) : null;
     return { flatPen: pen ?? (statSeries.size === 0 ? fromLoadout.get(avatarOf.get(a)) ?? null : null), sheer: sheer ?? null, measured: pen !== null || sheer !== null, am, ap };
   };
   const factorOf = (row, def, reductionPct, stats) => {

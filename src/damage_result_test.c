@@ -8,6 +8,7 @@ void damage_result_entry(void) {}
 void damage_snapshot_entry(void) {}
 void damage_daze_entry(void) {}
 void damage_anomaly_entry(void) {}
+void statelog_on_hit(void) {} /* statelog.zig: damage_result_record calls it (per-hit stat reads) */
 #define CHECK(x) do {if(!(x)){printf("FAIL line %d: %s\n",__LINE__,#x);exit(1);}} while(0)
 int main(void) {
     CHECK(damage_result_start()==-7);
@@ -67,14 +68,15 @@ int main(void) {
     CHECK(strstr(text,"\thop1")==NULL&&strstr(text,"h2:")==NULL); /* schema-4 hop cells are gone */
     { unsigned char none[PIN_DamageResult_dump_bytes]={0}; float d=1.0f; memcpy(none+PIN_DamageResult_damage,&d,4); r.gpr[3]=(uintptr_t)none; damage_result_record(&r,stack); } /* a8 null: row still written */
     CHECK(result_sequence==3);
-    CHECK(strstr(text,"\t2\t20\t0:4:8:4200750066006600|1:6:12:410062006c006f006f006d00|\n")); /* tags, row 1 */
+    CHECK(strstr(text,"\t2\t20\t0:4:8:4200750066006600|1:6:12:410062006c006f006f006d00|\t\t\t\t1\n")); /* tags, row 1; empty float_list / team_props / base_props; order 1 */
     /* 20 tags keep the first 16; a size beyond the array's capacity reads none; a null list is -1/-1. */
     r.gpr[3]=(uintptr_t)result; tagsize=20; memcpy(taglist+0x18,&tagsize,4); damage_result_record(&r,stack);
     tagsize=21; memcpy(taglist+0x18,&tagsize,4); damage_result_record(&r,stack); CHECK(result_sequence==5);
     SetFilePointer(result_output,0,NULL,FILE_BEGIN); static char again[520000]; CHECK(ReadFile(result_output,again,sizeof(again)-1,&n,NULL)); again[n]=0;
     { char *row=strstr(again,"\t20\t20\t0:4:"); CHECK(row); char *eol=strchr(row,'\n'); CHECK(eol); *eol=0;
       CHECK(strstr(row,"|15:6:12:410062006c006f006f006d00|")&&!strstr(row,"|16:")); *eol='\n'; }
-    CHECK(strstr(again,"\t21\t20\t\n")); CHECK(strstr(again,"\t0x0\t0\t\t-1\t-1\t\n"));
+    CHECK(strstr(again,"\t21\t20\t\t\t\t\t6\n")); CHECK(strstr(again,"\t0x0\t0\t\t-1\t-1\t\t\t\t\t4\n")); /* order 3 went to the lock-skipped call */
+    CHECK(log_order==6);
     CloseHandle(result_output);DeleteFileA("damage-result-test.tmp");VirtualFree((void*)damage_result_original,0,MEM_RELEASE);VirtualFree(image,0,MEM_RELEASE);
     puts("PASS result: install gates/relocation, bounded snapshots, unreadable pointers, string truncation, unchanged inputs, lock skip, last error, tag list");
 }

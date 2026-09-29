@@ -8,6 +8,7 @@ void damage_result_entry(void) {}
 void damage_snapshot_entry(void) {}
 void damage_daze_entry(void) {}
 void damage_anomaly_entry(void) {}
+void statelog_on_hit(void) {} /* statelog.zig: damage_result_record calls it (per-hit stat reads) */
 #define CHECK(x) do {if(!(x)){printf("FAIL line %d: %s\n",__LINE__,#x);exit(1);}} while(0)
 int main(void) {
     CHECK(damage_snapshot_start()==-7);
@@ -36,7 +37,8 @@ int main(void) {
       char *cell=strstr(text,want); CHECK(cell); cell+=strlen(want);
       CHECK(!memcmp(cell,"5a5a5a5a",8)); CHECK(!memcmp(cell+0x130*2,"66a65245",8)); /* 3370.4f = 0x4552a666 little-endian */
       CHECK(!strncmp(cell+0x200*2,"\t400\ta5a5a5a5",13)); }
-    CHECK(strstr(text,"\t0x1\t0x55\t0x66\t0x77\t0x88\t512\t")&&strstr(text,"\t0\t\n")); /* second row: arg4 unreadable */
+    CHECK(strstr(text,"\t0x1\t0x55\t0x66\t0x77\t0x88\t512\t")&&strstr(text,"\t0\t\t2\n")); /* second row: arg4 unreadable; order 2 */
+    CHECK(log_order==3); /* the lock-skipped call took 3 */
     CHECK(strstr(text,"\tsnapshot_hex")==NULL); /* header not in the data rows */
     CloseHandle(snapshot_output); DeleteFileA("damage-snapshot-test.tmp");
     VirtualFree((void*)damage_snapshot_original,0,MEM_RELEASE); VirtualFree(image,0,MEM_RELEASE);

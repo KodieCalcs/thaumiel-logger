@@ -44,9 +44,9 @@ static const char *anomaly_header =
     PIN_STR(PIN_AnomalyHitEvent_ctx) " result_ptr=ctx+" PIN_STR(PIN_HitContext_result) " cur_before=this+"
     PIN_STR(PIN_AnomalyGauge_cur) " max=this+" PIN_STR(PIN_AnomalyGauge_max) " element=this+" PIN_STR(PIN_AnomalyGauge_element)
     " join=result_ptr_same_thread_nearest_ms applied=result+" PIN_STR(PIN_DamageResult_buildup_applied) " requested=result+"
-    PIN_STR(PIN_DamageResult_buildup_requested) " f68=this+" PIN_STR(PIN_AnomalyGauge_f68) " semantics=code_traced_" PIN_VERSION "_join_checks\n"
+    PIN_STR(PIN_DamageResult_buildup_requested) " f68=this+" PIN_STR(PIN_AnomalyGauge_f68) " semantics=code_traced_" PIN_VERSION "_join_checks order=process_wide_shared_with_state.tsv\n"
     "sequence\telapsed_ms\tthread\tskipped\tcaller_rva\tthis\tevt\tctx\tresult_ptr\tentity_ptr\telement\tvariant\tvariant2\tcur_before\tmax\tf68\tresult_requested\tresult_daze_mv"
-    "\tthis_bytes\tthis_hex\tctx_bytes\tctx_hex\n";
+    "\tthis_bytes\tthis_hex\tctx_bytes\tctx_hex\torder\n";
 
 static float anomaly_float(uintptr_t address) {
     float f = 0; unsigned char raw[4];
@@ -61,6 +61,7 @@ static int32_t anomaly_int(uintptr_t address) {
 void damage_anomaly_record(const ProbeRegisters *r, const uint64_t *entry_stack) {
     DWORD error = GetLastError();
     if (anomaly_output == INVALID_HANDLE_VALUE) { SetLastError(error); return; }
+    uint64_t order = thaumiel_log_next_order(); /* before the lock: the moment of the call */
     if (!TryAcquireSRWLockExclusive(&anomaly_lock)) { InterlockedIncrement(&anomaly_skipped); SetLastError(error); return; }
     uint64_t caller = 0; snapshot((uintptr_t)entry_stack, &caller, sizeof(caller));
     uintptr_t self = r->gpr[0], evt = r->gpr[1];
@@ -84,6 +85,7 @@ void damage_anomaly_record(const ProbeRegisters *r, const uint64_t *entry_stack)
         (long)element, (long)variant, (long)variant2, cur, max, f68, requested, daze_mv);
     p += sprintf(p, "\t%llu\t", (unsigned long long)n); p = result_hex(p, self_bytes, n);
     p += sprintf(p, "\t%llu\t", (unsigned long long)m); p = result_hex(p, ctx_bytes, m);
+    p += sprintf(p, "\t%llu", (unsigned long long)order);
     *p++ = '\n';
     DWORD written = 0;
     if (!WriteFile(anomaly_output, line, (DWORD)(p - line), &written, NULL) || written != (DWORD)(p - line)) InterlockedIncrement(&anomaly_skipped);
