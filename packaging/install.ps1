@@ -125,37 +125,57 @@ Copy-Item (Join-Path $repo 'packaging\READ ME.txt') $logs -Force
 
 # The server's logs folder, where it writes each settlement (endbattle_<n>.pb): a battle gets a
 # "Battle <n>" folder only when its settlement is found there (tools/summarize.mjs). Kept across
-# installs; otherwise found next to the game folder (a folder with gamesv\ in it), else asked.
+# installs; otherwise found beside the game folder, inside it, or as the game folder itself (a
+# folder with gamesv\ in it), else asked.
 $serverConfig = Join-Path $tools 'server-logs.txt'
+function Test-Settlements($logsDir) { [bool](Get-ChildItem $logsDir -Filter 'endbattle_*.pb' -ErrorAction SilentlyContinue | Select-Object -First 1) }
 if (-not $Staging) {
     $current = if (Test-Path $serverConfig) { (Get-Content $serverConfig -Raw).Trim() } else { '' }
     $currentOk = $current -and (Test-Path (Join-Path $GameFolder $current)) -or ($current -and [IO.Path]::IsPathRooted($current) -and (Test-Path $current))
     if (-not $currentOk) {
-        $parent = Split-Path -Parent $GameFolder
+        $game = (Get-Item $GameFolder).FullName.TrimEnd('\')
+        $parent = Split-Path -Parent $game
         # Several servers side by side (an old plain Remielle next to the battlestats one): prefer the
         # one that has written settlements, then one named battlestats. The summarizer checks every
         # server folder here anyway; this is only what server-logs.txt records.
-        $server = Get-ChildItem $parent -Directory -ErrorAction SilentlyContinue |
+        $server = @(Get-Item $game) + @(Get-ChildItem $game, $parent -Directory -ErrorAction SilentlyContinue) |
             Where-Object { Test-Path (Join-Path $_.FullName 'gamesv') } |
-            Sort-Object @{ Expression = { [bool](Get-ChildItem (Join-Path $_.FullName 'logs') -Filter 'endbattle_*.pb' -ErrorAction SilentlyContinue | Select-Object -First 1) }; Descending = $true },
+            Sort-Object @{ Expression = { Test-Settlements (Join-Path $_.FullName 'logs') }; Descending = $true },
                         @{ Expression = { $_.Name -match 'battlestats' }; Descending = $true } |
             Select-Object -First 1
-        $serverDir = if ($server) { $server.FullName } else { $null }
+        $serverDir = if ($server) { $server.FullName.TrimEnd('\') } else { $null }
         if (-not $serverDir) {
             Add-Type -AssemblyName System.Windows.Forms
             $dialog = New-Object System.Windows.Forms.FolderBrowserDialog
             $dialog.Description = 'Select your Remielle server folder (the one with gamesv and logs in it). Battles are saved when the server settles them.'
             $dialog.ShowNewFolderButton = $false
-            if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { $serverDir = $dialog.SelectedPath }
+            while ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+                $picked = $dialog.SelectedPath.TrimEnd('\')
+                # Picking the server's own gamesv\ or logs\ folder means the server folder above it.
+                if (-not (Test-Path (Join-Path $picked 'gamesv')) -and (Split-Path -Leaf $picked) -in 'gamesv', 'logs') { $picked = Split-Path -Parent $picked }
+                if (Test-Path (Join-Path $picked 'gamesv')) { $serverDir = $picked; break }
+                Say "$picked is not a Remielle server folder (it has no gamesv folder in it). Pick the one that does, or Cancel."
+            }
         }
         if ($serverDir) {
-            # Relative to the game folder when they sit side by side, so the path works on the
-            # game machine however this installer reached it (e.g. over the network).
-            $value = if ((Split-Path -Parent $serverDir) -eq $parent) { '..\' + (Split-Path -Leaf $serverDir) + '\logs' } else { Join-Path $serverDir 'logs' }
+            # Relative to the game folder when the server is in it or beside it, so the path works on
+            # the game machine however this installer reached it (e.g. over the network).
+            $value = if ($serverDir -eq $game) { 'logs' }
+                elseif ((Split-Path -Parent $serverDir) -eq $game) { (Split-Path -Leaf $serverDir) + '\logs' }
+                elseif ((Split-Path -Parent $serverDir) -eq $parent) { '..\' + (Split-Path -Leaf $serverDir) + '\logs' }
+                else { Join-Path $serverDir 'logs' }
             Set-Content -Path $serverConfig -Value $value -Encoding ascii
             Say "Server settlements: $value"
         } else {
             Say 'No server folder chosen: every battle with a hit will be saved, settled or not. Run install.cmd again to set it.'
+        }
+    }
+    # Only the battlestats Remielle writes settlements, so a server that never has may be the wrong one.
+    $recorded = if (Test-Path $serverConfig) { (Get-Content $serverConfig -Raw).Trim() } else { '' }
+    if ($recorded) {
+        $recordedDir = [IO.Path]::GetFullPath($(if ([IO.Path]::IsPathRooted($recorded)) { $recorded } else { Join-Path $GameFolder $recorded }))
+        if (-not (Test-Settlements $recordedDir)) {
+            Say "Note: this server has not saved a battle yet (no endbattle_*.pb in $recordedDir). Only the battlestats Remielle saves them. If you have already finished a battle on it, this is the wrong server folder: delete Combat Logs\.tools\server-logs.txt and run install.cmd again."
         }
     }
 }

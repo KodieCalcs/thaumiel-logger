@@ -112,6 +112,7 @@ function summarize(dir, allRows, check) {
     settlement: check?.settlement
       ? { file: check.settlement, skillsMatchingExactly: check.exact, skillsNotMatching: check.mismatched }
       : null,
+    settlementNote: check?.settlement ? null : missingSettlementNote(dir),
     durationSeconds: times.length ? round(Math.max(...times) - Math.min(...times), 1) : 0,
     hits: rows.length,
     totalDamage: Math.round(total),
@@ -147,7 +148,7 @@ function breakdownSheet(summary, allRows) {
       "Server settlement",
       summary.settlement
         ? `${summary.settlement.file}: ${summary.settlement.skillsMatchingExactly} skill totals match exactly, ${summary.settlement.skillsNotMatching} do not`
-        : "none found (totals not cross-checked)",
+        : summary.settlementNote,
     ],
     ["Damage taken by the team", { v: summary.damageTaken.damage, s: "int" }, `${summary.damageTaken.hits} hits`],
     [],
@@ -314,8 +315,9 @@ function summarizeBattle(dir) {
 // --- publishing ---------------------------------------------------------------------------------
 
 /** Every logs folder a settlement may be in: the one in .tools\server-logs.txt (relative to the game
- *  folder; written by install.cmd) and the logs\ of every folder beside the game folder with gamesv\
- *  in it. All of them, because a player can keep an old plain Remielle server next to the
+ *  folder; written by install.cmd) and the logs\ of every server folder (one with gamesv\ in it)
+ *  beside the game folder, inside it, or the game folder itself (players unpack the server into
+ *  it). All of them, because a player can keep an old plain Remielle server next to the
  *  battlestats one, and only the battlestats server writes settlements: picking one folder picked
  *  the wrong one. A logs\ folder may not exist until the server's first settlement. */
 function serverLogsDirs(root) {
@@ -325,13 +327,24 @@ function serverLogsDirs(root) {
     const configured = fs.readFileSync(path.join(root, ".tools", "server-logs.txt"), "utf8").replace(/^﻿/, "").trim();
     if (configured) dirs.push(path.resolve(gameDir, configured));
   } catch {}
-  try {
-    const parent = path.dirname(gameDir);
-    for (const d of fs.readdirSync(parent, { withFileTypes: true })) {
-      if (d.isDirectory() && fs.existsSync(path.join(parent, d.name, "gamesv"))) dirs.push(path.join(parent, d.name, "logs"));
-    }
-  } catch {}
+  if (fs.existsSync(path.join(gameDir, "gamesv"))) dirs.push(path.join(gameDir, "logs"));
+  for (const parent of [path.dirname(gameDir), gameDir]) {
+    try {
+      for (const d of fs.readdirSync(parent, { withFileTypes: true })) {
+        if (d.isDirectory() && fs.existsSync(path.join(parent, d.name, "gamesv"))) dirs.push(path.join(parent, d.name, "logs"));
+      }
+    } catch {}
+  }
   return [...new Set(dirs.map((d) => path.resolve(d).toLowerCase()))].map((lower) => dirs.find((d) => path.resolve(d).toLowerCase() === lower));
+}
+
+/** Why a summarized battle has no settlement, for the Breakdown tab. Without any server folder the
+ *  logger publishes every battle unchecked, and only install.cmd can fix that. */
+function missingSettlementNote(dir) {
+  const root = path.dirname(path.dirname(dir)); // Combat Logs\<day>\Battle <n>
+  if (fs.existsSync(path.join(root, ".tools")) && serverLogsDirs(root).length === 0)
+    return "no server folder set: run install.cmd again and pick your battlestats Remielle folder (the one with gamesv in it)";
+  return "none found (totals not cross-checked)";
 }
 
 /** Battles the DLL has finished with (battle.txt written). `judged` ones were found unsettled
@@ -430,7 +443,7 @@ function publishWithoutServer(root, battle) {
 /** Judge every staged battle: publish it, leave it for later, or mark it never settled. */
 async function publishStaged(root) {
   const logsDirs = serverLogsDirs(root);
-  if (!logsDirs.length) note("no server logs folder found (.tools\\server-logs.txt, or a server folder beside the game folder); publishing every battle with a hit");
+  if (!logsDirs.length) note("no server logs folder found (.tools\\server-logs.txt, or a server folder beside or inside the game folder); publishing every battle with a hit");
   for (const battle of stagedBattles(root)) {
     try {
       // A battle that recorded no damage has nothing to show, settled or not (entered and left

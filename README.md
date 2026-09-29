@@ -22,8 +22,8 @@ git clone https://github.com/KodieCalcs/thaumiel-logger.git
 Then double-click **`install.cmd`** in that folder. The first time, it:
 
 1. asks you to pick your game folder (the one with `GameAssembly.dll` in it) and remembers it;
-2. finds your Remielle (battlestats) server folder next to the game folder, or asks for it:
-   battles are saved when the server writes their settlement;
+2. finds your Remielle (battlestats) server folder next to the game folder or inside it, or asks
+   for it: battles are saved when the server writes their settlement;
 3. downloads Zig (to build) and Node.js (for the summaries) into the repository's `.cache`
    folder. Nothing is installed on your system;
 4. builds, and copies `remielle.exe` and `thaumiel.dll` into your game folder, plus a
@@ -34,7 +34,7 @@ Start the game with `remielle.exe`, as usual.
 **Don't want to build?** Download the zip from [Releases](../../releases/latest) and copy
 everything in it into your game folder instead. To update, download the new zip and copy it in again.
 The logger finds your server by itself if its folder (the one with `gamesv` in it) is next to the
-game folder; if it's somewhere else, use `install.cmd` instead, which asks for it.
+game folder or inside it; if it's somewhere else, use `install.cmd` instead, which asks for it.
 
 ## Update
 
@@ -91,6 +91,7 @@ the game still works, and the next update turns it back on.
 |---|---|
 | No `Combat Logs\logger status.txt` after starting the game | The game wasn't started with this `remielle.exe`, or it went into the wrong folder. Run `install.cmd` again. |
 | A battle you finished has no folder | The server must be the battlestats Remielle, and `install.cmd` must know its folder: run it again (delete `Combat Logs\.tools\server-logs.txt` first to pick the folder again). |
+| The Breakdown tab says "no server folder set" | The logger could not find your server, so it saved the battle without checking it against the settlement. Run `install.cmd` again and pick the battlestats Remielle folder (the one with `gamesv` in it). |
 | Battle folders but no `combat-log.xlsx` | Check the "Summaries" line in `logger status.txt`. Running `install.cmd` again fixes a missing tool or Node.js. |
 | `install.cmd` says the game is running | Close the game, then run it again. |
 | Wrong game folder | Delete `install-config.txt` in this folder and run `install.cmd` again. |
