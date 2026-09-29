@@ -248,15 +248,28 @@ if (pbFile) {
   // The battle-result container is top-level field 8 in the 3.3.0 protocol, 12 in 3.3.2 and 9 in
   // 3.3.4; the avatar (f6 -> f7) and per-skill (f14: id, damage, hits at f10) layout inside is
   // unchanged.
+  // The battle record (f6) also carries the results screen's Total Time in whole seconds (f3: 182 on
+  // every 3:00 timeout, since it starts counting before the countdown) and, in its f8, the team's
+  // damage total (f12; readable-log.mjs reconciles late hits against it).
+  const teamTotals = [];
   for (const f8 of parse(fs.readFileSync(path.join(dir, pbFile))).filter((x) => (x.f === 8 || x.f === 9 || x.f === 12) && x.wt === 2))
-    for (const f6 of parse(f8.v).filter((x) => x.f === 6 && x.wt === 2))
-      for (const f7 of parse(f6.v).filter((x) => x.f === 7 && x.wt === 2)) {
+    for (const f6 of parse(f8.v).filter((x) => x.f === 6 && x.wt === 2)) {
+      const battle = parse(f6.v);
+      const time = battle.find((x) => x.f === 3 && x.wt === 0);
+      if (time) check.totalTimeSeconds = Number(time.v);
+      for (const stats of battle.filter((x) => x.f === 8 && x.wt === 2)) {
+        const total = parse(stats.v).find((x) => x.f === 12 && x.wt === 0);
+        if (total) teamTotals.push(Number(total.v));
+      }
+      for (const f7 of battle.filter((x) => x.f === 7 && x.wt === 2)) {
         const avatar = parse(f7.v); const id = Number(avatar.find((x) => x.f === 1)?.v ?? 0);
         for (const f14 of avatar.filter((x) => x.f === 14 && x.wt === 2)) {
           const e = parse(f14.v); const g = (n) => Number(e.find((x) => x.f === n)?.v ?? 0);
           settlement[g(1)] = { damage: g(2), hits: g(10), avatar: id };
         }
       }
+    }
+  if (teamTotals.length === 1) check.battleTotal = teamTotals[0];
   // New Agents present in this settlement must reconcile without needing a name map.
   // Keep historical map-known log-only skills (e.g. Bangboo) for report compatibility.
   for (const h of complete) if (typeof h.skill_id === "number" && settlement[h.skill_id]) h.report_skill_id = h.skill_id;

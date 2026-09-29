@@ -18,6 +18,10 @@ This folder is where the combat logger (thaumiel + combat logger) saves your bat
                            damage and Daze taken, and the team's debuffs on it.
       combat-log.json      every hit, for programs and AI tools.
 
+Times count from the start of the battle's countdown, so a fight that runs
+out of time ends at 180 s. Hits after time-up that the game did not count
+are marked not_counted = Yes on the Every hit tab and left out of the totals.
+
 The two files appear a few seconds after a battle ends. They are the ones to share.
 
 Beside them are endbattle_7.pb and endbattle_7_loadout.json: the server's settlement

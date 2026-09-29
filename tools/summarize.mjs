@@ -80,8 +80,16 @@ function splitTeam(allRows) {
 
 const abilityOf = (r) => r.ability.replace(/ #\d+$/, "");
 
-/** Damage and Daze per attacker and per skill from the readable log, plus the settlement cross-check. */
-function summarize(dir, allRows, check) {
+/** Where time_s is zero (readable-log.mjs combat-log-clock.json `zero`), in words. */
+const ZERO_TEXT = {
+  "time-up": "the countdown's start: 180 s before the fight's last counted hit (it ran out of time)",
+  spawn: "the countdown's start, taken as the boss's spawn (within about 1.5 s of it)",
+  "first hit": "the battle's first hit (this capture cannot place the countdown)",
+};
+
+/** Damage and Daze per attacker and per skill from the readable log (the hits the game counted),
+ *  plus the settlement cross-check. */
+function summarize(dir, allRows, check, clock) {
   const header = fs.readFileSync(resultFileOf(dir), "utf8").split("\n", 1)[0];
   const { rows, taken } = splitTeam(allRows);
   const total = rows.reduce((s, r) => s + (+r.damage || 0), 0);
@@ -106,14 +114,24 @@ function summarize(dir, allRows, check) {
     byAttacker.set(name, a);
   }
   const times = rows.map((r) => +r.time_s).filter(Number.isFinite);
+  const zero = clock?.zero ?? "first hit";
   return {
     gameVersion: /client=(\S+)/.exec(header)?.[1] ?? null,
     battle: `${path.basename(path.dirname(dir))} ${path.basename(dir)}`,
     settlement: check?.settlement
-      ? { file: check.settlement, skillsMatchingExactly: check.exact, skillsNotMatching: check.mismatched }
+      ? {
+          file: check.settlement,
+          skillsMatchingExactly: check.exact,
+          skillsNotMatching: check.mismatched,
+          teamDamage: check.battleTotal ?? null,
+          totalTimeSeconds: check.totalTimeSeconds ?? null,
+        }
       : null,
     settlementNote: check?.settlement ? null : missingSettlementNote(dir),
-    durationSeconds: times.length ? round(Math.max(...times) - Math.min(...times), 1) : 0,
+    timeZero: ZERO_TEXT[zero],
+    // From the countdown's start to the last counted hit (from the first hit when that is the zero).
+    durationSeconds: times.length ? round(Math.max(...times) - (zero === "first hit" ? Math.min(...times) : 0), 1) : 0,
+    notCounted: clock?.notCounted ?? { hits: 0, damage: 0 },
     hits: rows.length,
     totalDamage: Math.round(total),
     totalDaze: round(totalDaze, 1),
@@ -144,12 +162,17 @@ function breakdownSheet(summary, allRows) {
     ["Battle", summary.battle],
     ["Game version", summary.gameVersion ?? ""],
     ["Duration (seconds)", { v: summary.durationSeconds, s: "dec" }],
+    ["Time starts at", summary.timeZero],
     [
       "Server settlement",
       summary.settlement
         ? `${summary.settlement.file}: ${summary.settlement.skillsMatchingExactly} skill totals match exactly, ${summary.settlement.skillsNotMatching} do not`
         : summary.settlementNote,
     ],
+    ...(summary.settlement?.totalTimeSeconds ? [["Results screen Total Time (seconds)", summary.settlement.totalTimeSeconds, "counts from before the countdown"]] : []),
+    ...(summary.notCounted.hits
+      ? [["Not counted by the game", { v: summary.notCounted.damage, s: "int" }, `${summary.notCounted.hits} hits after the battle ended (not_counted = Yes on Every hit), left out of every total`]]
+      : []),
     ["Damage taken by the team", { v: summary.damageTaken.damage, s: "int" }, `${summary.damageTaken.hits} hits`],
     [],
     ["Character", "Damage", "Share of damage", "Daze", "Share of Daze", "Hits", "Crit rate"].map((v) => ({ v, s: "bold" })),
@@ -216,7 +239,8 @@ function hitsSheet(csv) {
 
 /** What each hit field means, written into combat-log.json for whoever (or whatever) reads it. */
 const HIT_FIELDS = {
-  time_s: "game seconds since the battle's first hit: the game's own battle clock, which leaves out pauses and Ultimate cutscenes and runs slower during time slows (the Chain wheel, slow-motions)",
+  time_s:
+    "game seconds on the game's own battle clock, which leaves out pauses and Ultimate cutscenes and runs slower during time slows (the Chain wheel, slow-motions); the countdown runs on it too. Zero is the countdown's start, so a fight that runs out of time ends at 180 (taken as the boss's spawn when it did not run out of time; the first hit on captures from before 2026-09-22)",
   attacker: "who dealt the hit: an Agent, a Bangboo, or an enemy",
   target: 'who took it; "enemy (main)" is the most-hit enemy',
   skill_id: "the game's skill id",
@@ -267,10 +291,14 @@ function hitsJson(summary, rows) {
   const value = (v) => (v === "" ? null : /^-?\d+(\.\d+)?$/.test(v) && v.length < 16 ? Number(v) : v);
   const head = {
     about:
-      "Every hit of one battle, one object per hit in time order (the same rows as the Every hit tab of combat-log.xlsx). Totals are left to the reader: sum damage or daze by attacker and ability.",
+      "Every hit of one battle the game counted, one object per hit in time order (the Every hit tab of combat-log.xlsx, less hits after the battle ended that the game did not count). Totals are left to the reader: sum damage or daze by attacker and ability.",
     gameVersion: summary.gameVersion,
     battle: summary.battle,
-    settlement: summary.settlement,
+    settlement: summary.settlement && {
+      file: summary.settlement.file,
+      skillsMatchingExactly: summary.settlement.skillsMatchingExactly,
+      skillsNotMatching: summary.settlement.skillsNotMatching,
+    },
     durationSeconds: summary.durationSeconds,
     hitCount: rows.length,
     fields: HIT_FIELDS,
@@ -300,13 +328,21 @@ function summarizeBattle(dir) {
     try {
       check = JSON.parse(fs.readFileSync(path.join(work, "settlement-check.json"), "utf8"));
     } catch {}
-    const rows = parseCsv(csv);
-    const summary = summarize(dir, rows, check);
-    writeXlsx(path.join(dir, "combat-log.xlsx"), [breakdownSheet(summary, rows), hitsSheet(csv)]);
-    fs.writeFileSync(path.join(dir, "combat-log.json"), hitsJson(summary, rows));
+    let clock = null;
+    try {
+      clock = JSON.parse(fs.readFileSync(path.join(work, "combat-log-clock.json"), "utf8"));
+    } catch {}
+    // Every hit stays on the workbook's Every hit tab, flagged; the totals and combat-log.json take
+    // only the hits the game counted.
+    const counted = parseCsv(csv)
+      .filter((r) => r.not_counted !== "Yes")
+      .map(({ not_counted, ...r }) => r);
+    const summary = summarize(dir, counted, check, clock);
+    writeXlsx(path.join(dir, "combat-log.xlsx"), [breakdownSheet(summary, counted), hitsSheet(csv)]);
+    fs.writeFileSync(path.join(dir, "combat-log.json"), hitsJson(summary, counted));
     // Earlier versions wrote combat-log.csv and summary.json; the two files above replace them.
     for (const old of ["combat-log.csv", "summary.json"]) fs.rmSync(path.join(dir, old), { force: true });
-    return `${summary.hits} hits, ${summary.totalDamage} damage`;
+    return `${summary.hits} hits, ${summary.totalDamage} damage${summary.notCounted.hits ? `, ${summary.notCounted.hits} after-battle hits not counted` : ""}`;
   } finally {
     fs.rmSync(work, { recursive: true, force: true });
   }

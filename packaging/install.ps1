@@ -110,7 +110,7 @@ $logs = Join-Path $GameFolder 'Combat Logs'
 $tools = Join-Path $logs '.tools'
 New-Item -ItemType Directory -Force (Join-Path $tools 'node') | Out-Null
 # summarize.mjs, its workbook writer, and everything the two readers it runs import.
-foreach ($f in 'summarize.mjs', 'per-hit-log.mjs', 'attribution.mjs', 'attack-property-skill-map.json', 'readable-log.mjs', 'log-csv.mjs', 'codename-labels.mjs', 'codenames.json', 'display-names.mjs', 'xlsx.mjs', 'enemy-state.mjs') {
+foreach ($f in 'summarize.mjs', 'per-hit-log.mjs', 'attribution.mjs', 'attack-property-skill-map.json', 'readable-log.mjs', 'log-csv.mjs', 'codename-labels.mjs', 'codenames.json', 'display-names.mjs', 'xlsx.mjs', 'enemy-state.mjs', 'battle-end.mjs') {
     Copy-Item (Join-Path $repo "tools\$f") $tools -Force
 }
 # Tables the readers use when present (per-hit-log.mjs / display-names.mjs check for each).

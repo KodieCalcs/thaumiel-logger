@@ -112,7 +112,9 @@ Found: the battle moves to `Combat Logs\<day>\Battle <n>\` (`Battle <n> (2)` if 
 reused the number that day), the settlement and `endbattle_<n>_loadout.json` are copied in
 (left visible, since the site takes both), and it is summarized from a temporary copy of the raw files, so the readers'
 intermediate files never land in the battle folder; `combat-log.json` and the workbook's
-Breakdown tab carry the settlement cross-check. Not found: `no-settlement.txt`, and it stays in diagnostics,
+Breakdown tab carry the settlement cross-check. `time_s` is zeroed at the countdown's start and hits
+the settlement's team damage total leaves out (periodic effects still ticking after time-up) are
+flagged `not_counted` and left out of every total: `tools/battle-end.mjs` has the rules and the evidence. Not found: `no-settlement.txt`, and it stays in diagnostics,
 looked at again on every run until it is pruned. Settlements are looked for in the logs folder
 `.tools\server-logs.txt` names and in the `logs\` of every server folder (one with `gamesv\`)
 beside the game folder, inside it, or the game folder itself (players unpack the server into it),

@@ -13,6 +13,7 @@ import { parseCsv } from "./log-csv.mjs";
 import { enemyStats } from "./enemy-state.mjs";
 import { codename, displayName, stripCodename } from "./codename-labels.mjs";
 import { loadDisplayNames, entityNames, actionName, anomalyName, abloomTriggers, dropSummonCopies } from "./display-names.mjs";
+import { uncountedTail, countdownStart, bossSpawnMs } from "./battle-end.mjs";
 const dir = process.argv[2];
 if (!dir) { console.error("usage: node readable-log.mjs <archive-dir>"); process.exit(2); }
 const logged = parseCsv(fs.readFileSync(path.join(dir, "per-hit-log.csv"), "utf8"));
@@ -142,25 +143,50 @@ const readable = (r) => {
 };
 // What triggers each Abloom in this log, learned from the hits just before it (display-names.mjs).
 const triggers = abloomTriggers(rows, (r) => actionName(r, nameOf(r.attacker_entity), names));
+// Late hits the game did not count (battle-end.mjs): kept here with not_counted = Yes, left out of
+// every total by summarize.mjs. The team is whoever hits the main target, as in summarize.mjs.
+const team = new Set(rows.filter((r) => r.target_entity === mainTarget && r.attacker_entity !== mainTarget).map((r) => r.attacker_entity));
+const teamHit = (r) => team.has(r.attacker_entity) && !team.has(r.target_entity);
+let settlementCheck = null;
+try {
+  settlementCheck = JSON.parse(fs.readFileSync(path.join(dir, "settlement-check.json"), "utf8"));
+} catch {}
+const notCounted = uncountedTail(
+  rows.map((r) => ({ t: +r.elapsed_ms, damage: +r.damage_ceil || 0, team: teamHit(r), named: /^[1-9]\d*$/.test(r.skill_id ?? "") })),
+  settlementCheck?.battleTotal,
+);
+// time_s is zero where the countdown began (battle-end.mjs): 180 s before the last counted hit of a
+// fight that ran out of time, else the boss's spawn; the first hit on captures without state.tsv.
+const sec = (ms) => clock(ms) / 1000;
+let lastCounted = -Infinity;
+rows.forEach((r, i) => {
+  if (!notCounted.has(i) && teamHit(r) && (+r.damage_ceil || 0) > 0) lastCounted = Math.max(lastCounted, +r.elapsed_ms);
+});
+let spawnMs = null;
+try {
+  spawnMs = bossSpawnMs(fs.readFileSync(path.join(dir, "state.tsv"), "utf8"));
+} catch {}
+const countdown = countdownStart(spawnMs === null ? null : sec(spawnMs), Number.isFinite(lastCounted) ? sec(lastCounted) : null);
 const t0 = rows.reduce((min, r) => Math.min(min, +r.elapsed_ms), Infinity);
+const zero = countdown ? countdown.start : sec(t0);
 const pct = (v) => (v === "" ? "" : (+v * 100).toFixed(2));
 const mods = (r) => Object.fromEntries((r.modifiers || "").split(";").filter(Boolean).map((m) => m.split("=")));
 const cols = ["time_s", "attacker", "target", "skill_id", "ability", "client_name", "attack_tags", "hit_split", "damage", "daze", "anomaly_buildup", "crit", "during_stun",
   "enemy_def", "enemy_def_reduction_pct", "enemy_res_pct", "enemy_damage_taken_pct", "enemy_buildup_taken_pct", "enemy_daze_taken_pct", "enemy_debuffs",
   "damage_mv_pct", "daze_mv_pct", "distance_attenuation", "energy", "decibels", "atk", "impact", "anomaly_mastery", "anomaly_proficiency", "attacker_level",
-  "dmg_bonus_pct", "crit_rate_pct", "crit_dmg_pct", "pen_ratio_pct", "flat_pen", "res_ignore_pct", "sheer_force", "other_modifiers"];
+  "dmg_bonus_pct", "crit_rate_pct", "crit_dmg_pct", "pen_ratio_pct", "flat_pen", "res_ignore_pct", "sheer_force", "other_modifiers", "not_counted"];
 // The target's side (debuffs on it, e.g. Nicole's DEF reduction), which the hit's own record leaves out.
 const enemyAt = enemyStats(dir, logged);
 // battle_am / battle_ap feed anomaly_mastery / anomaly_proficiency below rather than their own columns.
 const enemyColumns = ({ battle_am, battle_ap, ...rest }) => rest;
 const out = [cols.join(",")];
-for (const r of rows) {
+for (const [i, r] of rows.entries()) {
   const m = mods(r); const att = nameOf(r.attacker_entity);
   const enemy = enemyAt(r);
   const other = Object.entries(m).filter(([k]) => !/^Actor_(CriticalDelta|CriticalDamageRatioDelta|AddedDamageRatio(_\w+)?)$/.test(k)).filter(([, v]) => +v !== 0)
     .map(([k, v]) => k.replace(/^Actor_/, "") + "=" + v).join("; ");
   const o = {
-    time_s: ((clock(+r.elapsed_ms) - clock(t0)) / 1000).toFixed(3), attacker: att, target: targetOf(r.target_entity), skill_id: r.skill_id,
+    time_s: (sec(+r.elapsed_ms) - zero).toFixed(3), attacker: att, target: targetOf(r.target_entity), skill_id: r.skill_id,
     ability: (r.skill_id === "anomaly" ? anomalyName(r, att, names, triggers) : null) ?? actionName(r, att, names) ?? readable(r), client_name: readable(r), attack_tags: r.attack_tags ?? "", hit_split: r.hit_split, damage: r.damage_ceil, daze: r.daze === "" ? "" : (+r.daze).toFixed(2), anomaly_buildup: r.buildup_applied === "" ? "" : (+r.buildup_applied).toFixed(2), crit: +r.crit ? "Yes" : "No", during_stun: duringStun(r), ...enemyColumns(enemy),
     damage_mv_pct: pct(r.dmg_mv), daze_mv_pct: pct(r.daze_mv), distance_attenuation: r.attenuation === "" ? "" : (+r.attenuation).toFixed(4), energy: r.energy, decibels: r.decibels,
     atk: r.atk, impact: r.impact, // In-battle Mastery / Proficiency from the per-hit stat reads on direct hits (the result's fields
@@ -169,9 +195,18 @@ for (const r of rows) {
     anomaly_proficiency: (r.skill_id !== "anomaly" && enemy.battle_ap) || r.anomaly_proficiency, attacker_level: r.level,
     dmg_bonus_pct: r.dmg_mult === "" ? "" : ((+r.dmg_mult - 1) * 100).toFixed(2),
     crit_rate_pct: m.Actor_CriticalDelta ? pct(m.Actor_CriticalDelta) : "", crit_dmg_pct: m.Actor_CriticalDamageRatioDelta ? pct(m.Actor_CriticalDamageRatioDelta) : "", pen_ratio_pct: pct(r.f174 ?? ""),
-    other_modifiers: other,
+    other_modifiers: other, not_counted: notCounted.has(i) ? "Yes" : "",
   };
   out.push(cols.map((c) => { const v = String(o[c] ?? ""); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(","));
 }
 fs.writeFileSync(path.join(dir, "combat-log-readable.csv"), out.join("\n") + "\n");
+const notCountedDamage = [...notCounted].reduce((s, i) => s + (+rows[i].damage_ceil || 0), 0);
+const round3 = (v) => (v === null ? null : Number(v.toFixed(3)));
+fs.writeFileSync(path.join(dir, "combat-log-clock.json"), JSON.stringify({
+  zero: countdown?.source ?? "first hit",
+  zeroGameS: round3(zero),
+  spawnGameS: spawnMs === null ? null : round3(sec(spawnMs)),
+  lastCountedGameS: Number.isFinite(lastCounted) ? round3(sec(lastCounted)) : null,
+  notCounted: { hits: notCounted.size, damage: notCountedDamage },
+}, null, 1));
 console.log(rows.length, "rows ->", path.join(dir, "combat-log-readable.csv"), `(${logged.length - rows.length} summon copies left out; names ${names ? "from skill-display-names.json" : "from the client"})`, "attackers:", [...new Set(entityName.values())].join(", "));
