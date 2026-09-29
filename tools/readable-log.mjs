@@ -63,34 +63,54 @@ function stunWindows() {
   }
   return windows;
 }
-// Pauses: timescale.tsv (timescalelog.zig, change-only) carries the game's pause counter in its
-// `pause` column. Wall time runs on while the game is paused, and so does the time manager's own
-// world time, so time_s leaves paused spans out: a span runs from the first row with pause > 0 to
-// the next row with pause back at 0. Without timescale.tsv nothing is left out.
-function pausedSpans() {
+// Game time: timescale.tsv (timescalelog.zig, change-only) carries the level's own world clock
+// (`world_s`), which stands still in Ultimate cinematics (scale 0) and slows with the Chain wheel
+// and slow-motions, so time_s is that clock rather than wall time. Between two rows the scale is
+// constant, so world time interpolates exactly. The game's pause does NOT stop world_s (the time
+// manager keeps integrating while its `pause` counter is up), so a paused span -- from the first
+// row with pause > 0 to the next with it back at 0 -- holds the clock still and every later world
+// time drops by its length. The `awake` row repeats the previous level's state, and the result
+// screen's level restarts world_s and frame, so only the first level's rows are used. Without
+// timescale.tsv (or without such rows) time_s is wall time.
+function gameClock() {
   let text;
   try {
     text = fs.readFileSync(path.join(dir, "timescale.tsv"), "utf8");
   } catch {
-    return [];
+    return null;
   }
   const lines = text.split(/\r?\n/).filter((l) => l && !l.startsWith("#"));
   const head = (lines[0] ?? "").split("\t");
-  const [T, PAUSE] = ["elapsed_ms", "pause"].map((n) => head.indexOf(n));
-  if (T < 0 || PAUSE < 0) return [];
-  const spans = [];
-  let from = null;
+  const [T, SOURCE, WORLD, FRAME, SCALE, PAUSE] = ["elapsed_ms", "source", "world_s", "frame", "scale", "pause"].map((n) => head.indexOf(n));
+  if (T < 0 || WORLD < 0 || FRAME < 0 || SCALE < 0) return null;
+  const steps = [];
+  let removed = 0; // world seconds taken out by pauses so far
+  let heldAt = null; // the world time the clock holds at while paused
+  let last = null;
   for (const l of lines.slice(1)) {
     const c = l.split("\t");
-    const isPaused = +c[PAUSE] > 0;
-    if (isPaused && from === null) from = +c[T];
-    else if (!isPaused && from !== null) { spans.push([from, +c[T]]); from = null; }
+    const t = +c[T], world = +c[WORLD], frame = +c[FRAME];
+    if (c[SOURCE] === "awake" || !Number.isFinite(t) || !Number.isFinite(world)) continue;
+    if (last && (frame < last.frame || world < last.world)) break; // the next level
+    last = { frame, world };
+    if (PAUSE >= 0 && +c[PAUSE] > 0) {
+      if (heldAt === null) heldAt = world - removed;
+      steps.push({ t, world: heldAt, scale: 0 });
+    } else {
+      if (heldAt !== null) { removed = world - heldAt; heldAt = null; }
+      steps.push({ t, world: world - removed, scale: +c[SCALE] });
+    }
   }
-  if (from !== null) spans.push([from, Infinity]);
-  return spans;
+  if (!steps.length) return null;
+  return (ms) => {
+    let i = steps.length - 1;
+    while (i > 0 && steps[i].t > ms) i--;
+    const a = steps[i], b = steps[i + 1];
+    if (b && b.t > a.t && ms >= a.t) return (a.world + (b.world - a.world) * (ms - a.t) / (b.t - a.t)) * 1000;
+    return (a.world + a.scale * (ms - a.t) / 1000) * 1000; // before the first row / after the last: the row's scale
+  };
 }
-const paused = pausedSpans();
-const pausedBefore = (ms) => paused.reduce((sum, [a, b]) => sum + Math.max(0, Math.min(b, ms) - a), 0);
+const clock = gameClock() ?? ((ms) => ms);
 const stunned = [...(stunWindows() ?? new Map()).values()].filter((w) => w.length);
 const mainStun = stunned.length === 1 ? stunned[0] : null;
 const duringStun = (r) => {
@@ -129,7 +149,7 @@ for (const r of rows) {
   const other = Object.entries(m).filter(([k]) => !/^Actor_(CriticalDelta|CriticalDamageRatioDelta|AddedDamageRatio(_\w+)?)$/.test(k)).filter(([, v]) => +v !== 0)
     .map(([k, v]) => k.replace(/^Actor_/, "") + "=" + v).join("; ");
   const o = {
-    time_s: ((+r.elapsed_ms - t0 - (pausedBefore(+r.elapsed_ms) - pausedBefore(t0))) / 1000).toFixed(3), attacker: att, target: targetOf(r.target_entity), skill_id: r.skill_id,
+    time_s: ((clock(+r.elapsed_ms) - clock(t0)) / 1000).toFixed(3), attacker: att, target: targetOf(r.target_entity), skill_id: r.skill_id,
     ability: (r.skill_id === "anomaly" ? anomalyName(r, att, names, triggers) : null) ?? actionName(r, att, names) ?? readable(r), client_name: readable(r), attack_tags: r.attack_tags ?? "", hit_split: r.hit_split, damage: r.damage_ceil, daze: r.daze === "" ? "" : (+r.daze).toFixed(2), anomaly_buildup: r.buildup_applied === "" ? "" : (+r.buildup_applied).toFixed(2), crit: +r.crit ? "Yes" : "No", during_stun: duringStun(r), ...enemyColumns(enemy),
     damage_mv_pct: pct(r.dmg_mv), daze_mv_pct: pct(r.daze_mv), distance_attenuation: r.attenuation === "" ? "" : (+r.attenuation).toFixed(4), energy: r.energy, decibels: r.decibels,
     atk: r.atk, impact: r.impact, // In-battle Mastery / Proficiency from the per-hit stat reads on direct hits (the result's fields

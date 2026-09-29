@@ -215,7 +215,7 @@ function hitsSheet(csv) {
 
 /** What each hit field means, written into combat-log.json for whoever (or whatever) reads it. */
 const HIT_FIELDS = {
-  time_s: "seconds since the battle's first hit, with time spent paused left out",
+  time_s: "game seconds since the battle's first hit: the game's own battle clock, which leaves out pauses and Ultimate cutscenes and runs slower during time slows (the Chain wheel, slow-motions)",
   attacker: "who dealt the hit: an Agent, a Bangboo, or an enemy",
   target: 'who took it; "enemy (main)" is the most-hit enemy',
   skill_id: "the game's skill id",
@@ -289,8 +289,8 @@ function summarizeBattle(dir) {
   try {
     for (const name of fs.readdirSync(dir)) {
       // Everything the readers use: the probes, hits.tsv (skill attribution), state.tsv (Stun
-      // windows) and the settlement.
-      if (/^(damage-.*\.tsv|hits\.tsv|state\.tsv|endbattle_\d+\.pb|endbattle_\d+_loadout\.json)$/.test(name)) fs.copyFileSync(path.join(dir, name), path.join(work, name));
+      // windows), timescale.tsv (the game clock for time_s) and the settlement.
+      if (/^(damage-.*\.tsv|hits\.tsv|state\.tsv|timescale\.tsv|endbattle_\d+\.pb|endbattle_\d+_loadout\.json)$/.test(name)) fs.copyFileSync(path.join(dir, name), path.join(work, name));
     }
     run("per-hit-log.mjs", work);
     run("readable-log.mjs", work);
