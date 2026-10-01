@@ -58,6 +58,16 @@ counted in that damage and before the Stun its Daze starts; a hit with no damage
 hook row); `readable-log.mjs` decides `during_stun` and the enemy-side columns by them
 (`tools/test-stun-order.mjs`). Earlier captures have no `order` and keep the millisecond rule.
 
+**A Stun Reset can straddle a tick.** A Reset is the `StunBuffModifier` detached and re-attached as
+adjacent rows. They usually share a millisecond, but the ~16 ms step can land between them (seen
+three times: 224344 / 224359 ms at consecutive orders, and twice in captures without `order`).
+Matched by millisecond, that reads as a Stun End and a new Start one step later. A real End is the
+meter running out (CurStun written to 0 on the detach), and a new Start needs the whole Daze gauge,
+so `readable-log.mjs` treats an attach within 50 ms of an End as the same Stun
+(`tools/test-stun-split-reset.mjs`). A finer clock would not fix this: two adjacent writes straddle
+a 1 ms boundary more often than a 16 ms one. A reader that counts Stuns or Resets from `state.tsv`
+needs the same rule.
+
 The damage probes are **on by default** (since 2026-09-28; they were opt-in before) and
 `damage-probe-disable.txt` in the launch directory turns them off. The hit log always runs. The
 il2cpp dump is **opt-in**: it is written only when `dumper-enable.txt` exists in the launch

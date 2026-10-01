@@ -35,13 +35,23 @@ const targets = new Map(); for (const r of rows) targets.set(r.target_entity, (t
 const mainTarget = [...targets].sort((a, b) => b[1] - a[1])[0]?.[0];
 // The enemy's StunBuffModifier IS the Stun (statelog.zig writes its attach "mod+"/"modA" and detach
 // "modD"): a window runs from the first attach while none is live to the detach that leaves none.
-// A Reset (detach + attach on one frame) keeps it open. Per recipient pointer, which is not the
+// A Reset (detach + attach as adjacent rows) keeps it open, also when the two rows straddle a tick
+// (RESET_TICK_MS below). Per recipient pointer, which is not the
 // hit's target handle, so the windows are used only when exactly one enemy was Stunned (read as the
 // main target); otherwise, or without state.tsv, during_stun is left empty.
 // Each window is [start ms, end ms, start order, end order]. The orders (the shared row counter,
 // captures from 2026-09-29 on) decide a hit in the same ~16 ms step as an attach or detach: the hit
 // whose Daze fills the gauge shares the Stun's millisecond but was computed before it (capture 3797:
 // no Stun multiplier on that hit, the multiplier on the next one in the same ms).
+// A Reset's detach and re-attach are adjacent rows, but elapsed_ms is GetTickCount64 (~15.6 ms
+// steps), so the tick can land between them. One capture (2026-10-01) detached at 224344 ms and
+// re-attached at 224359, at consecutive orders 280941 / 280942. Two captures without `order` show
+// the same at 461031 / 461047 and 152032 / 152047. Read as an End and a new Start, that is a
+// 0.48 s Stun with no Reset, then a second Stun that is one Reset short. Without `order`, hits
+// stamped in the gap also read "No". Neither can be right. An End is the meter running out
+// (CurStun is written to 0 on the detach; here it kept its value), and a new Start needs the whole
+// Daze gauge filled again. So an attach within RESET_TICK_MS of an End re-opens that window.
+const RESET_TICK_MS = 50;
 function stunWindows() {
   let text;
   try {
@@ -64,7 +74,11 @@ function stunWindows() {
     live.set(enemy, set);
     windows.set(enemy, list);
     if (c[KIND] === "mod+" || c[KIND] === "modA") {
-      if (set.size === 0) list.push([+c[T], Infinity, orderOf(c), Infinity]);
+      const last = list[list.length - 1];
+      if (set.size === 0 && last && last[1] !== Infinity && +c[T] - last[1] <= RESET_TICK_MS) {
+        last[1] = Infinity; // a Reset across a tick: the same window
+        last[3] = Infinity;
+      } else if (set.size === 0) list.push([+c[T], Infinity, orderOf(c), Infinity]);
       set.add(c[SELF]);
     } else if (c[KIND] === "modD" && set.delete(c[SELF]) && set.size === 0 && list.length) {
       list[list.length - 1][1] = +c[T];
